@@ -1,4 +1,5 @@
 import argparse
+import logging
 
 from agrag.modules.data_ingestion import DataIngestionModule
 from agrag.modules.embedding import EmbeddingModule
@@ -59,6 +60,8 @@ def initialize_rag_pipeline() -> RetrieverModule:
 
 def ag_rag():
     print("\n\nAutoGluon-RAG\n\n")
+
+    logger = logging.getLogger("rag-logger")
 
     retriever_module = initialize_rag_pipeline()
     generator_module = GeneratorModule()
