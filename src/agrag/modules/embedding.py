@@ -1,2 +1,6 @@
 class EmbeddingModule:
-    pass
+    def __init__(self):
+        pass
+
+    def create_embeddings(self, data):
+        pass
