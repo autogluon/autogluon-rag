@@ -8,5 +8,4 @@ function install_rag_test {
     python3 -m pip install --upgrade pip
     python3 -m pip install --upgrade -e "./[tests]"
     python3 -m pip install pytest
-    python3 -m pip install pytest-cov
 }
