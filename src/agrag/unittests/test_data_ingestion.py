@@ -28,7 +28,7 @@ class TestDataIngestionModule(unittest.TestCase):
     @patch("concurrent.futures.ThreadPoolExecutor.map")
     def test_process_data(self, mock_thread_map, mock_pdf_loader, mock_listdir):
         mock_listdir.return_value = ["sample.pdf"]
-       
+
         mock_page = MagicMock()
         mock_page.page_content = "This is a test page."
         mock_pdf_loader.return_value = [mock_page]
