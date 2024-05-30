@@ -9,7 +9,6 @@ TEST_DIR = os.path.join(CURRENT_DIR, "../../../docs/")
 
 
 class TestDataIngestionModule(unittest.TestCase):
-
     @patch("langchain_community.document_loaders.PyPDFLoader.load_and_split")
     def test_process_file(self, mock_pdf_loader):
         mock_page = MagicMock()
