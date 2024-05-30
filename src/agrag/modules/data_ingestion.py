@@ -10,7 +10,7 @@ class DataIngestionModule:
     def __init__(self, data_dir, chunk_size=512, chunk_overlap=128) -> None:
         self.data_dir = data_dir
         self.chunk_size = chunk_size
-        self.chunk_overlap = chunk_overlap if chunk_overlap else 128
+        self.chunk_overlap = chunk_overlap
 
     def chunk_data_naive(self, text):
         chunks = [text[i : i + self.chunk_size] for i in range(0, len(text), self.chunk_size)]

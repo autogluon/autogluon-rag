@@ -21,12 +21,16 @@ def get_args() -> argparse.Namespace:
         type=int,
         help="Maximum chunk length to split the documents into",
         metavar="",
+        required=False,
+        default=512,
     )
     parser.add_argument(
         "--chunk_overlap",
         type=int,
         help="Amount of overlap between consecutive chunks. This is the number of characters that will be shared between adjacent chunks",
         metavar="",
+        required=False,
+        default=128,
     )
 
     args = parser.parse_args()
@@ -38,7 +42,6 @@ def initialize_rag_pipeline() -> RetrieverModule:
     data_dir = args.data_dir
     chunk_size = args.chunk_size
     chunk_overlap = args.chunk_overlap
-    print(chunk_overlap)
 
     data_ingestion_module = DataIngestionModule(data_dir, chunk_size, chunk_overlap)
     processed_data = data_ingestion_module.process_data()
@@ -58,6 +61,7 @@ def ag_rag():
     print("\n\nAutoGluon-RAG\n\n")
 
     retriever_module = initialize_rag_pipeline()
+    generator_module = GeneratorModule()
 
     while True:
         query_text = input(
@@ -69,7 +73,6 @@ def ag_rag():
 
         retrieved_data = retriever_module.retrieve(query_text)
 
-        generator_module = GeneratorModule()
         response = generator_module.generate_response(retrieved_data)
 
         print("Response:", response)
