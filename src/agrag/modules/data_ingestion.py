@@ -10,19 +10,74 @@ logger = logging.getLogger("rag-logger")
 
 
 class DataIngestionModule:
-    def __init__(self, data_dir, chunk_size=512, chunk_overlap=128) -> None:
+    """
+    A class used to ingest and preprocess documents for use in a Retrieval-Augmented Generation (RAG) pipeline.
+
+    Attributes:
+    ----------
+    data_dir : str
+        The directory containing the data files to be ingested.
+    chunk_size : int, optional
+        The size of each chunk of text (default is 512).
+    chunk_overlap : int, optional
+        The overlap between consecutive chunks of text (default is 128).
+    """
+
+    def __init__(self, data_dir: str, chunk_size: int = 512, chunk_overlap: int = 128) -> None:
         self.data_dir = data_dir
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
 
-    def chunk_data_naive(self, text):
+    def chunk_data_naive(self, text: str):
+        """
+        Naively chunks text into segments of a specified size without any overlap.
+
+        Parameters:
+        ----------
+        text : str
+            The text to be chunked.
+
+        Returns:
+        -------
+        List[str]
+            A list of text chunks.
+        """
         chunks = [text[i : i + self.chunk_size] for i in range(0, len(text), self.chunk_size)]
         return chunks
 
-    def chunk_data(self, text):
+    def chunk_data(self, text: str):
+        """
+        Chunks text into segments using a more sophisticated approach.
+
+        This method will provide advanced text chunking
+        that might include considerations like word boundaries or semantic coherence.
+
+        Parameters:
+        ----------
+        text : str
+            The text to be chunked.
+
+        Returns:
+        -------
+        List[str]
+            A list of text chunks.
+        """
         raise NotImplementedError
 
-    def process_file(self, file_path) -> List[str]:
+    def process_file(self, file_path: str) -> List[str]:
+        """
+        Processes a single file, extracting and chunking the text.
+
+        Parameters:
+        ----------
+        file_path : str
+            The path to the file to be processed.
+
+        Returns:
+        -------
+        List[str]
+            A list of processed text chunks from the given file.
+        """
         processed_data = []
         if not file_path.endswith(".pdf"):  # Only PDFs for now
             logger.info("Only PDF files are supported in this version.")
@@ -42,6 +97,16 @@ class DataIngestionModule:
         return processed_data
 
     def process_data(self) -> List[str]:
+        """
+        Processes all files in the data directory.
+
+        Extracts and chunks text from each file and compiles the results into a single list.
+
+        Returns:
+        -------
+        List[str]
+            A list of processed text chunks from all files in the directory.
+        """
         processed_data = []
         file_paths = [os.path.join(self.data_dir, file_name) for file_name in os.listdir(self.data_dir)]
         with concurrent.futures.ThreadPoolExecutor() as executor:
