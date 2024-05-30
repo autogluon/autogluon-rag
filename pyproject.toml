@@ -69,4 +69,4 @@ addopts = "--strict-markers"
 xfail_strict = true
 
 [tool.setuptools_scm]
-write_to = "src/autogluon/rag/version.py"
+write_to = "src/autogluon/agrag/version.py"
