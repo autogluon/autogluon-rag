@@ -14,7 +14,11 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
+<<<<<<< HEAD
           python-version: '3.10'
+=======
+          python-version: '3.9'
+>>>>>>> 9810ee8 (CI workflow)
       - name: Lint Check
         run: |
           chmod +x ./.github/workflow_scripts/lint_check.sh && ./.github/workflow_scripts/lint_check.sh
@@ -28,7 +32,14 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
+<<<<<<< HEAD
           python-version: '3.10'
       - name: Run AutoGluon-RAG Tests
         run: |
           chmod +x ./.github/workflow_scripts/test_agrag.sh && ./.github/workflow_scripts/test_agrag.sh
+=======
+          python-version: '3.9'
+      - name: Run Dashboard Tests
+        run: |
+          chmod +x ./.github/workflow_scripts/test_agrag.sh && ./.github/workflow_scripts/agrag.sh
+>>>>>>> 9810ee8 (CI workflow)
