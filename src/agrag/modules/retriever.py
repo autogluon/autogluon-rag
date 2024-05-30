@@ -1,0 +1,2 @@
+class RetrieverModule:
+    pass
