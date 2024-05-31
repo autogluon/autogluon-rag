@@ -73,11 +73,11 @@ class TestDataProcessingModule(unittest.TestCase):
         mock_s3_client.download_file.side_effect = lambda Bucket, Key, Filename: os.rename(tmp_file_path, Filename)
 
         data_processing_module = DataProcessingModule(
-            data_dir="test_docs/", s3_bucket="yash-autogluon-rag-dev", chunk_size=10, chunk_overlap=5
+            data_dir="test_docs/", s3_bucket="autogluon-rag-github-dev", chunk_size=10, chunk_overlap=5
         )
 
         mock_s3_key = "test_docs/Chatbot.pdf"
-        data = data_processing_module.process_file(f"s3://yash-autogluon-rag-dev/{mock_s3_key}")
+        data = data_processing_module.process_file(f"s3://autogluon-rag-github-dev/{mock_s3_key}")
 
         expected_data = ["This is a test page."]
         self.assertEqual(data, expected_data)
