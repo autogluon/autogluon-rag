@@ -34,7 +34,7 @@ class DataProcessingModule:
     )
     """
 
-    def __init__(self, data_dir: str, chunk_size, chunk_overlap, s3_bucket) -> None:
+    def __init__(self, data_dir: str, chunk_size: int, chunk_overlap: int, s3_bucket: str = None) -> None:
         self.data_dir = data_dir
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
