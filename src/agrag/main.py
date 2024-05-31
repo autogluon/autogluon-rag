@@ -1,11 +1,27 @@
 import argparse
 import logging
+import os
 
-from agrag.modules.data_ingestion import DataIngestionModule
-from agrag.modules.embedding import EmbeddingModule
-from agrag.modules.generator import GeneratorModule
-from agrag.modules.retriever import RetrieverModule
-from agrag.modules.vector_database import VectorDatabaseModule
+import yaml
+
+from agrag.modules.data_ingestion.data_ingestion import DataIngestionModule
+from agrag.modules.embedding.embedding import EmbeddingModule
+from agrag.modules.generator.generator import GeneratorModule
+from agrag.modules.retriever.retriever import RetrieverModule
+from agrag.modules.vector_db.vector_database import VectorDatabaseModule
+
+CURRENT_DIR = os.path.dirname(__file__)
+CHUNK_SIZE_DEFAULT = None
+CHUNK_OVERLAP_DEFAULT = None
+
+
+def get_defaults_from_config():
+    DATA_INGESTION_CONFIG = os.path.join(CURRENT_DIR, "configs/data_ingestion/default.yaml")
+    global CHUNK_SIZE_DEFAULT, CHUNK_OVERLAP_DEFAULT
+    with open(DATA_INGESTION_CONFIG, "r") as f:
+        doc = yaml.safe_load(f)
+        CHUNK_SIZE_DEFAULT = doc["data"]["chunk_size"]
+        CHUNK_OVERLAP_DEFAULT = doc["data"]["chunk_overlap"]
 
 
 def get_args() -> argparse.Namespace:
@@ -23,7 +39,7 @@ def get_args() -> argparse.Namespace:
         help="Maximum chunk length to split the documents into",
         metavar="",
         required=False,
-        default=512,
+        default=CHUNK_SIZE_DEFAULT,
     )
     parser.add_argument(
         "--chunk_overlap",
@@ -31,7 +47,7 @@ def get_args() -> argparse.Namespace:
         help="Amount of overlap between consecutive chunks. This is the number of characters that will be shared between adjacent chunks",
         metavar="",
         required=False,
-        default=128,
+        default=CHUNK_OVERLAP_DEFAULT,
     )
 
     args = parser.parse_args()
@@ -39,6 +55,8 @@ def get_args() -> argparse.Namespace:
 
 
 def initialize_rag_pipeline() -> RetrieverModule:
+    get_defaults_from_config()
+
     args = get_args()
     data_dir = args.data_dir
     chunk_size = args.chunk_size
