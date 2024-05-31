@@ -93,12 +93,10 @@ class DataProcessingModule:
         """
         logger.info(f"Processing File: {file_path}")
         processed_data = []
-
         if not file_path.endswith(".pdf"):  # Only PDFs for now
             logger.info(f"Failed to process {file_path}.")
             logger.info("Only PDF files are supported in this version.")
             return []
-
         pdf_loader = PyPDFLoader(file_path)
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=self.chunk_size,
