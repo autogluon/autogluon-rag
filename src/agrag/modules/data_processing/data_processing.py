@@ -9,7 +9,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 logger = logging.getLogger("rag-logger")
 
 
-class DataIngestionModule:
+class DataProcessingModule:
     """
     A class used to ingest and preprocess documents for use in a Retrieval-Augmented Generation (RAG) pipeline.
 

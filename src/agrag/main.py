@@ -4,7 +4,7 @@ import os
 
 import yaml
 
-from agrag.modules.data_ingestion.data_ingestion import DataIngestionModule
+from agrag.modules.data_processing.data_processing import DataProcessingModule
 from agrag.modules.embedding.embedding import EmbeddingModule
 from agrag.modules.generator.generator import GeneratorModule
 from agrag.modules.retriever.retriever import RetrieverModule
@@ -16,9 +16,9 @@ CHUNK_OVERLAP_DEFAULT = None
 
 
 def get_defaults_from_config():
-    DATA_INGESTION_CONFIG = os.path.join(CURRENT_DIR, "configs/data_ingestion/default.yaml")
+    DATA_PROCESSING_CONFIG = os.path.join(CURRENT_DIR, "configs/data_processing/default.yaml")
     global CHUNK_SIZE_DEFAULT, CHUNK_OVERLAP_DEFAULT
-    with open(DATA_INGESTION_CONFIG, "r") as f:
+    with open(DATA_PROCESSING_CONFIG, "r") as f:
         doc = yaml.safe_load(f)
         CHUNK_SIZE_DEFAULT = doc["data"]["chunk_size"]
         CHUNK_OVERLAP_DEFAULT = doc["data"]["chunk_overlap"]
@@ -62,8 +62,8 @@ def initialize_rag_pipeline() -> RetrieverModule:
     chunk_size = args.chunk_size
     chunk_overlap = args.chunk_overlap
 
-    data_ingestion_module = DataIngestionModule(data_dir, chunk_size, chunk_overlap)
-    processed_data = data_ingestion_module.process_data()
+    data_processing_module = DataProcessingModule(data_dir, chunk_size, chunk_overlap)
+    processed_data = data_processing_module.process_data()
 
     embedding_module = EmbeddingModule()
     embeddings = embedding_module.create_embeddings(processed_data)
