@@ -4,12 +4,12 @@ import os
 
 import yaml
 
+from agrag.defaults import DATA_PROCESSING_MODULE_DEFAULTS
 from agrag.modules.data_processing.data_processing import DataProcessingModule
 from agrag.modules.embedding.embedding import EmbeddingModule
 from agrag.modules.generator.generator import GeneratorModule
 from agrag.modules.retriever.retriever import RetrieverModule
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
-from agrag.defaults import DATA_PROCESSING_MODULE_DEFAULTS
 
 CURRENT_DIR = os.path.dirname(__file__)
 
