@@ -1,3 +1,8 @@
 data:
+<<<<<<< HEAD
   CHUNK_SIZE: 512
   CHUNK_OVERLAP: 128
+=======
+  chunk_size: 512
+  chunk_overlap: 128
+>>>>>>> 53b0f94 (rename data_ingestion to data_processing)
