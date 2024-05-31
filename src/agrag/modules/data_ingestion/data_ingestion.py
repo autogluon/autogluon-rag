@@ -23,7 +23,7 @@ class DataIngestionModule:
         The overlap between consecutive chunks of text (default is 128).
     """
 
-    def __init__(self, data_dir: str, chunk_size: int = 512, chunk_overlap: int = 128) -> None:
+    def __init__(self, data_dir: str, chunk_size, chunk_overlap) -> None:
         self.data_dir = data_dir
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
