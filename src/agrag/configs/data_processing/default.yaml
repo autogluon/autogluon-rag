@@ -1,7 +1,3 @@
 data:
   CHUNK_SIZE: 512
-<<<<<<< HEAD
   CHUNK_OVERLAP: 128
-=======
-  CHUNK_OVERLAP: 128
->>>>>>> main
