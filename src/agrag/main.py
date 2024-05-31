@@ -11,17 +11,18 @@ from agrag.modules.retriever.retriever import RetrieverModule
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
 
 CURRENT_DIR = os.path.dirname(__file__)
-CHUNK_SIZE_DEFAULT = None
-CHUNK_OVERLAP_DEFAULT = None
+
+DATA_PROCESSING_MODULE_DEFAULTS = {"CHUNK_SIZE": None, "CHUNK_OVERLAP": None}
 
 
 def get_defaults_from_config():
-    DATA_PROCESSING_CONFIG = os.path.join(CURRENT_DIR, "configs/data_processing/default.yaml")
-    global CHUNK_SIZE_DEFAULT, CHUNK_OVERLAP_DEFAULT
-    with open(DATA_PROCESSING_CONFIG, "r") as f:
+    DATA_PROCESSING_MODULE_CONFIG = os.path.join(CURRENT_DIR, "configs/data_processing/default.yaml")
+    global DATA_PROCESSING_MODULE_DEFAULTS
+    with open(DATA_PROCESSING_MODULE_CONFIG, "r") as f:
         doc = yaml.safe_load(f)
-        CHUNK_SIZE_DEFAULT = doc["data"]["chunk_size"]
-        CHUNK_OVERLAP_DEFAULT = doc["data"]["chunk_overlap"]
+        DATA_PROCESSING_MODULE_DEFAULTS = dict(
+            (k, v if v else doc["data"][k]) for k, v in DATA_PROCESSING_MODULE_DEFAULTS.items()
+        )
 
 
 def get_args() -> argparse.Namespace:
@@ -39,7 +40,7 @@ def get_args() -> argparse.Namespace:
         help="Maximum chunk length to split the documents into",
         metavar="",
         required=False,
-        default=CHUNK_SIZE_DEFAULT,
+        default=DATA_PROCESSING_MODULE_DEFAULTS["CHUNK_SIZE"],
     )
     parser.add_argument(
         "--chunk_overlap",
@@ -47,7 +48,7 @@ def get_args() -> argparse.Namespace:
         help="Amount of overlap between consecutive chunks. This is the number of characters that will be shared between adjacent chunks",
         metavar="",
         required=False,
-        default=CHUNK_OVERLAP_DEFAULT,
+        default=DATA_PROCESSING_MODULE_DEFAULTS["CHUNK_OVERLAP"],
     )
 
     args = parser.parse_args()
@@ -86,9 +87,9 @@ def ag_rag():
 
     while True:
         query_text = input(
-            "Please enter a query for your RAG pipeline, based on the documents you provided (type 'exit' to quit): "
+            "Please enter a query for your RAG pipeline, based on the documents you provided (type 'q' to quit): "
         )
-        if query_text.lower() == "exit":
+        if query_text == "q":
             # correctly shutdown modules (VectorDB connection; for example)
             break
 

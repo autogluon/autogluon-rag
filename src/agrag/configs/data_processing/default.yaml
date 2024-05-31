@@ -1,3 +1,3 @@
 data:
-  chunk_size: 512
-  chunk_overlap: 128
+  CHUNK_SIZE: 512
+  CHUNK_OVERLAP: 128
