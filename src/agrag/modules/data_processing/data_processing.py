@@ -3,8 +3,11 @@ import logging
 import os
 from typing import List
 
+import boto3
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+from agrag.modules.data_processing.utils import download_directory_from_s3
 
 logger = logging.getLogger("rag-logger")
 
@@ -21,12 +24,22 @@ class DataProcessingModule:
         The size of each chunk of text (default is 512).
     chunk_overlap : int, optional
         The overlap between consecutive chunks of text (default is 128).
+    s3_bucket : str, optional
+        The name of the S3 bucket containing the data files.
+
+    Example:
+    --------
+    data_processing_module = DataProcessingModule(
+        data_dir="path/to/files", chunk_size=512, chunk_overlap=128, s3_bucket=my-s3-bucket
+    )
     """
 
-    def __init__(self, data_dir: str, chunk_size, chunk_overlap) -> None:
+    def __init__(self, data_dir: str, chunk_size, chunk_overlap, s3_bucket) -> None:
         self.data_dir = data_dir
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
+        self.s3_bucket = s3_bucket
+        self.s3_client = boto3.client("s3") if s3_bucket else None
 
     def chunk_data_naive(self, text: str):
         """
@@ -80,10 +93,12 @@ class DataProcessingModule:
         """
         logger.info(f"Processing File: {file_path}")
         processed_data = []
+
         if not file_path.endswith(".pdf"):  # Only PDFs for now
             logger.info(f"Failed to process {file_path}.")
             logger.info("Only PDF files are supported in this version.")
             return []
+
         pdf_loader = PyPDFLoader(file_path)
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=self.chunk_size,
@@ -110,7 +125,13 @@ class DataProcessingModule:
             A list of processed text chunks from all files in the directory.
         """
         processed_data = []
+        if self.s3_bucket:
+            self.data_dir = download_directory_from_s3(
+                s3_bucket=self.s3_bucket, data_dir=self.data_dir, s3_client=self.s3_client
+            )
+
         file_paths = [os.path.join(self.data_dir, file_name) for file_name in os.listdir(self.data_dir)]
+
         with concurrent.futures.ThreadPoolExecutor() as executor:
             # Process each file in parallel
             results = executor.map(self.process_file, file_paths)
