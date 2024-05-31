@@ -1,6 +1,6 @@
 .DS_Store
 *venv/
-docs/
+*docs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
