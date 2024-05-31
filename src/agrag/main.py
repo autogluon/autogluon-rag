@@ -14,6 +14,8 @@ CURRENT_DIR = os.path.dirname(__file__)
 
 DATA_PROCESSING_MODULE_DEFAULTS = {"CHUNK_SIZE": None, "CHUNK_OVERLAP": None}
 
+logger = logging.getLogger("rag-logger")
+
 
 def get_defaults_from_config():
     DATA_PROCESSING_MODULE_CONFIG = os.path.join(CURRENT_DIR, "configs/data_processing/default.yaml")
@@ -63,6 +65,7 @@ def initialize_rag_pipeline() -> RetrieverModule:
     chunk_size = args.chunk_size
     chunk_overlap = args.chunk_overlap
 
+    logger.info(f"Processing Data from provided documents at {data_dir}")
     data_processing_module = DataProcessingModule(data_dir, chunk_size, chunk_overlap)
     processed_data = data_processing_module.process_data()
 
@@ -80,8 +83,7 @@ def initialize_rag_pipeline() -> RetrieverModule:
 def ag_rag():
     print("\n\nAutoGluon-RAG\n\n")
 
-    logger = logging.getLogger("rag-logger")
-
+    logger.info("Initializing RAG Pipeline")
     retriever_module = initialize_rag_pipeline()
     generator_module = GeneratorModule()
 
