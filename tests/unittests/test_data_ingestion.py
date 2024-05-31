@@ -2,7 +2,7 @@ import os
 import unittest
 from unittest.mock import MagicMock, mock_open, patch
 
-from agrag.modules.data_ingestion import DataIngestionModule
+from agrag.modules.data_ingestion.data_ingestion import DataIngestionModule
 
 CURRENT_DIR = os.path.dirname(__file__)
 TEST_DIR = os.path.join(CURRENT_DIR, "../test_docs/")
