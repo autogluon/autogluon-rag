@@ -16,6 +16,8 @@ CURRENT_DIR = os.path.dirname(__file__)
 
 logger = logging.getLogger("rag-logger")
 
+logger = logging.getLogger("rag-logger")
+
 
 def get_defaults_from_config():
     DATA_PROCESSING_MODULE_CONFIG = os.path.join(CURRENT_DIR, "configs/data_processing/default.yaml")
