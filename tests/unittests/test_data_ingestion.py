@@ -4,6 +4,7 @@ import unittest
 from unittest.mock import MagicMock, mock_open, patch
 
 from agrag.modules.data_processing.data_processing import DataProcessingModule
+from agrag.modules.data_processing.utils import download_directory_from_s3
 
 CURRENT_DIR = os.path.dirname(__file__)
 TEST_DIR = os.path.join(CURRENT_DIR, "../test_docs/")
@@ -80,6 +81,40 @@ class TestDataProcessingModule(unittest.TestCase):
 
         expected_data = ["This is a test page."]
         self.assertEqual(data, expected_data)
+
+    @patch("boto3.client")
+    @patch("os.makedirs")
+    @patch("os.path.exists")
+    @patch("os.path.dirname")
+    @patch("os.path.relpath")
+    def test_download_directory_from_s3(
+        self, mock_relpath, mock_dirname, mock_exists, mock_makedirs, mock_boto_client
+    ):
+        mock_s3_client = MagicMock()
+        mock_boto_client.return_value = mock_s3_client
+
+        mock_s3_client.list_objects_v2.return_value = {
+            "Contents": [
+                {"Key": "path/to/files/file1.txt"},
+                {"Key": "path/to/files/file2.txt"},
+            ]
+        }
+
+        mock_exists.return_value = False
+
+        mock_relpath.side_effect = lambda s3_path, data_dir: s3_path.replace(data_dir, "")
+        mock_dirname.side_effect = lambda local_file_path: os.path.split(local_file_path)[0]
+
+        local_dir = download_directory_from_s3("my-s3-bucket", "path/to/files", mock_s3_client)
+
+        self.assertEqual(local_dir, "s3_docs")
+        mock_s3_client.list_objects_v2.assert_called_once_with(Bucket="my-s3-bucket", Prefix="path/to/files")
+        mock_s3_client.download_file.assert_any_call("my-s3-bucket", "path/to/files/file1.txt", "/file1.txt")
+        mock_s3_client.download_file.assert_any_call("my-s3-bucket", "path/to/files/file2.txt", "/file2.txt")
+        self.assertEqual(mock_s3_client.download_file.call_count, 2)
+
+        mock_makedirs.assert_any_call("s3_docs")
+        mock_makedirs.assert_any_call("s3_docs")
 
 
 if __name__ == "__main__":
