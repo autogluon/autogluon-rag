@@ -29,17 +29,9 @@ class EmbeddingModule:
     """
 
     def __init__(self, model_name: str = "BAAI/bge-large-en", pooling_strategy: str = None):
-        """
-        Initializes the EmbeddingModule with a Huggingface model.
-
-        Parameters:
-        ----------
-        model_name : str, optional
-            The name of the Huggingface model to use for generating embeddings (default is "BAAI/bge-large-en").
-        """
         self.model_name = model_name
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.model = AutoModel.from_pretrained(model_name)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+        self.model = AutoModel.from_pretrained(self.model_name)
         self.pooling_strategy = pooling_strategy
 
     def create_embeddings(self, data: List[str]) -> List[torch.Tensor]:
