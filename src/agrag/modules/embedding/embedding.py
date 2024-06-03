@@ -3,6 +3,8 @@ from typing import List
 import torch
 from transformers import AutoModel, AutoTokenizer
 
+from agrag.modules.embedding.utils import pool
+
 
 class EmbeddingModule:
     """
@@ -16,6 +18,9 @@ class EmbeddingModule:
         The tokenizer associated with the Huggingface model.
     model : transformers.PreTrainedModel
         The Huggingface model used for generating embeddings.
+    pooling_strategy : str
+        The strategy used for pooling embeddings. Options are 'average', 'max', 'cls'.
+        If no option is provided, will default to using no pooling method.
 
     Methods:
     -------
@@ -23,7 +28,7 @@ class EmbeddingModule:
         Generates embeddings for a list of text data chunks.
     """
 
-    def __init__(self, model_name: str = "BAAI/bge-large-en"):
+    def __init__(self, model_name: str = "BAAI/bge-large-en", pooling_strategy: str = None):
         """
         Initializes the EmbeddingModule with a Huggingface model.
 
@@ -35,6 +40,7 @@ class EmbeddingModule:
         self.model_name = model_name
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.model = AutoModel.from_pretrained(model_name)
+        self.pooling_strategy = pooling_strategy
 
     def create_embeddings(self, data: List[str]) -> List[torch.Tensor]:
         """
@@ -55,5 +61,6 @@ class EmbeddingModule:
             inputs = self.tokenizer(text, return_tensors="pt", truncation=True, padding=True)
             with torch.no_grad():
                 outputs = self.model(**inputs)
-            embeddings.append(outputs.last_hidden_state.mean(dim=1))
+            embedding = pool(outputs.last_hidden_state, self.pooling_strategy)
+            embeddings.append(embedding)
         return embeddings
