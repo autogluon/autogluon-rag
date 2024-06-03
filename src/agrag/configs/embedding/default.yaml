@@ -1,0 +1,3 @@
+data:
+  HF_DEFAULT_MODEL: "BAAI/bge-large-en"
+  ST_DEFAULT_MODEL: "paraphrase-MiniLM-L6-v2"
