@@ -17,6 +17,7 @@ idna==3.7
 iniconfig==2.0.0
 Jinja2==3.1.4
 jmespath==1.0.1
+joblib==1.4.2
 jsonpatch==1.33
 jsonpointer==2.4
 langchain==0.2.1
@@ -37,6 +38,7 @@ pillow==10.3.0
 pluggy==1.5.0
 pydantic==2.7.2
 pydantic_core==2.18.3
+pypdf==4.2.0
 pytest==8.2.1
 python-dateutil==2.9.0.post0
 PyYAML==6.0.1
@@ -44,10 +46,14 @@ regex==2024.5.15
 requests==2.32.3
 s3transfer==0.10.1
 safetensors==0.4.3
+scikit-learn==1.5.0
+scipy==1.13.1
+sentence-transformers==3.0.0
 six==1.16.0
 SQLAlchemy==2.0.30
 sympy==1.12.1
 tenacity==8.3.0
+threadpoolctl==3.5.0
 tokenizers==0.19.1
 tomli==2.0.1
 torch==2.3.0
