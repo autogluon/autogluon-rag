@@ -4,7 +4,7 @@ import os
 
 import yaml
 
-from agrag.defaults import DATA_PROCESSING_MODULE_DEFAULTS, EMBEDDING_MODULE_DEFAULTS
+from agrag.configs.defaults import DATA_PROCESSING_MODULE_DEFAULTS, EMBEDDING_MODULE_DEFAULTS
 from agrag.modules.data_processing.data_processing import DataProcessingModule
 from agrag.modules.embedding.embedding import EmbeddingModule
 from agrag.modules.generator.generator import GeneratorModule
