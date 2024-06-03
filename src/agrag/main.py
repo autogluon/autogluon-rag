@@ -60,6 +60,14 @@ def get_args() -> argparse.Namespace:
         required=False,
         default=DATA_PROCESSING_MODULE_DEFAULTS["CHUNK_OVERLAP"],
     )
+    parser.add_argument(
+        "--embedding_model",
+        type=str,
+        help="Huggingface model to use for generating embeddings",
+        metavar="",
+        required=False,
+        default="BAAI/bge-large-en",
+    )
 
     args = parser.parse_args()
     return args
@@ -73,6 +81,7 @@ def initialize_rag_pipeline() -> RetrieverModule:
     chunk_size = args.chunk_size
     chunk_overlap = args.chunk_overlap
     s3_bucket = args.s3_bucket
+    embedding_model = args.embedding_model
 
     logger.info(f"Processing Data from provided documents at {data_dir}")
     data_processing_module = DataProcessingModule(
@@ -80,7 +89,7 @@ def initialize_rag_pipeline() -> RetrieverModule:
     )
     processed_data = data_processing_module.process_data()
 
-    embedding_module = EmbeddingModule()
+    embedding_module = EmbeddingModule(model_name=embedding_model)
     embeddings = embedding_module.create_embeddings(processed_data)
 
     vector_database_module = VectorDatabaseModule()
