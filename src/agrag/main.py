@@ -4,7 +4,7 @@ import os
 
 import yaml
 
-from agrag.defaults import DATA_PROCESSING_MODULE_DEFAULTS
+from agrag.defaults import DATA_PROCESSING_MODULE_DEFAULTS, EMBEDDING_MODULE_DEFAULTS
 from agrag.modules.data_processing.data_processing import DataProcessingModule
 from agrag.modules.embedding.embedding import EmbeddingModule
 from agrag.modules.generator.generator import GeneratorModule
@@ -19,12 +19,16 @@ logger = logging.getLogger("rag-logger")
 
 def get_defaults_from_config():
     DATA_PROCESSING_MODULE_CONFIG = os.path.join(CURRENT_DIR, "configs/data_processing/default.yaml")
-    global DATA_PROCESSING_MODULE_DEFAULTS
+    EMBEDDING_MODULE_CONFIG = os.path.join(CURRENT_DIR, "configs/embedding/default.yaml")
+    global DATA_PROCESSING_MODULE_DEFAULTS, EMBEDDING_MODULE_DEFAULTS
     with open(DATA_PROCESSING_MODULE_CONFIG, "r") as f:
         doc = yaml.safe_load(f)
         DATA_PROCESSING_MODULE_DEFAULTS = dict(
             (k, v if v else doc["data"][k]) for k, v in DATA_PROCESSING_MODULE_DEFAULTS.items()
         )
+    with open(EMBEDDING_MODULE_CONFIG, "r") as f:
+        doc = yaml.safe_load(f)
+        EMBEDDING_MODULE_DEFAULTS = dict((k, v if v else doc["data"][k]) for k, v in EMBEDDING_MODULE_DEFAULTS.items())
 
 
 def get_args() -> argparse.Namespace:
@@ -61,12 +65,20 @@ def get_args() -> argparse.Namespace:
         default=DATA_PROCESSING_MODULE_DEFAULTS["CHUNK_OVERLAP"],
     )
     parser.add_argument(
-        "--embedding_model",
+        "--hf_embedding_model",
         type=str,
         help="Huggingface model to use for generating embeddings",
         metavar="",
         required=False,
-        default="BAAI/bge-large-en",
+        default=EMBEDDING_MODULE_DEFAULTS["HF_DEFAULT_MODEL"],
+    )
+    parser.add_argument(
+        "--st_embedding_model",
+        type=str,
+        help="Sentence Transformer model to use for generating embeddings",
+        metavar="",
+        required=False,
+        default=EMBEDDING_MODULE_DEFAULTS["ST_DEFAULT_MODEL"],
     )
     parser.add_argument(
         "--pooling_strategy",
@@ -89,7 +101,9 @@ def initialize_rag_pipeline() -> RetrieverModule:
     chunk_size = args.chunk_size
     chunk_overlap = args.chunk_overlap
     s3_bucket = args.s3_bucket
-    embedding_model = args.embedding_model
+    hf_embedding_model = args.hf_embedding_model
+    st_embedding_model = args.st_embedding_model
+
     pooling_strategy = args.pooling_strategy
 
     logger.info(f"Processing Data from provided documents at {data_dir}")
@@ -98,7 +112,9 @@ def initialize_rag_pipeline() -> RetrieverModule:
     )
     processed_data = data_processing_module.process_data()
 
-    embedding_module = EmbeddingModule(model_name=embedding_model, pooling_strategy=pooling_strategy)
+    embedding_module = EmbeddingModule(
+        hf_model=hf_embedding_model, st_model=st_embedding_model, pooling_strategy=pooling_strategy
+    )
     embeddings = embedding_module.create_embeddings(processed_data)
 
     vector_database_module = VectorDatabaseModule()

@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 import torch
+from sentence_transformers import SentenceTransformer
 
 from agrag.modules.embedding.embedding import EmbeddingModule
 from agrag.modules.embedding.utils import pool
@@ -16,7 +17,7 @@ class TestEmbeddingModule(unittest.TestCase):
         mock_tokenizer.return_value = self.mock_tokenizer
         mock_model.return_value = self.mock_model
 
-        self.embedding_module = EmbeddingModule(model_name="some-model", pooling_strategy=None)
+        self.embedding_module = EmbeddingModule(hf_model="some-model", pooling_strategy=None)
 
     def test_create_embeddings_no_pooling(self):
         self.mock_tokenizer.return_tensors.return_value = {
@@ -30,6 +31,20 @@ class TestEmbeddingModule(unittest.TestCase):
 
         self.assertEqual(len(embeddings), 2)
         self.assertTrue(all(isinstance(embedding, torch.Tensor) for embedding in embeddings))
+
+    @patch("sentence_transformers.SentenceTransformer")
+    def test_create_embeddings_sentence_transformer(self, mock_sentence_transformer):
+        mock_model = MagicMock()
+        mock_model.encode.return_value = torch.rand((2, 100))
+        mock_sentence_transformer.return_value = mock_model
+
+        with patch("agrag.modules.embedding.embedding.SentenceTransformer", return_value=mock_model):
+            self.embedding_module = EmbeddingModule(st_model="sentence_transformer", pooling_strategy=None)
+
+            data = ["test sentence 1", "test sentence 2"]
+            embeddings = self.embedding_module.create_embeddings(data)
+
+            self.assertEqual(embeddings.shape, (2, 100))
 
     @patch("agrag.modules.embedding.embedding.AutoModel.from_pretrained")
     def test_pool_average(self, mock_model):
