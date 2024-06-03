@@ -30,9 +30,17 @@ def get_defaults_from_config():
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="AutoGluon-RAG - Retrieval-Augmented Generation Pipeline")
     parser.add_argument(
+        "--s3_bucket",
+        type=str,
+        help="S3 bucket to read files from",
+        metavar="",
+        required=False,
+        default=None,
+    )
+    parser.add_argument(
         "--data_dir",
         type=str,
-        help="Path to the directory containing the documents to be ingested into the RAG pipeline",
+        help="Path to the directory containing the documents to be ingested into the RAG pipeline. This path can either be a local path or a path in an S3 bucket. If 's3_bucket' is not specified, it will default to reading from a local directory.",
         required=True,
         metavar="",
     )
@@ -64,9 +72,12 @@ def initialize_rag_pipeline() -> RetrieverModule:
     data_dir = args.data_dir
     chunk_size = args.chunk_size
     chunk_overlap = args.chunk_overlap
+    s3_bucket = args.s3_bucket
 
     logger.info(f"Processing Data from provided documents at {data_dir}")
-    data_processing_module = DataProcessingModule(data_dir, chunk_size, chunk_overlap)
+    data_processing_module = DataProcessingModule(
+        data_dir=data_dir, chunk_size=chunk_size, chunk_overlap=chunk_overlap, s3_bucket=s3_bucket
+    )
     processed_data = data_processing_module.process_data()
 
     embedding_module = EmbeddingModule()
