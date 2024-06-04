@@ -5,7 +5,7 @@ import torch
 from torch.nn import DataParallel
 from transformers import AutoModel, AutoTokenizer
 
-from agrag.modules.embedding.utils import pool
+from agrag.modules.embedding.utils import normalize_embedding, pool
 
 logger = logging.getLogger("rag-logger")
 
@@ -39,12 +39,14 @@ class EmbeddingModule:
         self,
         hf_model: str = "BAAI/bge-large-en",
         pooling_strategy: str = None,
+        normalize_embeddings: bool = False,
         hf_model_params: Dict[str, Any] = None,
         hf_tokenizer_init_params: Dict[str, Any] = None,
         hf_tokenizer_params: Dict[str, Any] = None,
         hf_forward_params: Dict[str, Any] = None,
     ):
         self.hf_model = hf_model
+        self.normalize_embeddings = normalize_embeddings
         self.hf_model_params = hf_model_params or {}
         self.hf_tokenizer_init_params = hf_tokenizer_init_params or {}
         self.hf_tokenizer_params = hf_tokenizer_params or {}
@@ -71,6 +73,11 @@ class EmbeddingModule:
         Union[List[torch.Tensor], torch.Tensor]
             A list of embeddings corresponding to the input data chunks if pooling_strategy is 'none',
             otherwise a single tensor with the pooled embeddings.
+
+        Example:
+        --------
+        data = ["This is a test sentence.", "This is another test sentence."]
+        embeddings = create_embeddings(data)
         """
 
         embeddings = []
@@ -79,6 +86,8 @@ class EmbeddingModule:
             with torch.no_grad():
                 outputs = self.model(**inputs, **self.hf_forward_params)
             embedding = pool(outputs.last_hidden_state, self.pooling_strategy)
+            if self.normalize_embeddings:
+                normalize_embedding(embedding)
             embeddings.append(embedding)
         if not self.pooling_strategy:
             return embeddings
