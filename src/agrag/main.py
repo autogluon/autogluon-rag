@@ -109,7 +109,6 @@ def initialize_rag_pipeline() -> RetrieverModule:
     chunk_overlap = args.chunk_overlap
     s3_bucket = args.s3_bucket
     hf_embedding_model = args.hf_embedding_model
-
     pooling_strategy = args.pooling_strategy
 
     logger.info(f"Processing Data from provided documents at {data_dir}")
