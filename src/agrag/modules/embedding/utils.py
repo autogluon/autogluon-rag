@@ -44,9 +44,9 @@ def pool(embeddings: List[torch.Tensor], pooling_strategy: str) -> List[torch.Te
     return embeddings
 
 
-def normalize(embeddings, args):
+def normalize_embedding(embeddings, args=None):
     """
-    Normalizes the input embeddings tensor.
+    Normalizes the input tensor (embedding).
 
     This function normalizes the input embeddings along a specified dimension using the specified parameters.
     It wraps the `torch.nn.functional.normalize` function, which applies Lp normalization over a specified dimension.
@@ -72,4 +72,6 @@ def normalize(embeddings, args):
     args = {'p': 2, 'dim': 1, 'eps': 1e-12}
     normalized_embeddings = normalize(embeddings, args)
     """
+    if not args:
+        args = {"p": 2, "dim": 1, "eps": 1e-12}  # default values from PyTorch
     return F.normalize(embeddings, **args)
