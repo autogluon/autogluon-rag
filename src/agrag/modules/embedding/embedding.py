@@ -2,6 +2,7 @@ import logging
 from typing import Any, Dict, List, Union
 
 import torch
+from torch.nn import DataParallel
 from transformers import AutoModel, AutoTokenizer
 
 from agrag.modules.embedding.utils import pool
@@ -48,11 +49,12 @@ class EmbeddingModule:
         self.hf_tokenizer_init_params = hf_tokenizer_init_params or {}
         self.hf_tokenizer_params = hf_tokenizer_params or {}
         self.hf_forward_params = hf_forward_params or {}
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        logger.info(f"Default to using Huggingface since no model was provided.")
-        logger.info(f"Using Model: {self.hf_model}")
+        logger.info(f"Using Huggingface Model: {self.hf_model}")
         self.tokenizer = AutoTokenizer.from_pretrained(self.hf_model, **self.hf_tokenizer_init_params)
         self.model = AutoModel.from_pretrained(self.hf_model, **self.hf_model_params)
+        self.model = DataParallel(self.model).to(self.device)
         self.pooling_strategy = pooling_strategy
 
     def create_embeddings(self, data: List[str]) -> Union[List[torch.Tensor], torch.Tensor]:
