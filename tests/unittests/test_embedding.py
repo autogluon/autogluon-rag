@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 import torch
 
 from agrag.modules.embedding.embedding import EmbeddingModule
-from agrag.modules.embedding.utils import pool
+from agrag.modules.embedding.utils import normalize_embedding, pool
 
 
 class TestEmbeddingModule(unittest.TestCase):
@@ -30,7 +30,7 @@ class TestEmbeddingModule(unittest.TestCase):
             hf_forward_params=forward_params,
         )
 
-    def test_create_embeddings_hf_no_pooling(self):
+    def test_create_embeddings_hf(self):
         self.mock_tokenizer.return_tensors.return_value = {
             "input_ids": torch.tensor([[1, 2, 3], [4, 5, 6]]),
             "attention_mask": torch.tensor([[1, 1, 1], [1, 1, 1]]),
@@ -69,6 +69,15 @@ class TestEmbeddingModule(unittest.TestCase):
         pooled_embeddings = pool(embeddings, self.embedding_module.pooling_strategy)
 
         self.assertEqual(pooled_embeddings.shape, (10, 100))
+
+    def test_normalize_embedding(self):
+        embedding = torch.rand((10, 100))
+        normalized_embedding = normalize_embedding(embedding)
+
+        expected_norm = torch.ones((10,))
+        actual_norm = torch.norm(normalized_embedding, p=2, dim=1)
+
+        self.assertTrue(torch.allclose(expected_norm, actual_norm, atol=1e-6))
 
 
 if __name__ == "__main__":
