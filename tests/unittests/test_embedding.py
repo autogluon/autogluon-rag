@@ -72,7 +72,7 @@ class TestEmbeddingModule(unittest.TestCase):
 
     def test_normalize_embedding(self):
         embedding = torch.rand((10, 100))
-        normalized_embedding = normalize_embedding(embedding)
+        normalized_embedding = normalize_embedding(embedding, {})
 
         expected_norm = torch.ones((10,))
         actual_norm = torch.norm(normalized_embedding, p=2, dim=1)

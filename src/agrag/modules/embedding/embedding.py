@@ -44,6 +44,7 @@ class EmbeddingModule:
         hf_tokenizer_init_params: Dict[str, Any] = None,
         hf_tokenizer_params: Dict[str, Any] = None,
         hf_forward_params: Dict[str, Any] = None,
+        normalization_params: Dict[str, Any] = None,
     ):
         self.hf_model = hf_model
         self.normalize_embeddings = normalize_embeddings
@@ -51,6 +52,7 @@ class EmbeddingModule:
         self.hf_tokenizer_init_params = hf_tokenizer_init_params or {}
         self.hf_tokenizer_params = hf_tokenizer_params or {}
         self.hf_forward_params = hf_forward_params or {}
+        self.normalization_params = normalization_params or {}
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         logger.info(f"Using Huggingface Model: {self.hf_model}")
@@ -87,7 +89,7 @@ class EmbeddingModule:
                 outputs = self.model(**inputs, **self.hf_forward_params)
             embedding = pool(outputs.last_hidden_state, self.pooling_strategy)
             if self.normalize_embeddings:
-                normalize_embedding(embedding)
+                normalize_embedding(embedding, **self.normalization_params)
             embeddings.append(embedding)
         if not self.pooling_strategy:
             return embeddings

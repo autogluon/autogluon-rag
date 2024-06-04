@@ -72,6 +72,4 @@ def normalize_embedding(embeddings, args=None):
     args = {'p': 2, 'dim': 1, 'eps': 1e-12}
     normalized_embeddings = normalize(embeddings, args)
     """
-    if not args:
-        args = {"p": 2, "dim": 1, "eps": 1e-12}  # default values from PyTorch
     return F.normalize(embeddings, **args)
