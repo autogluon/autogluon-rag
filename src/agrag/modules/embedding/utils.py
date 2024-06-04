@@ -1,6 +1,7 @@
 from typing import List
 
 import torch
+from torch.nn import functional as F
 
 
 def pool(embeddings: List[torch.Tensor], pooling_strategy: str) -> List[torch.Tensor]:
@@ -25,6 +26,12 @@ def pool(embeddings: List[torch.Tensor], pooling_strategy: str) -> List[torch.Te
         strategy:
         - 'mean', 'cls', and 'max': [batch_size, hidden_size]
         - None: [batch_size, sequence_length, hidden_size]
+
+    Example:
+    --------
+    output = self.model(input)
+    embedding = output.last_hidden_state
+    embedding = pool(embedding, 'mean')
     """
     if pooling_strategy == "mean":
         embeddings = embeddings.mean(dim=1)
@@ -35,3 +42,34 @@ def pool(embeddings: List[torch.Tensor], pooling_strategy: str) -> List[torch.Te
     elif pooling_strategy:
         raise NotImplementedError("Provided pooling strategy not implemented")
     return embeddings
+
+
+def normalize(embeddings, args):
+    """
+    Normalizes the input embeddings tensor.
+
+    This function normalizes the input embeddings along a specified dimension using the specified parameters.
+    It wraps the `torch.nn.functional.normalize` function, which applies Lp normalization over a specified dimension.
+
+    Parameters:
+    ----------
+    embeddings : torch.Tensor
+        The input tensor containing the embeddings to be normalized.
+    args : dict
+        Additional arguments to be passed to `torch.nn.functional.normalize`. This can include:
+        - p (float): The exponent value in the norm formulation. Default: 2.
+        - dim (int): The dimension to reduce. Default: 1.
+        - eps (float): A small value to avoid division by zero. Default: 1e-12.
+
+    Returns:
+    -------
+    torch.Tensor
+        A tensor containing the normalized embeddings.
+
+    Example:
+    --------
+    embeddings = torch.rand(10, 100)
+    args = {'p': 2, 'dim': 1, 'eps': 1e-12}
+    normalized_embeddings = normalize(embeddings, args)
+    """
+    return F.normalize(embeddings, **args)
