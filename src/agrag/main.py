@@ -37,7 +37,7 @@ def get_defaults_from_config():
     try:
         with open(EMBEDDING_MODULE_CONFIG, "r") as f:
             doc = yaml.safe_load(f)
-            EMBEDDING_MODULE_DEFAULTS = {k: v if v else doc["data"][k] for k, v in EMBEDDING_MODULE_DEFAULTS.items()}
+            EMBEDDING_MODULE_DEFAULTS = {k: v if v else doc["models"][k] for k, v in EMBEDDING_MODULE_DEFAULTS.items()}
     except FileNotFoundError:
         print(f"Error: File not found - {EMBEDDING_MODULE_CONFIG}")
     except yaml.YAMLError as exc:
