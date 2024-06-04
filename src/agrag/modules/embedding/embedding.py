@@ -23,7 +23,7 @@ class EmbeddingModule:
     st_model : str, optional
         The name of the SentenceTransformer model to use for generating embeddings (default is "paraphrase-MiniLM-L6-v2").
     pooling_strategy : str, optional
-        The strategy to use for pooling embeddings. Options are 'average', 'max', 'cls' (default is None).
+        The strategy to use for pooling embeddings. Options are 'mean', 'max', 'cls' (default is None).
     hf_model_params : dict, optional
         Additional parameters to pass to the Huggingface model's `from_pretrained` initializer method.
     hf_tokenizer_init_params : dict, optional

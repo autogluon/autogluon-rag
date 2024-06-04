@@ -7,7 +7,7 @@ def pool(embeddings: List[torch.Tensor], pooling_strategy: str) -> List[torch.Te
     """
     Applies the specified pooling strategy to the embeddings.
     The pooling strategies supported are:
-    - 'average': Average pooling of token embeddings.
+    - 'mean': Mean pooling of token embeddings.
     - 'max': Max pooling of token embeddings.
     - 'cls': Using the embedding of the CLS token.
     - None: No pooling, the input embeddings are returned as is.
@@ -23,10 +23,10 @@ def pool(embeddings: List[torch.Tensor], pooling_strategy: str) -> List[torch.Te
     torch.Tensor
         A tensor of pooled embeddings according to the specified strategy. The output shape depends on the pooling
         strategy:
-        - 'average', 'cls', and 'max': [batch_size, hidden_size]
+        - 'mean', 'cls', and 'max': [batch_size, hidden_size]
         - None: [batch_size, sequence_length, hidden_size]
     """
-    if pooling_strategy == "average":
+    if pooling_strategy == "mean":
         embeddings = embeddings.mean(dim=1)
     elif pooling_strategy == "max":
         embeddings = embeddings.max(dim=1).values

@@ -69,8 +69,8 @@ class TestEmbeddingModule(unittest.TestCase):
             self.assertEqual(embeddings.shape, (2, 100))
 
     @patch("agrag.modules.embedding.embedding.AutoModel.from_pretrained")
-    def test_pool_average(self, mock_model):
-        self.embedding_module.pooling_strategy = "average"
+    def test_pool_mean(self, mock_model):
+        self.embedding_module.pooling_strategy = "mean"
         mock_model.return_value = MagicMock(last_hidden_state=torch.rand((10, 20, 100)))
         embeddings = torch.rand((10, 20, 100))
         pooled_embeddings = pool(embeddings, self.embedding_module.pooling_strategy)
