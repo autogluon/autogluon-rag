@@ -62,7 +62,9 @@ class EmbeddingModule:
         logger.info(f"Using Huggingface Model: {self.hf_model}")
         self.tokenizer = AutoTokenizer.from_pretrained(self.hf_model, **self.hf_tokenizer_init_params)
         self.model = AutoModel.from_pretrained(self.hf_model, **self.hf_model_params)
-        self.model = DataParallel(self.model).to(self.device)
+        if torch.cuda.device_count() > 1:
+            self.model = DataParallel(self.model)
+        self.model.to(self.device)
         self.pooling_strategy = pooling_strategy
 
     def create_embeddings(self, data: List[str]) -> Union[List[torch.Tensor], torch.Tensor]:
