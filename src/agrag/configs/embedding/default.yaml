@@ -1,0 +1,2 @@
+models:
+  DEFAULT_EMBEDDING_MODEL: "BAAI/bge-large-en"
