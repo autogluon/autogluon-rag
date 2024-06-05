@@ -35,7 +35,7 @@ class EmbeddingModule:
 
     Methods:
     -------
-    create_embeddings(data: List[str]) -> List[torch.Tensor]:
+    encode(data: List[str]) -> List[torch.Tensor]:
         Generates embeddings for a list of text data chunks.
     """
 
@@ -62,12 +62,14 @@ class EmbeddingModule:
         logger.info(f"Using Huggingface Model: {self.hf_model}")
         self.tokenizer = AutoTokenizer.from_pretrained(self.hf_model, **self.hf_tokenizer_init_params)
         self.model = AutoModel.from_pretrained(self.hf_model, **self.hf_model_params)
-        if torch.cuda.device_count() > 1:
+        self.num_gpus = torch.cuda.device_count()
+        if self.num_gpus > 1:
+            logger.info(f"Using {self.num_gpus} GPUs")
             self.model = DataParallel(self.model)
         self.model.to(self.device)
         self.pooling_strategy = pooling_strategy
 
-    def create_embeddings(self, data: List[str]) -> Union[List[torch.Tensor], torch.Tensor]:
+    def encode(self, data: List[str]) -> Union[List[torch.Tensor], torch.Tensor]:
         """
         Generates embeddings for a list of text data chunks.
 
@@ -85,7 +87,7 @@ class EmbeddingModule:
         Example:
         --------
         data = ["This is a test sentence.", "This is another test sentence."]
-        embeddings = create_embeddings(data)
+        embeddings = encode(data)
         """
 
         embeddings = []

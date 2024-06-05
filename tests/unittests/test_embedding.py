@@ -30,7 +30,7 @@ class TestEmbeddingModule(unittest.TestCase):
             hf_forward_params=forward_params,
         )
 
-    def test_create_embeddings_hf(self):
+    def test_encode_hf(self):
         self.mock_tokenizer.return_tensors.return_value = {
             "input_ids": torch.tensor([[1, 2, 3], [4, 5, 6]]),
             "attention_mask": torch.tensor([[1, 1, 1], [1, 1, 1]]),
@@ -38,7 +38,7 @@ class TestEmbeddingModule(unittest.TestCase):
         self.mock_model.return_value = MagicMock(last_hidden_state=torch.rand((10, 20, 100)))
 
         data = ["test sentence 1", "test sentence 2"]
-        embeddings = self.embedding_module.create_embeddings(data)
+        embeddings = self.embedding_module.encode(data)
 
         self.assertEqual(len(embeddings), 2)
         self.assertTrue(all(isinstance(embedding, torch.Tensor) for embedding in embeddings))

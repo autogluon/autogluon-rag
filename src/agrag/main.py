@@ -121,7 +121,7 @@ def initialize_rag_pipeline() -> RetrieverModule:
         hf_model=hf_embedding_model,
         pooling_strategy=pooling_strategy,
     )
-    embeddings = embedding_module.create_embeddings(processed_data)
+    embeddings = embedding_module.encode(processed_data)
 
     vector_database_module = VectorDatabaseModule()
     vector_database = vector_database_module.construct_vector_database(embeddings)
