@@ -4,12 +4,12 @@ import os
 
 import yaml
 
+from agrag.args import Arguments
 from agrag.modules.data_processing.data_processing import DataProcessingModule
 from agrag.modules.embedding.embedding import EmbeddingModule
 from agrag.modules.generator.generator import GeneratorModule
 from agrag.modules.retriever.retriever import RetrieverModule
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
-from agrag.args import Arguments
 
 logger = logging.getLogger("rag-logger")
 logger.setLevel(logging.INFO)
@@ -17,13 +17,14 @@ ch = logging.StreamHandler()
 ch.setLevel(logging.INFO)
 logger.addHandler(ch)
 
+
 def initialize_rag_pipeline() -> RetrieverModule:
     args = Arguments()
 
     data_dir = args.data_dir
     if not data_dir:
         raise ValueError("Error: 'data_dir' must be specified in the configuration file under 'data' section.")
-    
+
     logger.info(f"Retrieving Data from {data_dir}")
     data_processing_module = DataProcessingModule(
         data_dir=data_dir, chunk_size=args.chunk_size, chunk_overlap=args.chunk_overlap, s3_bucket=args.s3_bucket

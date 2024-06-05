@@ -1,13 +1,39 @@
 import argparse
 import logging
 import os
+
 import yaml
 
 CURRENT_DIR = os.path.dirname(__file__)
 
 logger = logging.getLogger("rag-logger")
 
+
 class Arguments:
+    """
+    A class to handle the per-module arguments and loading of configuration files for the AutoGluon-RAG pipeline.
+
+    Attributes:
+    ----------
+    args : argparse.Namespace
+        The parsed command-line arguments.
+    config : dict
+        The loaded configuration from the specified YAML file.
+    data_defaults : dict
+        The default values for the data processing module loaded from a YAML file.
+    embedding_defaults : dict
+        The default values for the embedding module loaded from a YAML file.
+
+    Methods:
+    -------
+    _parse_args() -> argparse.Namespace
+        Parses command-line arguments.
+    _load_config(config_file: str) -> dict
+        Loads configuration from the specified YAML file.
+    _load_defaults(default_file: str) -> dict
+        Loads default values from the specified YAML file.
+    """
+
     def __init__(self):
         self.args = self._parse_args()
         self.config = self._load_config(self.args.config_file)
@@ -71,7 +97,9 @@ class Arguments:
 
     @property
     def hf_embedding_model(self):
-        return self.config.get("embedding", {}).get("embedding_model", self.embedding_defaults.get("DEFAULT_EMBEDDING_MODEL"))
+        return self.config.get("embedding", {}).get(
+            "embedding_model", self.embedding_defaults.get("DEFAULT_EMBEDDING_MODEL")
+        )
 
     @property
     def pooling_strategy(self):
