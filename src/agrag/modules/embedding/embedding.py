@@ -59,7 +59,7 @@ class EmbeddingModule:
         self.normalization_params = normalization_params or {}
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        logger.info(f"Using Huggingface Model: {self.hf_model}")
+        logger.info(f"Using Huggingface Model {self.hf_model} for Embedding Module")
         self.tokenizer = AutoTokenizer.from_pretrained(self.hf_model, **self.hf_tokenizer_init_params)
         self.model = AutoModel.from_pretrained(self.hf_model, **self.hf_model_params)
         self.num_gpus = torch.cuda.device_count()
