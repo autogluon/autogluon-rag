@@ -20,3 +20,4 @@ vector_db:
   db_type: faiss
   params: {gpu: False}
   similarity_threshold: 0.95
+  similarity_fn: cosine

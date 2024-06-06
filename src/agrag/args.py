@@ -149,6 +149,10 @@ class Arguments:
         )
 
     @property
+    def vector_db_sim_fn(self):
+        return self.config.get("vector_db", {}).get("similarity_fn", self.vector_db_defaults.get("SIMILARITY_FN"))
+
+    @property
     def vector_db_index_path(self):
         return self.config.get("vector_db", {}).get("vector_db_index_path", self.vector_db_defaults.get("INDEX_PATH"))
 

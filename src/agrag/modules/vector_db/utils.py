@@ -5,14 +5,30 @@ from typing import Any, List
 import faiss
 import numpy as np
 import torch
-from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances
 
 from agrag.modules.vector_db.faiss.faiss import load_faiss_index, save_faiss_index
 
 logger = logging.getLogger("rag-logger")
 
 
-def remove_duplicates(embeddings: List[torch.Tensor], similarity_threshold: float) -> List[torch.Tensor]:
+def cosine_similarity_fn(embeddings: np.ndarray) -> np.ndarray:
+    return cosine_similarity(embeddings)
+
+
+def euclidean_similarity_fn(embeddings: np.ndarray) -> np.ndarray:
+    return -euclidean_distances(embeddings)
+
+
+SUPPORTED_SIMILARITY_FUNCTIONS = {
+    "cosine": cosine_similarity_fn,
+    "euclidean": euclidean_similarity_fn,
+}
+
+
+def remove_duplicates(
+    embeddings: List[torch.Tensor], similarity_threshold: float, similarity_fn: str
+) -> List[torch.Tensor]:
     """
     Removes duplicate embeddings based on cosine similarity.
 
@@ -22,6 +38,8 @@ def remove_duplicates(embeddings: List[torch.Tensor], similarity_threshold: floa
         A list of embeddings to be deduplicated.
     similarity_threshold : float
         The threshold for considering embeddings as duplicates based on cosine similarity
+    similarity_fn : str
+        The name of the similarity function to use. Must be one of the supported functions.
 
     Returns:
     -------
@@ -31,9 +49,14 @@ def remove_duplicates(embeddings: List[torch.Tensor], similarity_threshold: floa
     if len(embeddings) <= 1:
         return embeddings
 
-    embeddings_tensor = torch.stack(embeddings)
-    embeddings_array = embeddings_tensor.numpy().reshape(len(embeddings), -1)
-    similarity_matrix = cosine_similarity(embeddings_array)
+    if similarity_fn not in SUPPORTED_SIMILARITY_FUNCTIONS:
+        raise ValueError(
+            f"Unsupported similarity function: {similarity_fn}. Please choose from: {list(SUPPORTED_SIMILARITY_FUNCTIONS.keys())}"
+        )
+
+    embeddings_array = embeddings.numpy().reshape(len(embeddings), -1)
+    sim_fn = SUPPORTED_SIMILARITY_FUNCTIONS[similarity_fn]
+    similarity_matrix = sim_fn(embeddings_array)
 
     remove = set()
     for i in range(len(similarity_matrix)):

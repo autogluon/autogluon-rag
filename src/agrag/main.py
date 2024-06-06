@@ -48,7 +48,10 @@ def initialize_rag_pipeline() -> RetrieverModule:
 
     vector_db_index_path = os.path.join(args.vector_db_index_path, db_type, "index.idx")
     vector_database_module = VectorDatabaseModule(
-        db_type=db_type, params=args.vector_db_args, similarity_threshold=args.vector_db_sim_threshold
+        db_type=db_type,
+        params=args.vector_db_args,
+        similarity_threshold=args.vector_db_sim_threshold,
+        similarity_fn=args.vector_db_sim_fn,
     )
 
     logger.info(f"Using Vector DB: {db_type}")
