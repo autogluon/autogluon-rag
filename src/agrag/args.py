@@ -39,6 +39,7 @@ class Arguments:
         self.config = self._load_config(self.args.config_file)
         self.data_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/data_processing/default.yaml"))
         self.embedding_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/embedding/default.yaml"))
+        self.vector_db_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/vector_db/default.yaml"))
 
     def _parse_args(self) -> argparse.Namespace:
         parser = argparse.ArgumentParser(description="AutoGluon-RAG - Retrieval-Augmented Generation Pipeline")
@@ -132,3 +133,23 @@ class Arguments:
     @property
     def normalization_params(self):
         return self.config.get("embedding", {}).get("normalization_params", {})
+
+    @property
+    def vector_db_type(self):
+        return self.config.get("vector_db", {}).get("db_type", self.vector_db_defaults.get("DB_TYPE"))
+
+    @property
+    def vector_db_args(self):
+        return self.config.get("vector_db", {}).get("params", {"gpu": self.vector_db_defaults.get("GPU")})
+
+    @property
+    def vector_db_sim_threshold(self):
+        return self.config.get("vector_db", {}).get("similarity_threshold", self.vector_db_defaults.get("SIMILARITY_THRESHOLD"))
+
+    @property
+    def vector_db_index_path(self):
+        return self.config.get("vector_db", {}).get("vector_db_index_path", self.vector_db_defaults.get("INDEX_PATH"))
+    
+    @property
+    def use_existing_vector_db_index(self):
+        return self.config.get("vector_db", {}).get("use_existing_vector_db", self.vector_db_defaults.get("USE_EXISTING_INDEX"))

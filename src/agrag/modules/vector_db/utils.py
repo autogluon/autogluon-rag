@@ -1,8 +1,14 @@
 import logging
-from typing import List
+from typing import Any, List
+
+import faiss
+
+import os
 
 import torch
 from sklearn.metrics.pairwise import cosine_similarity
+
+from agrag.modules.vector_db.faiss.faiss import save_faiss_index, load_faiss_index
 
 logger = logging.getLogger("rag-logger")
 
@@ -57,3 +63,49 @@ def pad_embeddings(embeddings: List[torch.Tensor]) -> torch.Tensor:
         torch.nn.functional.pad(embedding, (0, 0, 0, max_len - embedding.shape[1])) for embedding in embeddings
     ]
     return torch.cat(padded_embeddings, dim=0).view(len(padded_embeddings), -1)
+
+def save_index(db_type: str, index: Any, index_path: str) -> None:
+    """
+    Saves the Vector DB index to disk.
+
+    Parameters:
+    ----------
+    db_type: Vector DB type
+        The type of Vector DB being used
+    index: Vector DB index data type
+        The Vector DB index to store
+    index_path : str
+        The path where the FAISS index will be saved.
+    """
+    if not index:
+        raise ValueError("No index to save. Please construct the index first.")
+    if not index_path:
+        logger.warning(f"Cannot save index. Invalid path {index_path}.")
+        return
+    if not os.path.isfile(index_path):
+        with open(index_path, 'w') as fp:
+            pass
+    if db_type == 'faiss':
+        save_faiss_index(index, index_path)
+    else:
+        logger.warning(f"Cannot save index. Unsupported Vector DB {db_type}.")
+
+
+def load_index(db_type: str, index_path: str) -> faiss.IndexFlatL2:
+    """
+    Loads the Vector DB index from disk.
+
+    Parameters:
+    ----------
+    db_type: Vector DB type
+        The type of Vector DB being used
+    index_path : str
+        The path from where the index will be loaded.
+
+    """
+    index = None
+    if db_type == 'faiss':
+        load_faiss_index(index_path)
+    else:
+        raise ValueError("Cannot load index. Unsupported Vector DB {db_type}.")
+    return index

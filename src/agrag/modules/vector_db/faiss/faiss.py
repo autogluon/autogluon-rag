@@ -4,6 +4,7 @@ from typing import List, Union
 import faiss
 import numpy as np
 import torch
+import os
 
 logger = logging.getLogger("rag-logger")
 
@@ -39,22 +40,22 @@ def construct_faiss_index(embeddings: List[torch.Tensor], gpu: bool) -> faiss.In
     return index
 
 
-def save_index(index, index_path: str) -> None:
+def save_faiss_index(index: faiss.IndexFlatL2, index_path: str) -> None:
     """
     Saves the FAISS index to disk.
 
     Parameters:
     ----------
+    index: faiss.IndexFlatL2
+        The FAISS index to store
     index_path : str
         The path where the FAISS index will be saved.
     """
-    if index is None:
-        raise ValueError("No index to save. Please construct the index first.")
     faiss.write_index(index, index_path)
     logger.info(f"FAISS index saved to {index_path}")
 
 
-def load_index(index_path: str) -> faiss.IndexFlatL2:
+def load_faiss_index(index_path: str) -> faiss.IndexFlatL2:
     """
     Loads the FAISS index from disk.
 

@@ -9,7 +9,7 @@ from agrag.modules.data_processing.data_processing import DataProcessingModule
 from agrag.modules.embedding.embedding import EmbeddingModule
 from agrag.modules.generator.generator import GeneratorModule
 from agrag.modules.retriever.retriever import RetrieverModule
-from agrag.modules.vector_db.faiss import load_index, save_index
+from agrag.modules.vector_db.utils import load_index, save_index
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
 
 logger = logging.getLogger("rag-logger")
@@ -44,18 +44,27 @@ def initialize_rag_pipeline() -> RetrieverModule:
     )
     embeddings = embedding_module.encode(processed_data)
 
-    vector_db_index_path = args.index_path
-    vector_database_module = VectorDatabaseModule()
-    use_existing_index = args.use_existing_index
+    db_type = args.vector_db_type
 
-    if use_existing_index:
-        logger.info(f"Loading existing FAISS index from {vector_db_index_path}")
-        vector_database_module.index = load_index(vector_db_index_path)
+    vector_db_index_path = os.path.join(args.vector_db_index_path, db_type, "index.idx")
+    vector_database_module = VectorDatabaseModule(
+        db_type=db_type, params=args.vector_db_args, similarity_threshold=args.vector_db_sim_threshold
+    )
+
+    logger.info(f"Using Vector DB: {db_type}")
+
+    if args.use_existing_vector_db_index:
+        logger.info(f"Loading existing index from {vector_db_index_path}")
+        vector_database_module.index = load_index(db_type, vector_db_index_path)
 
     else:
-        logger.info(f"Constructing new FAISS index")
+        logger.info(f"Constructing new index and saving at {vector_db_index_path}")
         vector_database = vector_database_module.construct_vector_database(embeddings)
-        save_index(vector_database_module.index, vector_db_index_path)
+        basedir = os.path.dirname(vector_db_index_path)
+        if not os.path.exists(basedir):
+            logger.info(f"Creating directory for Vector Index save at {basedir}")
+            os.makedirs(basedir)
+        save_index(db_type, vector_database_module.index, vector_db_index_path)
 
     retriever_module = RetrieverModule(vector_database)
 

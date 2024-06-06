@@ -1,0 +1,5 @@
+DB_TYPE: faiss
+GPU: false
+SIMILARITY_THRESHOLD: 0.95
+USE_EXISTING_INDEX: false
+INDEX_PATH: vectorDB_index_save/
