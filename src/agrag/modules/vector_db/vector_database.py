@@ -50,7 +50,9 @@ class VectorDatabaseModule:
         self.similarity_fn = similarity_fn
         self.index = None
 
-    def construct_vector_database(self, embeddings: List[torch.Tensor]) -> Union[faiss.IndexFlatL2, Any]:
+    def construct_vector_database(
+        self, embeddings: List[torch.Tensor]
+    ) -> Union[faiss.IndexFlatL2,]:
         """
         Constructs the vector database and stores the embeddings.
 
@@ -61,7 +63,7 @@ class VectorDatabaseModule:
 
         Returns:
         -------
-        Union[faiss.IndexFlatL2, Any]
+        Union[faiss.IndexFlatL2,]
             The constructed vector database index.
         """
         embeddings = pad_embeddings(embeddings)

@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Any, List
+from typing import List, Union
 
 import faiss
 import numpy as np
@@ -98,18 +98,18 @@ def pad_embeddings(embeddings: List[torch.Tensor]) -> torch.Tensor:
     return torch.cat(padded_embeddings, dim=0).view(len(padded_embeddings), -1)
 
 
-def save_index(db_type: str, index: Any, index_path: str) -> None:
+def save_index(db_type: str, index: Union[faiss.IndexFlatL2], index_path: str) -> None:
     """
     Saves the Vector DB index to disk.
 
     Parameters:
     ----------
-    db_type: Vector DB type
+    db_type: str
         The type of Vector DB being used
-    index: Vector DB index data type
+    index: Union[faiss.IndexFlatL2]
         The Vector DB index to store
     index_path : str
-        The path where the FAISS index will be saved.
+        The path where the index will be saved.
     """
     if not index:
         raise ValueError("No index to save. Please construct the index first.")
@@ -125,13 +125,13 @@ def save_index(db_type: str, index: Any, index_path: str) -> None:
         logger.warning(f"Cannot save index. Unsupported Vector DB {db_type}.")
 
 
-def load_index(db_type: str, index_path: str) -> faiss.IndexFlatL2:
+def load_index(db_type: str, index_path: str) -> Union[faiss.IndexFlatL2]:
     """
     Loads the Vector DB index from disk.
 
     Parameters:
     ----------
-    db_type: Vector DB type
+    db_type: str
         The type of Vector DB being used
     index_path : str
         The path from where the index will be loaded.
