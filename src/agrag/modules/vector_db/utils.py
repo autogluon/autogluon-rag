@@ -3,6 +3,7 @@ import os
 from typing import Any, List
 
 import faiss
+import numpy as np
 import torch
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -28,17 +29,21 @@ def remove_duplicates(embeddings: List[torch.Tensor], similarity_threshold: floa
     if len(embeddings) <= 1:
         return embeddings
 
-    embeddings_array = embeddings.numpy().reshape(len(embeddings), -1)
+    embeddings_tensor = torch.stack(embeddings)
+    embeddings_array = embeddings_tensor.numpy().reshape(len(embeddings), -1)
     similarity_matrix = cosine_similarity(embeddings_array)
 
-    to_remove = set()
+    remove = set()
     for i in range(len(similarity_matrix)):
-        for j in range(i + 1, len(similarity_matrix)):
-            if similarity_matrix[i, j] > similarity_threshold:
-                to_remove.add(j)
+        if i in remove:
+            continue
+        duplicates = np.where(similarity_matrix[i, i + 1 :] > similarity_threshold)[0] + (
+            i + 1
+        )  # Only consider the upper triangle of the similarity matrix.
+        remove.update(duplicates)
 
-    deduplicated_embeddings = [embedding for i, embedding in enumerate(embeddings) if i not in to_remove]
-    logger.info(f"Removed {len(to_remove)} duplicate embeddings")
+    deduplicated_embeddings = [embedding for i, embedding in enumerate(embeddings) if i not in remove]
+    logger.info(f"Removed {len(remove)} duplicate embeddings")
     return deduplicated_embeddings
 
 
