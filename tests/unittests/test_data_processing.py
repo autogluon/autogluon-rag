@@ -121,9 +121,9 @@ class TestDataProcessingModule(unittest.TestCase):
             # Create some nested directories and files
             os.makedirs(os.path.join(tmp_dir, "subdir1"))
             os.makedirs(os.path.join(tmp_dir, "subdir2"))
-            file1 = os.path.join(tmp_dir, "file1.txt")
-            file2 = os.path.join(tmp_dir, "subdir1", "file2.txt")
-            file3 = os.path.join(tmp_dir, "subdir2", "file3.txt")
+            file1 = os.path.join(tmp_dir, "file1.pdf")
+            file2 = os.path.join(tmp_dir, "subdir1", "file2.pdf")
+            file3 = os.path.join(tmp_dir, "subdir2", "file3.pdf")
             with open(file1, "w") as f:
                 f.write("Test file 1")
             with open(file2, "w") as f:
