@@ -5,8 +5,6 @@ import faiss
 import numpy as np
 import torch
 
-from agrag.modules.vector_db.utils import pad_embeddings
-
 logger = logging.getLogger("rag-logger")
 
 
@@ -38,4 +36,36 @@ def construct_faiss_index(embeddings: List[torch.Tensor], gpu: bool) -> faiss.In
     index.add(embeddings_array)
     logger.info(f"Stored {embeddings_array.shape[0]} embeddings in the FAISS index")
 
+    return index
+
+def save_index(index, index_path: str) -> None:
+    """
+    Saves the FAISS index to disk.
+
+    Parameters:
+    ----------
+    index_path : str
+        The path where the FAISS index will be saved.
+    """
+    if index is None:
+        raise ValueError("No index to save. Please construct the index first.")
+    faiss.write_index(index, index_path)
+    logger.info(f"FAISS index saved to {index_path}")
+
+def load_index(index_path: str) -> faiss.IndexFlatL2:
+    """
+    Loads the FAISS index from disk.
+
+    Parameters:
+    ----------
+    index_path : str
+        The path from where the FAISS index will be loaded.
+
+    Returns:
+    -------
+    Union[faiss.IndexFlatL2, faiss.GpuIndexFlatL2]
+        The loaded FAISS index.
+    """
+    index = faiss.read_index(index_path)
+    logger.info(f"FAISS index loaded from {index_path}")
     return index
