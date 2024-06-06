@@ -38,6 +38,7 @@ def construct_faiss_index(embeddings: List[torch.Tensor], gpu: bool) -> faiss.In
 
     return index
 
+
 def save_index(index, index_path: str) -> None:
     """
     Saves the FAISS index to disk.
@@ -51,6 +52,7 @@ def save_index(index, index_path: str) -> None:
         raise ValueError("No index to save. Please construct the index first.")
     faiss.write_index(index, index_path)
     logger.info(f"FAISS index saved to {index_path}")
+
 
 def load_index(index_path: str) -> faiss.IndexFlatL2:
     """

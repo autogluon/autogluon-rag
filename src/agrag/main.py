@@ -9,6 +9,7 @@ from agrag.modules.data_processing.data_processing import DataProcessingModule
 from agrag.modules.embedding.embedding import EmbeddingModule
 from agrag.modules.generator.generator import GeneratorModule
 from agrag.modules.retriever.retriever import RetrieverModule
+from agrag.modules.vector_db.faiss import load_index, save_index
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
 
 logger = logging.getLogger("rag-logger")
@@ -43,8 +44,18 @@ def initialize_rag_pipeline() -> RetrieverModule:
     )
     embeddings = embedding_module.encode(processed_data)
 
+    vector_db_index_path = args.index_path
     vector_database_module = VectorDatabaseModule()
-    vector_database = vector_database_module.construct_vector_database(embeddings)
+    use_existing_index = args.use_existing_index
+
+    if use_existing_index:
+        logger.info(f"Loading existing FAISS index from {vector_db_index_path}")
+        vector_database_module.index = load_index(vector_db_index_path)
+
+    else:
+        logger.info(f"Constructing new FAISS index")
+        vector_database = vector_database_module.construct_vector_database(embeddings)
+        save_index(vector_database_module.index, vector_db_index_path)
 
     retriever_module = RetrieverModule(vector_database)
 
