@@ -10,7 +10,7 @@ vector_db:
 
   params: What parameters to use for the Vector DB. For example, `{gpu: False}`.
 
-  similarity_threshold: The threshold for considering embeddings as duplicates based on cosine similarity (default is `0.95`).
+  similarity_threshold: The threshold for considering embeddings as duplicates based on a similarity function (default is `0.95`).
 
   similarity_fn: The similarity function used for determining similarity scores for embeddings. Options are `cosine`, `euclidean`, `manhattan` (default is `cosine`).
 
