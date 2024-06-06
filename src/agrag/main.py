@@ -36,6 +36,7 @@ def initialize_rag_pipeline() -> RetrieverModule:
         pooling_strategy=args.pooling_strategy,
         normalize_embeddings=args.normalize_embeddings,
         hf_model_params=args.hf_model_params,
+        hf_tokenizer_init_params=args.hf_tokenizer_init_params,
         hf_tokenizer_params=args.hf_tokenizer_params,
         hf_forward_params=args.hf_forward_params,
         normalization_params=args.normalization_params,

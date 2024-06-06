@@ -103,11 +103,15 @@ class Arguments:
 
     @property
     def pooling_strategy(self):
-        return self.config.get("embedding", {}).get("pooling_strategy", None)
+        return self.config.get("embedding", {}).get(
+            "pooling_strategy", self.embedding_defaults.get("POOLING_STRATEGY")
+        )
 
     @property
     def normalize_embeddings(self):
-        return self.config.get("embedding", {}).get("normalize_embeddings", False)
+        return self.config.get("embedding", {}).get(
+            "normalize_embeddings", self.embedding_defaults.get("NORMALIZE_EMBEDDINGS")
+        )
 
     @property
     def hf_model_params(self):
@@ -116,6 +120,12 @@ class Arguments:
     @property
     def hf_tokenizer_params(self):
         return self.config.get("embedding", {}).get("hf_tokenizer_params", {"truncation": True, "padding": True})
+
+    @property
+    def hf_tokenizer_init_params(self):
+        return self.config.get("embedding", {}).get(
+            "hf_tokenizer_params",
+        )
 
     @property
     def hf_forward_params(self):
