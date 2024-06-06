@@ -25,7 +25,7 @@ class VectorDatabaseModule:
     similarity_threshold : float
         The threshold for considering embeddings as duplicates based on cosine similarity (default is 0.95)
     similarity_fn : str
-        The name of the similarity function for determining duplicate embeddings. Options are 'cosine', 'euclidean', 'manhattan' (default is 'cosine').
+        The similarity function used for determining similarity scores for embeddings. Options are 'cosine', 'euclidean', 'manhattan' (default is 'cosine').
 
     Methods:
     -------
