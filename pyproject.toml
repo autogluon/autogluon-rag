@@ -46,6 +46,7 @@ dependencies = [
     "pypdf",
     "faiss-cpu",
     "scikit-learn",
+    "numpy",
 ]
 
 
