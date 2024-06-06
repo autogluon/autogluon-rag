@@ -17,7 +17,12 @@ To use this framework, you must first install AutoGluon RAG:
 ```
 git clone https://github.com/autogluon/autogluon-rag
 cd autogluon-rag
-# Optionally create a Python/Conda Virtual Environment here
+
+# Create a Virtual Environment (using Python, or conda if you prefer)
+python3 -m virtualenv venv
+source venv/bin/activate
+
+#Install the package
 pip install -e .
 ```
 You can now use `agrag` from the command line:

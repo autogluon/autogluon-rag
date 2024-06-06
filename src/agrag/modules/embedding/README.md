@@ -10,7 +10,7 @@ embedding:
   
   pooling_strategy: The strategy to use for pooling embeddings. Options are 'mean', 'max', 'cls' (default is None).
   
-  normalize_embeddings: Whether to normalize the embeddings
+  normalize_embeddings: Whether to normalize the embeddings.
   
   hf_model_params: Additional parameters to pass to the Huggingface model's `from_pretrained` initializer method.
   
