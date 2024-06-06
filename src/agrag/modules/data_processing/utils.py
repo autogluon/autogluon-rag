@@ -1,7 +1,10 @@
+import logging
 import os
 from typing import List
 
 import boto3
+
+logger = logging.getLogger("rag-logger")
 
 
 def download_directory_from_s3(s3_bucket: str, data_dir: str, s3_client: boto3.client):
@@ -66,5 +69,11 @@ def get_all_file_paths(dir_path: str) -> List[str]:
     file_paths = []
     for root, _, files in os.walk(dir_path):
         for file in files:
-            file_paths.append(os.path.join(root, file))
+            file_path = os.path.join(root, file)
+            if not file_path.endswith(".pdf"):  # Only PDFs for now
+                logger.warning(
+                    f"\nWARNING: Skipping File {file_path}. Only PDF files are supported in this version.\n"
+                )
+                continue
+            file_paths.append(file_path)
     return file_paths
