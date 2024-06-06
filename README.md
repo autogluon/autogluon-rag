@@ -13,20 +13,31 @@ AutoGluon-RAG allows users to create customized RAG pipelines seamlessly, elimin
 In line with the AutoGluon team's commitment to meeting user requirements and expanding its user base, the team aims to develop a new feature that simplifies the creation and deployment of end-to-end RAG (Retrieval-Augmented Generation) pipelines. Given a set of user-provided data or documents, this feature will enable users to develop and deploy a RAG pipeline with minimal coding effort, following the AutoML (Automated Machine Learning) philosophy of three-line solutions.
 
 ## Usage
+To use this framework, you must first install AutoGluon RAG:
+```
+git clone https://github.com/autogluon/autogluon-rag
+cd autogluon-rag
+
+# Create a Virtual Environment (using Python, or conda if you prefer)
+python3 -m virtualenv venv
+source venv/bin/activate
+
+#Install the package
+pip install -e .
+```
+You can now use `agrag` from the command line:
+
 ```
 AutoGluon-RAG
 
 
-usage: agrag [-h] --data_dir  [--chunk_size] [--chunk_overlap]
+usage: agrag [-h] --config_file
 
 AutoGluon-RAG - Retrieval-Augmented Generation Pipeline
 
 options:
   -h, --help        show this help message and exit
-  --data_dir        Path to the directory containing the documents to be ingested
-                    into the RAG pipeline
-  --chunk_size      Maximum chunk length to split the documents into
-  --chunk_overlap   Amount of overlap between consecutive chunks. This is the
-                    number of characters that will be shared between adjacent
-                    chunks
+  --config_file        Path to the configuration file 
 ```
+
+The configuration file contains the specific parameters to use for each module in the RAG pipeline. For an example of a config file, please refer to `example_config.yaml` in `src/agrag/configs/`. For specific details about the parameters in each individual module, refer to the `README` files in each module in `src/agrag/modules/`.
