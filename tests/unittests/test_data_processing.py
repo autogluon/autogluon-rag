@@ -4,7 +4,7 @@ import unittest
 from unittest.mock import MagicMock, mock_open, patch
 
 from agrag.modules.data_processing.data_processing import DataProcessingModule
-from agrag.modules.data_processing.utils import download_directory_from_s3
+from agrag.modules.data_processing.utils import download_directory_from_s3, get_all_file_paths
 
 CURRENT_DIR = os.path.dirname(__file__)
 TEST_DIR = os.path.join(CURRENT_DIR, "../test_docs/")
@@ -115,6 +115,26 @@ class TestDataProcessingModule(unittest.TestCase):
 
         mock_makedirs.assert_any_call("s3_docs")
         mock_makedirs.assert_any_call("s3_docs")
+
+    def test_get_all_file_paths(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            # Create some nested directories and files
+            os.makedirs(os.path.join(tmp_dir, "subdir1"))
+            os.makedirs(os.path.join(tmp_dir, "subdir2"))
+            file1 = os.path.join(tmp_dir, "file1.pdf")
+            file2 = os.path.join(tmp_dir, "subdir1", "file2.pdf")
+            file3 = os.path.join(tmp_dir, "subdir2", "file3.pdf")
+            with open(file1, "w") as f:
+                f.write("Test file 1")
+            with open(file2, "w") as f:
+                f.write("Test file 2")
+            with open(file3, "w") as f:
+                f.write("Test file 3")
+
+            file_paths = get_all_file_paths(tmp_dir)
+
+            expected_paths = [file1, file2, file3]
+            self.assertCountEqual(file_paths, expected_paths)
 
 
 if __name__ == "__main__":

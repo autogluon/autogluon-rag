@@ -1,6 +1,10 @@
+import logging
 import os
+from typing import List
 
 import boto3
+
+logger = logging.getLogger("rag-logger")
 
 
 def download_directory_from_s3(s3_bucket: str, data_dir: str, s3_client: boto3.client):
@@ -46,3 +50,30 @@ def download_directory_from_s3(s3_bucket: str, data_dir: str, s3_client: boto3.c
 
         s3_client.download_file(s3_bucket, s3_path, local_file_path)
     return local_dir
+
+
+def get_all_file_paths(dir_path: str) -> List[str]:
+    """
+    Recursively retrieves all file paths in the given directory.
+
+    Parameters:
+    ----------
+    dir_path : str
+        The directory to search for files.
+
+    Returns:
+    -------
+    List[str]
+        A list of all file paths in the directory and its subdirectories.
+    """
+    file_paths = []
+    for root, _, files in os.walk(dir_path):
+        for file in files:
+            file_path = os.path.join(root, file)
+            if not file_path.endswith(".pdf"):  # Only PDFs for now
+                logger.warning(
+                    f"\nWARNING: Skipping File {file_path}. Only PDF files are supported in this version.\n"
+                )
+                continue
+            file_paths.append(file_path)
+    return file_paths
