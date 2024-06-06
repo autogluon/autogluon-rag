@@ -144,12 +144,16 @@ class Arguments:
 
     @property
     def vector_db_sim_threshold(self):
-        return self.config.get("vector_db", {}).get("similarity_threshold", self.vector_db_defaults.get("SIMILARITY_THRESHOLD"))
+        return self.config.get("vector_db", {}).get(
+            "similarity_threshold", self.vector_db_defaults.get("SIMILARITY_THRESHOLD")
+        )
 
     @property
     def vector_db_index_path(self):
         return self.config.get("vector_db", {}).get("vector_db_index_path", self.vector_db_defaults.get("INDEX_PATH"))
-    
+
     @property
     def use_existing_vector_db_index(self):
-        return self.config.get("vector_db", {}).get("use_existing_vector_db", self.vector_db_defaults.get("USE_EXISTING_INDEX"))
+        return self.config.get("vector_db", {}).get(
+            "use_existing_vector_db", self.vector_db_defaults.get("USE_EXISTING_INDEX")
+        )

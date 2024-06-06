@@ -1,10 +1,10 @@
 import logging
+import os
 from typing import List, Union
 
 import faiss
 import numpy as np
 import torch
-import os
 
 logger = logging.getLogger("rag-logger")
 
