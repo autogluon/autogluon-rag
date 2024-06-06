@@ -5,7 +5,7 @@ from typing import Any, List
 import faiss
 import numpy as np
 import torch
-from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances
+from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances, manhattan_distances
 
 from agrag.modules.vector_db.faiss.faiss import load_faiss_index, save_faiss_index
 
@@ -20,9 +20,14 @@ def euclidean_similarity_fn(embeddings: np.ndarray) -> np.ndarray:
     return -euclidean_distances(embeddings)
 
 
+def manhattan_similarity_fn(embeddings: np.ndarray) -> np.ndarray:
+    return -manhattan_distances(embeddings)
+
+
 SUPPORTED_SIMILARITY_FUNCTIONS = {
     "cosine": cosine_similarity_fn,
     "euclidean": euclidean_similarity_fn,
+    "manhattan": manhattan_similarity_fn,
 }
 
 
