@@ -123,9 +123,7 @@ class Arguments:
 
     @property
     def hf_tokenizer_init_params(self):
-        return self.config.get("embedding", {}).get(
-            "hf_tokenizer_params",
-        )
+        return self.config.get("embedding", {}).get("hf_tokenizer_params", {})
 
     @property
     def hf_forward_params(self):
