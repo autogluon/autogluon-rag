@@ -32,18 +32,6 @@ class VectorDatabaseModule:
     """
 
     def __init__(self, db_type: str = "faiss", params: dict = None, similarity_threshold: float = 0.95) -> None:
-        """
-        Initializes the VectorDatabaseModule with the specified type and parameters.
-
-        Parameters:
-        ----------
-        db_type : str, optional
-            The type of vector database to use (default is 'faiss').
-        params : dict, optional
-            Additional parameters for configuring the FAISS index.
-        similarity_threshold : float, optional
-            The threshold for considering embeddings as duplicates based on cosine similarity (default is 0.95).
-        """
         self.db_type = db_type
         self.params = params if params is not None else {}
         self.similarity_threshold = similarity_threshold

@@ -20,6 +20,8 @@ def remove_duplicates(embeddings: List[torch.Tensor], similarity_threshold: floa
     ----------
     embeddings : List[torch.Tensor]
         A list of embeddings to be deduplicated.
+    similarity_threshold : float
+        The threshold for considering embeddings as duplicates based on cosine similarity
 
     Returns:
     -------
