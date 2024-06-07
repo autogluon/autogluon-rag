@@ -1,6 +1,7 @@
 import logging
 from typing import Any, Dict, List, Union
 
+import numpy as np
 import torch
 from torch.nn import DataParallel
 from transformers import AutoModel, AutoTokenizer
@@ -49,6 +50,7 @@ class EmbeddingModule:
         hf_tokenizer_params: Dict[str, Any] = None,
         hf_forward_params: Dict[str, Any] = None,
         normalization_params: Dict[str, Any] = None,
+        query_instruction_for_retrieval: str = None,
     ):
         self.hf_model = hf_model
         self.normalize_embeddings = normalize_embeddings
@@ -57,6 +59,7 @@ class EmbeddingModule:
         self.hf_tokenizer_params = hf_tokenizer_params or {}
         self.hf_forward_params = hf_forward_params or {}
         self.normalization_params = normalization_params or {}
+        self.query_instruction_for_retrieval = query_instruction_for_retrieval
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         logger.info(f"Using Huggingface Model {self.hf_model} for Embedding Module")
@@ -104,3 +107,29 @@ class EmbeddingModule:
         else:
             # Combine pooled embeddings into a single tensor
             return torch.cat(embeddings, dim=0)
+
+    def encode_queries(self, queries: Union[List[str], str]) -> np.ndarray:
+        """
+        Function is used as written in: https://github.com/FlagOpen/FlagEmbedding/blob/master/FlagEmbedding/flag_models.py
+        This function will be used for retrieval task
+        if there is a instruction for queries, we will add it to the query text
+
+        Parameters:
+        ----------
+        data : List[str]
+            A list of queries to generate embeddings for.
+
+        Returns:
+        -------
+        Union[List[torch.Tensor], torch.Tensor]
+            A list of embeddings corresponding to the input queries if pooling_strategy is 'none',
+            otherwise a single tensor with the pooled embeddings.
+        """
+        if self.query_instruction_for_retrieval is not None:
+            if isinstance(queries, str):
+                input_texts = self.query_instruction_for_retrieval + queries
+            else:
+                input_texts = ["{}{}".format(self.query_instruction_for_retrieval, q) for q in queries]
+        else:
+            input_texts = queries
+        return self.encode(input_texts)
