@@ -1,8 +1,8 @@
+import os
 import unittest
 from unittest.mock import MagicMock, patch
 
 import torch
-import os
 
 from agrag.modules.vector_db.utils import (
     cosine_similarity_fn,
@@ -29,7 +29,7 @@ class TestVectorDatabaseModule(unittest.TestCase):
             db_type="faiss", params={"gpu": False}, similarity_threshold=0.95, similarity_fn="cosine"
         )
         self.index_path = "test_index_path"
-    
+
     def tearDown(self):
         if os.path.exists(self.index_path):
             os.remove(self.index_path)

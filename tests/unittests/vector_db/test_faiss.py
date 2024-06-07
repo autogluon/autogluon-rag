@@ -1,8 +1,8 @@
+import os
 import unittest
 from unittest.mock import MagicMock, patch
 
 import torch
-import os
 
 from agrag.modules.vector_db.faiss.faiss import construct_faiss_index, load_faiss_index, save_faiss_index
 
@@ -11,7 +11,7 @@ class TestFaissDB(unittest.TestCase):
     def setUp(self):
         self.embeddings = [torch.rand(1, 10) for _ in range(10)]
         self.index_path = "test_faiss_index_path"
-    
+
     def tearDown(self):
         if os.path.exists(self.index_path):
             os.remove(self.index_path)
