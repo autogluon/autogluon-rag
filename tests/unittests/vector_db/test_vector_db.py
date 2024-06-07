@@ -34,7 +34,7 @@ class TestVectorDatabaseModule(unittest.TestCase):
         if os.path.exists(self.index_path):
             os.remove(self.index_path)
 
-    @patch("agrag.modules.vector_db.faiss.faiss.construct_faiss_index")
+    @patch("agrag.modules.vector_db.faiss.faiss_db.construct_faiss_index")
     def test_construct_vector_database(self, mock_construct_faiss_index):
         mock_construct_faiss_index.return_value = MagicMock()
         index = self.vector_db_module.construct_vector_database(self.embeddings)

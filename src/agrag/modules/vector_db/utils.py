@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances, manhattan_distances
 
-from agrag.modules.vector_db.faiss.faiss import load_faiss_index, save_faiss_index
+from agrag.modules.vector_db.faiss.faiss_db import load_faiss_index, save_faiss_index
 
 logger = logging.getLogger("rag-logger")
 

@@ -4,7 +4,7 @@ from typing import Any, List, Union
 import faiss
 import torch
 
-from agrag.modules.vector_db.faiss.faiss import construct_faiss_index
+from agrag.modules.vector_db.faiss.faiss_db import construct_faiss_index
 from agrag.modules.vector_db.utils import SUPPORTED_SIMILARITY_FUNCTIONS, pad_embeddings, remove_duplicates
 
 logger = logging.getLogger("rag-logger")
