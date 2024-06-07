@@ -59,7 +59,7 @@ def remove_duplicates(
             f"Unsupported similarity function: {similarity_fn}. Please choose from: {list(SUPPORTED_SIMILARITY_FUNCTIONS.keys())}"
         )
 
-    embeddings_array = embeddings.numpy().reshape(len(embeddings), -1)
+    embeddings_array = np.array(embeddings).reshape(len(embeddings), -1)
     sim_fn = SUPPORTED_SIMILARITY_FUNCTIONS[similarity_fn]
     similarity_matrix = sim_fn(embeddings_array)
 
@@ -139,7 +139,7 @@ def load_index(db_type: str, index_path: str) -> Union[faiss.IndexFlatL2]:
     """
     index = None
     if db_type == "faiss":
-        load_faiss_index(index_path)
+        index = load_faiss_index(index_path)
     else:
         raise ValueError("Cannot load index. Unsupported Vector DB {db_type}.")
     return index
