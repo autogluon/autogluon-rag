@@ -21,4 +21,6 @@ embedding:
   hf_forward_params: Additional parameters to pass to the Huggingface model's `forward` method.
   
   normalization_params: Additional parameters to pass to the PyTorch `nn. functional.normalize` method.
+
+  query_instruction_for_retrieval: Instruction for query when using embedding model. 
 ```
