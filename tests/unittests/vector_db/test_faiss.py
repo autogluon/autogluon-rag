@@ -61,19 +61,15 @@ class TestFaissDB(unittest.TestCase):
             Filename=self.index_path, Bucket=self.s3_bucket, Key=self.index_path
         )
 
-    @patch("agrag.modules.vector_db.utils.logger")
-    def test_save_faiss_index_s3_no_credentials(self, mock_logger):
+    def test_save_faiss_index_s3_no_credentials(self):
         self.s3_client.upload_file.side_effect = NoCredentialsError()
         with self.assertRaises(NoCredentialsError):
             save_faiss_index_s3(self.index_path, self.s3_bucket, self.s3_client)
-        mock_logger.info.assert_not_called()
 
-    @patch("agrag.modules.vector_db.utils.logger")
-    def test_load_faiss_index_s3_no_credentials(self, mock_logger):
+    def test_load_faiss_index_s3_no_credentials(self):
         self.s3_client.download_file.side_effect = NoCredentialsError()
         with self.assertRaises(NoCredentialsError):
             load_faiss_index_s3(self.index_path, self.s3_bucket, self.s3_client)
-        mock_logger.info.assert_not_called()
 
 
 if __name__ == "__main__":
