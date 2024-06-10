@@ -2,6 +2,7 @@ import argparse
 import logging
 import os
 
+import torch
 import yaml
 
 from agrag.args import Arguments
@@ -46,6 +47,13 @@ def initialize_rag_pipeline() -> RetrieverModule:
 
     db_type = args.vector_db_type
 
+    num_gpus = args.vector_db_num_gpus
+    if num_gpus is None:
+        num_gpus = torch.cuda.device_count()
+        logger.info(f"Using max number of GPUs: {num_gpus}")
+    else:
+        logger.info(f"Using number of GPUs: {num_gpus}")
+
     vector_db_index_path = os.path.join(args.vector_db_index_path, db_type, "index.idx")
     vector_database_module = VectorDatabaseModule(
         db_type=db_type,
@@ -53,6 +61,7 @@ def initialize_rag_pipeline() -> RetrieverModule:
         similarity_threshold=args.vector_db_sim_threshold,
         similarity_fn=args.vector_db_sim_fn,
         s3_bucket=args.vector_db_s3_bucket,
+        num_gpus=num_gpus,
     )
 
     logger.info(f"Using Vector DB: {db_type}")

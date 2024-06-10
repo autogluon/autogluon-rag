@@ -27,6 +27,8 @@ class VectorDatabaseModule:
         The threshold for considering embeddings as duplicates based on a similarity function (default is 0.95)
     similarity_fn : str
         The similarity function used for determining similarity scores for embeddings. Options are 'cosine', 'euclidean', 'manhattan' (default is 'cosine').
+    num_gpus: int
+        Number of GPUs to use when building the index
 
     Methods:
     -------
@@ -41,6 +43,7 @@ class VectorDatabaseModule:
         similarity_threshold: float = 0.95,
         similarity_fn: str = "cosine",
         s3_bucket: str = None,
+        num_gpus: int = 0,
     ) -> None:
         self.db_type = db_type
         self.params = params if params is not None else {}
@@ -53,6 +56,7 @@ class VectorDatabaseModule:
         self.index = None
         self.s3_bucket = s3_bucket
         self.s3_client = boto3.client("s3") if s3_bucket else None
+        self.num_gpus = num_gpus
 
     def construct_vector_database(
         self, embeddings: List[torch.Tensor]
@@ -73,6 +77,6 @@ class VectorDatabaseModule:
         embeddings = pad_embeddings(embeddings)
         embeddings = remove_duplicates(embeddings, self.similarity_threshold, self.similarity_fn)
         if self.db_type == "faiss":
-            self.index = construct_faiss_index(embeddings, self.params.get("gpu", False))
+            self.index = construct_faiss_index(embeddings, self.num_gpus)
         else:
             raise ValueError(f"Unsupported database type: {self.db_type}")

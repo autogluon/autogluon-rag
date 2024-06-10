@@ -10,7 +10,7 @@ from botocore.exceptions import ClientError, NoCredentialsError, PartialCredenti
 logger = logging.getLogger("rag-logger")
 
 
-def construct_faiss_index(embeddings: List[torch.Tensor], gpu: bool) -> faiss.IndexFlatL2:
+def construct_faiss_index(embeddings: List[torch.Tensor], num_gpus: int = 1) -> faiss.IndexFlatL2:
     """
     Constructs a FAISS index and stores the embeddings.
 
@@ -18,6 +18,8 @@ def construct_faiss_index(embeddings: List[torch.Tensor], gpu: bool) -> faiss.In
     ----------
     embeddings : List[torch.Tensor]
         A list of embeddings to be stored in the FAISS index.
+    num_gpus: int
+        Number of GPUs to use when building the index
 
     Returns:
     -------
@@ -29,10 +31,13 @@ def construct_faiss_index(embeddings: List[torch.Tensor], gpu: bool) -> faiss.In
 
     index = faiss.IndexFlatL2(d)  # Flat (CPU) index, L2 distance
 
-    if gpu:
-        res = faiss.StandardGpuResources()
-        index = faiss.index_cpu_to_gpu(res, 0, index)
-        logger.info("Using FAISS GPU index")
+    if num_gpus >= 1:
+        res = [faiss.StandardGpuResources() for _ in range(num_gpus)]
+        flat_config = [faiss.GpuIndexFlatConfig() for _ in range(num_gpus)]
+        for i in range(num_gpus):
+            flat_config[i].device = i
+        index = faiss.index_cpu_to_gpu_multiple(res, index, flat_config)
+        logger.info(f"Using FAISS GPU index on {num_gpus} GPUs")
 
     embeddings_array = np.array(embeddings)
     index.add(embeddings_array)

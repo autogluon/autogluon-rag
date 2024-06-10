@@ -165,3 +165,7 @@ class Arguments:
     @property
     def vector_db_s3_bucket(self):
         return self.config.get("vector_db", {}).get("s3_bucket", None)
+
+    @property
+    def vector_db_num_gpus(self):
+        return self.config.get("vector_db", {}).get("num_gpus", None)

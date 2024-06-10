@@ -23,3 +23,4 @@ vector_db:
   similarity_fn: cosine
   s3_bucket: autogluon-rag-github-dev
   use_existing_vector_db: true
+  num_gpus: 0
