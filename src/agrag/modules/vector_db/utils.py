@@ -120,6 +120,8 @@ def save_index(db_type: str, index: Union[faiss.IndexFlatL2], index_path: str) -
         with open(index_path, "w") as fp:
             pass
     if db_type == "faiss":
+        if not type(index) is faiss.IndexFlatL2:
+            raise TypeError("Index for FAISS incorrectly created. Not of type IndexFlatL2.")
         save_faiss_index(index, index_path)
     else:
         logger.warning(f"Cannot save index. Unsupported Vector DB {db_type}.")
