@@ -4,7 +4,6 @@ from unittest.mock import MagicMock, patch
 
 import boto3
 import torch
-from botocore.exceptions import NoCredentialsError
 
 from agrag.modules.vector_db.faiss.faiss_db import (
     construct_faiss_index,
@@ -60,16 +59,6 @@ class TestFaissDB(unittest.TestCase):
         self.s3_client.download_file.assert_called_once_with(
             Filename=self.index_path, Bucket=self.s3_bucket, Key=self.index_path
         )
-
-    def test_save_faiss_index_s3_no_credentials(self):
-        self.s3_client.upload_file.side_effect = NoCredentialsError()
-        with self.assertRaises(NoCredentialsError):
-            save_faiss_index_s3(self.index_path, self.s3_bucket, self.s3_client)
-
-    def test_load_faiss_index_s3_no_credentials(self):
-        self.s3_client.download_file.side_effect = NoCredentialsError()
-        with self.assertRaises(NoCredentialsError):
-            load_faiss_index_s3(self.index_path, self.s3_bucket, self.s3_client)
 
 
 if __name__ == "__main__":

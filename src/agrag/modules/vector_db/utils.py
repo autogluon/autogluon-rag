@@ -168,9 +168,8 @@ def load_index(
     index = None
     if db_type == "faiss":
         if s3_bucket:
-            index = load_faiss_index_s3(index_path, s3_bucket, s3_client)
-        else:
-            index = load_faiss_index(index_path)
+            load_faiss_index_s3(index_path, s3_bucket, s3_client)
+        index = load_faiss_index(index_path)
     else:
         raise ValueError("Cannot load index. Unsupported Vector DB {db_type}.")
     return index

@@ -22,4 +22,4 @@ vector_db:
   similarity_threshold: 0.95
   similarity_fn: cosine
   s3_bucket: autogluon-rag-github-dev
-  use_existing_vector_db: false
+  use_existing_vector_db: true

@@ -1,10 +1,11 @@
 import logging
-from typing import List, Union
+from typing import List
 
 import boto3
 import faiss
 import numpy as np
 import torch
+from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
 
 logger = logging.getLogger("rag-logger")
 
@@ -51,8 +52,13 @@ def save_faiss_index(index: faiss.IndexFlatL2, index_path: str) -> None:
     index_path : str
         The path where the FAISS index will be saved.
     """
-    faiss.write_index(index, index_path)
-    logger.info(f"FAISS index saved to {index_path}")
+    try:
+        faiss.write_index(index, index_path)
+        logger.info(f"FAISS index saved to {index_path}")
+    except (IOError, OSError) as e:
+        logger.error(f"Failed to save FAISS index to {index_path}: {e}")
+    except Exception as e:
+        logger.error(f"An unexpected error occurred while saving FAISS index to {index_path}: {e}")
 
 
 def load_faiss_index(index_path: str) -> faiss.IndexFlatL2:
@@ -69,9 +75,16 @@ def load_faiss_index(index_path: str) -> faiss.IndexFlatL2:
     Union[faiss.IndexFlatL2, faiss.GpuIndexFlatL2]
         The loaded FAISS index.
     """
-    index = faiss.read_index(index_path)
-    logger.info(f"FAISS index loaded from {index_path}")
-    return index
+    try:
+        index = faiss.read_index(index_path)
+        logger.info(f"FAISS index loaded from {index_path}")
+        return index
+    except (IOError, OSError) as e:
+        logger.error(f"Failed to load FAISS index from {index_path}: {e}")
+        return None
+    except Exception as e:
+        logger.error(f"An unexpected error occurred while loading FAISS index from {index_path}: {e}")
+        return None
 
 
 def save_faiss_index_s3(
@@ -91,8 +104,17 @@ def save_faiss_index_s3(
     s3_client: boto3.session.Session.client
         S3 client to interface with AWS resources
     """
-    s3_client.upload_file(Filename=index_path, Bucket=s3_bucket, Key=index_path)
-    logger.info(f"FAISS index saved to S3 Bucket {s3_bucket} at {index_path}")
+    try:
+        s3_client.upload_file(Filename=index_path, Bucket=s3_bucket, Key=index_path)
+        logger.info(f"FAISS index saved to S3 Bucket {s3_bucket} at {index_path}")
+    except (NoCredentialsError, PartialCredentialsError):
+        logger.error("AWS credentials not found or incomplete.")
+    except ClientError as e:
+        logger.error(f"Failed to upload FAISS index to S3: {e}")
+    except Exception as e:
+        logger.error(f"An unexpected error occurred while saving FAISS index to S3: {e}")
+    finally:
+        s3_client.close()
 
 
 def load_faiss_index_s3(
@@ -101,7 +123,7 @@ def load_faiss_index_s3(
     s3_client: boto3.session.Session.client,
 ):
     """
-    Saves the FAISS index to S3.
+    Loads the FAISS index from S3.
 
     Parameters:
     ----------
@@ -112,5 +134,17 @@ def load_faiss_index_s3(
     s3_client: boto3.session.Session.client
         S3 client to interface with AWS resources
     """
-    s3_client.download_file(Filename=index_path, Bucket=s3_bucket, Key=index_path)
-    logger.info(f"FAISS index loaded from S3 Bucket {s3_bucket} at {index_path}")
+    try:
+        s3_client.download_file(Filename=index_path, Bucket=s3_bucket, Key=index_path)
+        logger.info(f"FAISS index loaded from S3 Bucket {s3_bucket} and stored at {index_path}")
+    except (NoCredentialsError, PartialCredentialsError):
+        logger.error("AWS credentials not found or incomplete.")
+        return None
+    except ClientError as e:
+        logger.error(f"Failed to download FAISS index from S3: {e}")
+        return None
+    except Exception as e:
+        logger.error(f"An unexpected error occurred while loading FAISS index from S3: {e}")
+        return None
+    finally:
+        s3_client.close()

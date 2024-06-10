@@ -57,6 +57,8 @@ def initialize_rag_pipeline() -> RetrieverModule:
 
     logger.info(f"Using Vector DB: {db_type}")
 
+    load_index_successful = False
+
     if args.use_existing_vector_db_index:
         logger.info(f"Loading existing index from {vector_db_index_path}")
         vector_database_module.index = load_index(
@@ -65,8 +67,9 @@ def initialize_rag_pipeline() -> RetrieverModule:
             vector_database_module.s3_bucket,
             vector_database_module.s3_client,
         )
+        load_index_successful = True if vector_database_module.index else False
 
-    else:
+    if not load_index_successful:
         logger.info(f"Constructing new index and saving at {vector_db_index_path}")
         vector_database_module.construct_vector_database(embeddings)
         basedir = os.path.dirname(vector_db_index_path)
