@@ -21,8 +21,12 @@ class TestVectorDatabaseModule(unittest.TestCase):
     def setUp(self):
         self.embedding1 = torch.rand(1, 10)
         self.embedding2 = torch.rand(1, 10)
+        self.embedding3 = torch.rand(1, 8)
+        self.embedding4 = torch.rand(1, 6)
         self.embedding_duplicate1 = self.embedding1.clone()
         self.embedding_duplicate2 = self.embedding2.clone()
+
+        self.test_pad_embeddings = [self.embedding3, self.embedding4]
 
         self.embeddings = [self.embedding1, self.embedding2, self.embedding_duplicate1, self.embedding_duplicate2]
         self.embeddings.extend([torch.rand(1, 10) for _ in range(6)])
@@ -70,7 +74,17 @@ class TestVectorDatabaseModule(unittest.TestCase):
 
     def test_pad_embeddings(self):
         padded_embeddings = pad_embeddings(self.embeddings)
-        self.assertEqual(padded_embeddings.shape, (10, 10))
+        max_len = max(embedding.size(1) for embedding in self.embeddings)
+
+        self.assertEqual(padded_embeddings.size(1), max_len * self.embeddings[0].size(0))
+
+        start_idx = 0
+        for original_embedding in self.embeddings:
+            end_idx = start_idx + original_embedding.size(0)
+            self.assertTrue(torch.equal(padded_embeddings[start_idx:end_idx, :original_embedding.size(1)], original_embedding))
+            if original_embedding.size(1) < max_len:
+                self.assertTrue(torch.equal(padded_embeddings[start_idx:end_idx, original_embedding.size(1):], torch.zeros(original_embedding.size(0), max_len - original_embedding.size(1))))
+            start_idx = end_idx
 
     @patch("agrag.modules.vector_db.utils.save_faiss_index")
     def test_save_index(self, mock_save_faiss_index):
