@@ -81,9 +81,16 @@ class TestVectorDatabaseModule(unittest.TestCase):
         start_idx = 0
         for original_embedding in self.embeddings:
             end_idx = start_idx + original_embedding.size(0)
-            self.assertTrue(torch.equal(padded_embeddings[start_idx:end_idx, :original_embedding.size(1)], original_embedding))
+            self.assertTrue(
+                torch.equal(padded_embeddings[start_idx:end_idx, : original_embedding.size(1)], original_embedding)
+            )
             if original_embedding.size(1) < max_len:
-                self.assertTrue(torch.equal(padded_embeddings[start_idx:end_idx, original_embedding.size(1):], torch.zeros(original_embedding.size(0), max_len - original_embedding.size(1))))
+                self.assertTrue(
+                    torch.equal(
+                        padded_embeddings[start_idx:end_idx, original_embedding.size(1) :],
+                        torch.zeros(original_embedding.size(0), max_len - original_embedding.size(1)),
+                    )
+                )
             start_idx = end_idx
 
     @patch("agrag.modules.vector_db.utils.save_faiss_index")
