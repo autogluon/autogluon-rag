@@ -1,6 +1,7 @@
 import logging
 from typing import Any, List, Union
 
+import boto3
 import faiss
 import torch
 
@@ -39,6 +40,7 @@ class VectorDatabaseModule:
         params: dict = None,
         similarity_threshold: float = 0.95,
         similarity_fn: str = "cosine",
+        s3_bucket: str = None,
     ) -> None:
         self.db_type = db_type
         self.params = params if params is not None else {}
@@ -49,6 +51,8 @@ class VectorDatabaseModule:
             )
         self.similarity_fn = similarity_fn
         self.index = None
+        self.s3_bucket = s3_bucket
+        self.s3_client = boto3.client("s3") if s3_bucket else None
 
     def construct_vector_database(
         self, embeddings: List[torch.Tensor]
@@ -72,4 +76,3 @@ class VectorDatabaseModule:
             self.index = construct_faiss_index(embeddings, self.params.get("gpu", False))
         else:
             raise ValueError(f"Unsupported database type: {self.db_type}")
-        return self.index

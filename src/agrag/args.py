@@ -93,7 +93,7 @@ class Arguments:
         return self.config.get("data", {}).get("chunk_overlap", self.data_defaults.get("CHUNK_OVERLAP"))
 
     @property
-    def s3_bucket(self):
+    def data_s3_bucket(self):
         return self.config.get("data", {}).get("s3_bucket", None)
 
     @property
@@ -161,3 +161,7 @@ class Arguments:
         return self.config.get("vector_db", {}).get(
             "use_existing_vector_db", self.vector_db_defaults.get("USE_EXISTING_INDEX")
         )
+
+    @property
+    def vector_db_s3_bucket(self):
+        return self.config.get("vector_db", {}).get("s3_bucket", None)

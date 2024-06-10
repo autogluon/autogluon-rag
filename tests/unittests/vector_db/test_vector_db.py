@@ -1,7 +1,8 @@
 import os
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, Mock, patch
 
+import faiss
 import torch
 
 from agrag.modules.vector_db.utils import (
@@ -37,8 +38,8 @@ class TestVectorDatabaseModule(unittest.TestCase):
     @patch("agrag.modules.vector_db.faiss.faiss_db.construct_faiss_index")
     def test_construct_vector_database(self, mock_construct_faiss_index):
         mock_construct_faiss_index.return_value = MagicMock()
-        index = self.vector_db_module.construct_vector_database(self.embeddings)
-        self.assertIsNotNone(index)
+        self.vector_db_module.construct_vector_database(self.embeddings)
+        self.assertIsNotNone(self.vector_db_module.index)
 
     def test_cosine_similarity_fn(self):
         self.embeddings = pad_embeddings(self.embeddings)
@@ -71,10 +72,10 @@ class TestVectorDatabaseModule(unittest.TestCase):
 
     @patch("agrag.modules.vector_db.utils.save_faiss_index")
     def test_save_index(self, mock_save_faiss_index):
-        mock_index = MagicMock()
+        faiss_index = faiss.IndexFlatL2()
         index_path = self.index_path
-        save_index("faiss", mock_index, index_path)
-        mock_save_faiss_index.assert_called_once_with(mock_index, index_path)
+        save_index("faiss", faiss_index, index_path)
+        mock_save_faiss_index.assert_called_once_with(faiss_index, index_path)
 
     @patch("agrag.modules.vector_db.utils.load_faiss_index")
     def test_load_index(self, mock_load_faiss_index):

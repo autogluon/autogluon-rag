@@ -1,7 +1,7 @@
 import logging
-import os
 from typing import List, Union
 
+import boto3
 import faiss
 import numpy as np
 import torch
@@ -72,3 +72,45 @@ def load_faiss_index(index_path: str) -> faiss.IndexFlatL2:
     index = faiss.read_index(index_path)
     logger.info(f"FAISS index loaded from {index_path}")
     return index
+
+
+def save_faiss_index_s3(
+    index_path: str,
+    s3_bucket: str,
+    s3_client: boto3.session.Session.client,
+):
+    """
+    Saves the FAISS index to S3.
+
+    Parameters:
+    ----------
+    index_path : str
+        The path where the FAISS index will be saved.
+    s3_bucket: str
+        S3 bucket to store the index in
+    s3_client: boto3.session.Session.client
+        S3 client to interface with AWS resources
+    """
+    s3_client.upload_file(Filename=index_path, Bucket=s3_bucket, Key=index_path)
+    logger.info(f"FAISS index saved to S3 Bucket {s3_bucket} at {index_path}")
+
+
+def load_faiss_index_s3(
+    index_path: str,
+    s3_bucket: str,
+    s3_client: boto3.session.Session.client,
+):
+    """
+    Saves the FAISS index to S3.
+
+    Parameters:
+    ----------
+    index_path : str
+        The path from where the FAISS index will be loaded.
+    s3_bucket: str
+        S3 bucket to store the index in
+    s3_client: boto3.session.Session.client
+        S3 client to interface with AWS resources
+    """
+    s3_client.download_file(Filename=index_path, Bucket=s3_bucket, Key=index_path)
+    logger.info(f"FAISS index loaded from S3 Bucket {s3_bucket} at {index_path}")

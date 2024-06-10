@@ -2,12 +2,18 @@ import logging
 import os
 from typing import List, Union
 
+import boto3
 import faiss
 import numpy as np
 import torch
 from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances, manhattan_distances
 
-from agrag.modules.vector_db.faiss.faiss_db import load_faiss_index, save_faiss_index
+from agrag.modules.vector_db.faiss.faiss_db import (
+    load_faiss_index,
+    load_faiss_index_s3,
+    save_faiss_index,
+    save_faiss_index_s3,
+)
 
 logger = logging.getLogger("rag-logger")
 
@@ -98,7 +104,13 @@ def pad_embeddings(embeddings: List[torch.Tensor]) -> torch.Tensor:
     return torch.cat(padded_embeddings, dim=0).view(len(padded_embeddings), -1)
 
 
-def save_index(db_type: str, index: Union[faiss.IndexFlatL2], index_path: str) -> None:
+def save_index(
+    db_type: str,
+    index: Union[faiss.IndexFlatL2],
+    index_path: str,
+    s3_bucket: str = None,
+    s3_client: boto3.session.Session.client = None,
+) -> None:
     """
     Saves the Vector DB index to disk.
 
@@ -110,6 +122,10 @@ def save_index(db_type: str, index: Union[faiss.IndexFlatL2], index_path: str) -
         The Vector DB index to store
     index_path : str
         The path where the index will be saved.
+    s3_bucket: str
+        S3 bucket to store the index in
+    s3_client: boto3.session.Session.client
+        S3 client to interface with AWS resources
     """
     if not index:
         raise ValueError("No index to save. Please construct the index first.")
@@ -123,11 +139,18 @@ def save_index(db_type: str, index: Union[faiss.IndexFlatL2], index_path: str) -
         if not type(index) is faiss.IndexFlatL2:
             raise TypeError("Index for FAISS incorrectly created. Not of type IndexFlatL2.")
         save_faiss_index(index, index_path)
+        if s3_bucket:
+            save_faiss_index_s3(index_path, s3_bucket, s3_client)
     else:
         logger.warning(f"Cannot save index. Unsupported Vector DB {db_type}.")
 
 
-def load_index(db_type: str, index_path: str) -> Union[faiss.IndexFlatL2]:
+def load_index(
+    db_type: str,
+    index_path: str,
+    s3_bucket: str = None,
+    s3_client: boto3.session.Session.client = None,
+) -> Union[faiss.IndexFlatL2]:
     """
     Loads the Vector DB index from disk.
 
@@ -137,11 +160,17 @@ def load_index(db_type: str, index_path: str) -> Union[faiss.IndexFlatL2]:
         The type of Vector DB being used
     index_path : str
         The path from where the index will be loaded.
-
+    s3_bucket: str
+        S3 bucket to store the index in
+    s3_client: boto3.session.Session.client
+        S3 client to interface with AWS resources
     """
     index = None
     if db_type == "faiss":
-        index = load_faiss_index(index_path)
+        if s3_bucket:
+            index = load_faiss_index_s3(index_path, s3_bucket, s3_client)
+        else:
+            index = load_faiss_index(index_path)
     else:
         raise ValueError("Cannot load index. Unsupported Vector DB {db_type}.")
     return index

@@ -28,7 +28,7 @@ def initialize_rag_pipeline() -> RetrieverModule:
 
     logger.info(f"Retrieving Data from {data_dir}")
     data_processing_module = DataProcessingModule(
-        data_dir=data_dir, chunk_size=args.chunk_size, chunk_overlap=args.chunk_overlap, s3_bucket=args.s3_bucket
+        data_dir=data_dir, chunk_size=args.chunk_size, chunk_overlap=args.chunk_overlap, s3_bucket=args.data_s3_bucket
     )
     processed_data = data_processing_module.process_data()
 
@@ -52,24 +52,36 @@ def initialize_rag_pipeline() -> RetrieverModule:
         params=args.vector_db_args,
         similarity_threshold=args.vector_db_sim_threshold,
         similarity_fn=args.vector_db_sim_fn,
+        s3_bucket=args.vector_db_s3_bucket,
     )
 
     logger.info(f"Using Vector DB: {db_type}")
 
     if args.use_existing_vector_db_index:
         logger.info(f"Loading existing index from {vector_db_index_path}")
-        vector_database_module.index = load_index(db_type, vector_db_index_path)
+        vector_database_module.index = load_index(
+            db_type,
+            vector_db_index_path,
+            vector_database_module.s3_bucket,
+            vector_database_module.s3_client,
+        )
 
     else:
         logger.info(f"Constructing new index and saving at {vector_db_index_path}")
-        vector_database = vector_database_module.construct_vector_database(embeddings)
+        vector_database_module.construct_vector_database(embeddings)
         basedir = os.path.dirname(vector_db_index_path)
         if not os.path.exists(basedir):
             logger.info(f"Creating directory for Vector Index save at {basedir}")
             os.makedirs(basedir)
-        save_index(db_type, vector_database_module.index, vector_db_index_path)
+        save_index(
+            db_type,
+            vector_database_module.index,
+            vector_db_index_path,
+            vector_database_module.s3_bucket,
+            vector_database_module.s3_client,
+        )
 
-    retriever_module = RetrieverModule(vector_database)
+    retriever_module = RetrieverModule(vector_database_module.index)
 
     return retriever_module
 
