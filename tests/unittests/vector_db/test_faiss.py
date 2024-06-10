@@ -2,15 +2,25 @@ import os
 import unittest
 from unittest.mock import MagicMock, patch
 
+import boto3
 import torch
+from botocore.exceptions import NoCredentialsError
 
-from agrag.modules.vector_db.faiss.faiss_db import construct_faiss_index, load_faiss_index, save_faiss_index
+from agrag.modules.vector_db.faiss.faiss_db import (
+    construct_faiss_index,
+    load_faiss_index,
+    load_faiss_index_s3,
+    save_faiss_index,
+    save_faiss_index_s3,
+)
 
 
 class TestFaissDB(unittest.TestCase):
     def setUp(self):
         self.embeddings = [torch.rand(1, 10) for _ in range(10)]
         self.index_path = "test_faiss_index_path"
+        self.s3_bucket = "test_bucket"
+        self.s3_client = MagicMock(spec=boto3.client("s3"))
 
     def tearDown(self):
         if os.path.exists(self.index_path):
@@ -38,6 +48,32 @@ class TestFaissDB(unittest.TestCase):
         index = load_faiss_index(index_path)
         self.assertEqual(index, mock_index)
         mock_read_index.assert_called_once_with(index_path)
+
+    def test_save_faiss_index_s3(self):
+        save_faiss_index_s3(self.index_path, self.s3_bucket, self.s3_client)
+        self.s3_client.upload_file.assert_called_once_with(
+            Filename=self.index_path, Bucket=self.s3_bucket, Key=self.index_path
+        )
+
+    def test_load_faiss_index_s3(self):
+        load_faiss_index_s3(self.index_path, self.s3_bucket, self.s3_client)
+        self.s3_client.download_file.assert_called_once_with(
+            Filename=self.index_path, Bucket=self.s3_bucket, Key=self.index_path
+        )
+
+    @patch("agrag.modules.vector_db.utils.logger")
+    def test_save_faiss_index_s3_no_credentials(self, mock_logger):
+        self.s3_client.upload_file.side_effect = NoCredentialsError()
+        with self.assertRaises(NoCredentialsError):
+            save_faiss_index_s3(self.index_path, self.s3_bucket, self.s3_client)
+        mock_logger.info.assert_not_called()
+
+    @patch("agrag.modules.vector_db.utils.logger")
+    def test_load_faiss_index_s3_no_credentials(self, mock_logger):
+        self.s3_client.download_file.side_effect = NoCredentialsError()
+        with self.assertRaises(NoCredentialsError):
+            load_faiss_index_s3(self.index_path, self.s3_bucket, self.s3_client)
+        mock_logger.info.assert_not_called()
 
 
 if __name__ == "__main__":
