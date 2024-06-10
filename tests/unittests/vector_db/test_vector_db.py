@@ -30,6 +30,8 @@ class TestVectorDatabaseModule(unittest.TestCase):
             db_type="faiss", params={"gpu": False}, similarity_threshold=0.95, similarity_fn="cosine"
         )
         self.index_path = "test_index_path"
+        self.s3_bucket = "bucket"
+        self.s3_client = "client"
 
     def tearDown(self):
         if os.path.exists(self.index_path):
@@ -77,6 +79,23 @@ class TestVectorDatabaseModule(unittest.TestCase):
         save_index("faiss", faiss_index, index_path)
         mock_save_faiss_index.assert_called_once_with(faiss_index, index_path)
 
+    @patch("agrag.modules.vector_db.utils.save_faiss_index_s3")
+    @patch("agrag.modules.vector_db.utils.save_faiss_index")
+    def test_save_index_with_s3(self, mock_save_faiss_index, mock_save_faiss_index_s3):
+        faiss_index = faiss.IndexFlatL2()
+        index_path = self.index_path
+        save_index("faiss", faiss_index, index_path, self.s3_bucket, self.s3_client)
+        mock_save_faiss_index.assert_called_once_with(faiss_index, index_path)
+        mock_save_faiss_index_s3.assert_called_once_with(index_path, self.s3_bucket, self.s3_client)
+
+    @patch("agrag.modules.vector_db.faiss.faiss_db.save_faiss_index")
+    def test_save_index_failure(self, mock_save_faiss_index):
+        mock_save_faiss_index.side_effect = IOError("Failed to write index")
+        faiss_index = faiss.IndexFlatL2()
+        index_path = self.index_path
+        result = save_index("faiss", faiss_index, index_path)
+        self.assertFalse(result)
+
     @patch("agrag.modules.vector_db.utils.load_faiss_index")
     def test_load_index(self, mock_load_faiss_index):
         mock_index = MagicMock()
@@ -85,6 +104,24 @@ class TestVectorDatabaseModule(unittest.TestCase):
         index = load_index("faiss", index_path)
         self.assertEqual(index, mock_index)
         mock_load_faiss_index.assert_called_once_with(index_path)
+
+    @patch("agrag.modules.vector_db.utils.load_faiss_index_s3")
+    @patch("agrag.modules.vector_db.utils.load_faiss_index")
+    def test_load_index_with_s3(self, mock_load_faiss_index, mock_load_faiss_index_s3):
+        mock_index = MagicMock()
+        mock_load_faiss_index.return_value = mock_index
+        index_path = self.index_path
+        index = load_index("faiss", index_path, s3_bucket=self.s3_bucket, s3_client=self.s3_client)
+        self.assertEqual(index, mock_index)
+        mock_load_faiss_index_s3.assert_called_once_with(index_path, self.s3_bucket, self.s3_client)
+        mock_load_faiss_index.assert_called_once_with(index_path)
+
+    @patch("agrag.modules.vector_db.faiss.faiss_db.load_faiss_index")
+    def test_load_index_failure(self, mock_load_faiss_index):
+        mock_load_faiss_index.side_effect = IOError("Failed to read index")
+        index_path = self.index_path
+        index = load_index("faiss", index_path)
+        self.assertIsNone(index)
 
 
 if __name__ == "__main__":

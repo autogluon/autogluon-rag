@@ -51,14 +51,23 @@ def save_faiss_index(index: faiss.IndexFlatL2, index_path: str) -> None:
         The FAISS index to store
     index_path : str
         The path where the FAISS index will be saved.
+
+    Returns:
+    -------
+    bool:
+        True, if Vector DB Index loaded successfully from memory
+        False, else
     """
     try:
         faiss.write_index(index, index_path)
         logger.info(f"FAISS index saved to {index_path}")
+        return True
     except (IOError, OSError) as e:
         logger.error(f"Failed to save FAISS index to {index_path}: {e}")
+        return False
     except Exception as e:
         logger.error(f"An unexpected error occurred while saving FAISS index to {index_path}: {e}")
+        return False
 
 
 def load_faiss_index(index_path: str) -> faiss.IndexFlatL2:
@@ -103,16 +112,26 @@ def save_faiss_index_s3(
         S3 bucket to store the index in
     s3_client: boto3.session.Session.client
         S3 client to interface with AWS resources
+
+    Returns:
+    -------
+    bool:
+        True, if Vector DB Index loaded successfully from S3
+        False, else
     """
     try:
         s3_client.upload_file(Filename=index_path, Bucket=s3_bucket, Key=index_path)
         logger.info(f"FAISS index saved to S3 Bucket {s3_bucket} at {index_path}")
+        return True
     except (NoCredentialsError, PartialCredentialsError):
         logger.error("AWS credentials not found or incomplete.")
+        return False
     except ClientError as e:
         logger.error(f"Failed to upload FAISS index to S3: {e}")
+        return False
     except Exception as e:
         logger.error(f"An unexpected error occurred while saving FAISS index to S3: {e}")
+        return False
     finally:
         s3_client.close()
 
@@ -133,18 +152,25 @@ def load_faiss_index_s3(
         S3 bucket to store the index in
     s3_client: boto3.session.Session.client
         S3 client to interface with AWS resources
+
+    Returns:
+    -------
+    bool:
+        True, if Vector DB Index loaded successfully from S3
+        False, else
     """
     try:
         s3_client.download_file(Filename=index_path, Bucket=s3_bucket, Key=index_path)
         logger.info(f"FAISS index loaded from S3 Bucket {s3_bucket} and stored at {index_path}")
+        return True
     except (NoCredentialsError, PartialCredentialsError):
         logger.error("AWS credentials not found or incomplete.")
-        return None
+        return False
     except ClientError as e:
         logger.error(f"Failed to download FAISS index from S3: {e}")
-        return None
+        return False
     except Exception as e:
         logger.error(f"An unexpected error occurred while loading FAISS index from S3: {e}")
-        return None
+        return False
     finally:
         s3_client.close()

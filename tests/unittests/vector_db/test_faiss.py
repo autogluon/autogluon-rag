@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import boto3
 import torch
+from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
 
 from agrag.modules.vector_db.faiss.faiss_db import (
     construct_faiss_index,
@@ -36,8 +37,17 @@ class TestFaissDB(unittest.TestCase):
     def test_save_faiss_index(self, mock_write_index):
         mock_index = MagicMock()
         index_path = self.index_path
-        save_faiss_index(mock_index, index_path)
+        result = save_faiss_index(mock_index, index_path)
         mock_write_index.assert_called_once_with(mock_index, index_path)
+        self.assertTrue(result)
+
+    @patch("faiss.write_index")
+    def test_save_faiss_index_failure(self, mock_write_index):
+        mock_write_index.side_effect = IOError("Failed to write index")
+        mock_index = MagicMock()
+        index_path = self.index_path
+        result = save_faiss_index(mock_index, index_path)
+        self.assertFalse(result)
 
     @patch("faiss.read_index")
     def test_load_faiss_index(self, mock_read_index):
@@ -48,17 +58,60 @@ class TestFaissDB(unittest.TestCase):
         self.assertEqual(index, mock_index)
         mock_read_index.assert_called_once_with(index_path)
 
+    @patch("faiss.read_index")
+    def test_load_faiss_index_failure(self, mock_read_index):
+        mock_read_index.side_effect = IOError("Failed to read index")
+        index_path = self.index_path
+        index = load_faiss_index(index_path)
+        self.assertIsNone(index)
+
     def test_save_faiss_index_s3(self):
-        save_faiss_index_s3(self.index_path, self.s3_bucket, self.s3_client)
+        result = save_faiss_index_s3(self.index_path, self.s3_bucket, self.s3_client)
         self.s3_client.upload_file.assert_called_once_with(
             Filename=self.index_path, Bucket=self.s3_bucket, Key=self.index_path
         )
+        self.assertTrue(result)
+
+    def test_save_faiss_index_s3_no_credentials(self):
+        self.s3_client.upload_file.side_effect = NoCredentialsError()
+        result = save_faiss_index_s3(self.index_path, self.s3_bucket, self.s3_client)
+        self.assertFalse(result)
+
+    def test_save_faiss_index_s3_partial_credentials(self):
+        self.s3_client.upload_file.side_effect = PartialCredentialsError(provider="test", cred_var="test")
+        result = save_faiss_index_s3(self.index_path, self.s3_bucket, self.s3_client)
+        self.assertFalse(result)
+
+    def test_save_faiss_index_s3_client_error(self):
+        self.s3_client.upload_file.side_effect = ClientError(
+            {"Error": {"Code": "500", "Message": "Test Error"}}, "UploadFile"
+        )
+        result = save_faiss_index_s3(self.index_path, self.s3_bucket, self.s3_client)
+        self.assertFalse(result)
 
     def test_load_faiss_index_s3(self):
-        load_faiss_index_s3(self.index_path, self.s3_bucket, self.s3_client)
+        result = load_faiss_index_s3(self.index_path, self.s3_bucket, self.s3_client)
         self.s3_client.download_file.assert_called_once_with(
             Filename=self.index_path, Bucket=self.s3_bucket, Key=self.index_path
         )
+        self.assertTrue(result)
+
+    def test_load_faiss_index_s3_no_credentials(self):
+        self.s3_client.download_file.side_effect = NoCredentialsError()
+        result = load_faiss_index_s3(self.index_path, self.s3_bucket, self.s3_client)
+        self.assertFalse(result)
+
+    def test_load_faiss_index_s3_partial_credentials(self):
+        self.s3_client.download_file.side_effect = PartialCredentialsError(provider="test", cred_var="test")
+        result = load_faiss_index_s3(self.index_path, self.s3_bucket, self.s3_client)
+        self.assertFalse(result)
+
+    def test_load_faiss_index_s3_client_error(self):
+        self.s3_client.download_file.side_effect = ClientError(
+            {"Error": {"Code": "500", "Message": "Test Error"}}, "DownloadFile"
+        )
+        result = load_faiss_index_s3(self.index_path, self.s3_bucket, self.s3_client)
+        self.assertFalse(result)
 
 
 if __name__ == "__main__":

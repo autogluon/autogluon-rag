@@ -138,9 +138,11 @@ def save_index(
     if db_type == "faiss":
         if not type(index) is faiss.IndexFlatL2:
             raise TypeError("Index for FAISS incorrectly created. Not of type IndexFlatL2.")
-        save_faiss_index(index, index_path)
-        if s3_bucket:
+        success = save_faiss_index(index, index_path)
+        if s3_bucket and success:
             save_faiss_index_s3(index_path, s3_bucket, s3_client)
+        else:
+            logger.warning(f"Failed to save index")
     else:
         logger.warning(f"Cannot save index. Unsupported Vector DB {db_type}.")
 
