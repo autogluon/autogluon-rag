@@ -26,7 +26,7 @@ def construct_faiss_index(embeddings: List[torch.Tensor], num_gpus: int = 1) -> 
     Union[faiss.IndexFlatL2, faiss.GpuIndexFlatL2]
         The constructed FAISS index.
     """
-    d = embeddings[0].shape[-1]  # dimension of the vectors
+    d = embeddings[0].shape[-1]
     logger.info(f"Constructing FAISS index with dimension: {d}")
 
     index = faiss.IndexFlatL2(d)  # Flat (CPU) index, L2 distance
