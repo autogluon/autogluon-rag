@@ -173,4 +173,3 @@ class Arguments:
     @property
     def vector_db_num_gpus(self):
         return self.config.get("vector_db", {}).get("num_gpus", None)
-
