@@ -1,9 +1,8 @@
-import argparse
 import logging
 import os
 
 import torch
-import yaml
+from tqdm import tqdm
 
 from agrag.args import Arguments
 from agrag.modules.data_processing.data_processing import DataProcessingModule
@@ -33,18 +32,21 @@ def initialize_rag_pipeline() -> RetrieverModule:
     )
     processed_data = data_processing_module.process_data()
 
-    embedding_module = EmbeddingModule(
-        hf_model=args.hf_embedding_model,
-        pooling_strategy=args.pooling_strategy,
-        normalize_embeddings=args.normalize_embeddings,
-        hf_model_params=args.hf_model_params,
-        hf_tokenizer_init_params=args.hf_tokenizer_init_params,
-        hf_tokenizer_params=args.hf_tokenizer_params,
-        hf_forward_params=args.hf_forward_params,
-        normalization_params=args.normalization_params,
-        query_instruction_for_retrieval=args.query_instruction_for_retrieval,
-    )
-    embeddings = embedding_module.encode(processed_data)
+    total_steps = len(processed_data)
+    with tqdm(total=total_steps, desc="Embedding Generation", unit="step") as pbar:
+
+        embedding_module = EmbeddingModule(
+            hf_model=args.hf_embedding_model,
+            pooling_strategy=args.pooling_strategy,
+            normalize_embeddings=args.normalize_embeddings,
+            hf_model_params=args.hf_model_params,
+            hf_tokenizer_init_params=args.hf_tokenizer_init_params,
+            hf_tokenizer_params=args.hf_tokenizer_params,
+            hf_forward_params=args.hf_forward_params,
+            normalization_params=args.normalization_params,
+            query_instruction_for_retrieval=args.query_instruction_for_retrieval,
+        )
+        embeddings = embedding_module.encode(processed_data, pbar)
 
     db_type = args.vector_db_type
 
@@ -71,28 +73,31 @@ def initialize_rag_pipeline() -> RetrieverModule:
 
     if args.use_existing_vector_db_index:
         logger.info(f"Loading existing index from {vector_db_index_path}")
-        vector_database_module.index = load_index(
-            db_type,
-            vector_db_index_path,
-            vector_database_module.s3_bucket,
-            vector_database_module.s3_client,
-        )
+        with tqdm(total=total_steps, desc="Existing Vector DB Loading", unit="step") as pbar:
+            vector_database_module.index = load_index(
+                db_type,
+                vector_db_index_path,
+                vector_database_module.s3_bucket,
+                vector_database_module.s3_client,
+                pbar,
+            )
         load_index_successful = True if vector_database_module.index else False
 
     if not load_index_successful:
         logger.info(f"Constructing new index and saving at {vector_db_index_path}")
-        vector_database_module.construct_vector_database(embeddings)
-        basedir = os.path.dirname(vector_db_index_path)
-        if not os.path.exists(basedir):
-            logger.info(f"Creating directory for Vector Index save at {basedir}")
-            os.makedirs(basedir)
-        save_index(
-            db_type,
-            vector_database_module.index,
-            vector_db_index_path,
-            vector_database_module.s3_bucket,
-            vector_database_module.s3_client,
-        )
+        with tqdm(total=total_steps, desc="Vector DB Construction", unit="step") as pbar:
+            vector_database_module.construct_vector_database(embeddings, pbar)
+            basedir = os.path.dirname(vector_db_index_path)
+            if not os.path.exists(basedir):
+                logger.info(f"Creating directory for Vector Index save at {basedir}")
+                os.makedirs(basedir)
+            save_index(
+                db_type,
+                vector_database_module.index,
+                vector_db_index_path,
+                vector_database_module.s3_bucket,
+                vector_database_module.s3_client,
+            )
 
     retriever_module = RetrieverModule(vector_database_module.index)
 

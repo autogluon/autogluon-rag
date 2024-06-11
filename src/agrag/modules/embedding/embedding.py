@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Union
 import numpy as np
 import torch
 from torch.nn import DataParallel
+from tqdm import tqdm
 from transformers import AutoModel, AutoTokenizer
 
 from agrag.modules.embedding.utils import normalize_embedding, pool
@@ -74,7 +75,7 @@ class EmbeddingModule:
         self.model.to(self.device)
         self.pooling_strategy = pooling_strategy
 
-    def encode(self, data: List[str]) -> Union[List[torch.Tensor], torch.Tensor]:
+    def encode(self, data: List[str], pbar: tqdm = None) -> Union[List[torch.Tensor], torch.Tensor]:
         """
         Generates embeddings for a list of text data chunks.
 
@@ -104,6 +105,8 @@ class EmbeddingModule:
             if self.normalize_embeddings:
                 normalize_embedding(embedding, **self.normalization_params)
             embeddings.append(embedding)
+            if pbar:
+                pbar.update(1)
         if not self.pooling_strategy:
             return embeddings
         else:

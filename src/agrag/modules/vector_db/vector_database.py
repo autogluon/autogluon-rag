@@ -4,6 +4,7 @@ from typing import Any, List, Union
 import boto3
 import faiss
 import torch
+from tqdm import tqdm
 
 from agrag.modules.vector_db.faiss.faiss_db import construct_faiss_index
 from agrag.modules.vector_db.utils import SUPPORTED_SIMILARITY_FUNCTIONS, pad_embeddings, remove_duplicates
@@ -59,7 +60,9 @@ class VectorDatabaseModule:
         self.num_gpus = num_gpus
 
     def construct_vector_database(
-        self, embeddings: List[torch.Tensor]
+        self,
+        embeddings: List[torch.Tensor],
+        pbar: tqdm = None,
     ) -> Union[faiss.IndexFlatL2,]:
         """
         Constructs the vector database and stores the embeddings.
@@ -80,3 +83,5 @@ class VectorDatabaseModule:
             self.index = construct_faiss_index(embeddings, self.num_gpus)
         else:
             raise ValueError(f"Unsupported database type: {self.db_type}")
+        if pbar:
+            pbar.update(len(embeddings))
