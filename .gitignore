@@ -3,6 +3,8 @@
 *docs/
 .vscode
 
+vectorDB_index_save
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

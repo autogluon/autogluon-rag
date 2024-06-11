@@ -7,3 +7,6 @@ langchain-community
 langchain-text-splitters
 transformers
 pypdf
+faiss-cpu
+scikit-learn
+numpy

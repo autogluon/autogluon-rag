@@ -39,6 +39,7 @@ class Arguments:
         self.config = self._load_config(self.args.config_file)
         self.data_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/data_processing/default.yaml"))
         self.embedding_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/embedding/default.yaml"))
+        self.vector_db_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/vector_db/default.yaml"))
 
     def _parse_args(self) -> argparse.Namespace:
         parser = argparse.ArgumentParser(description="AutoGluon-RAG - Retrieval-Augmented Generation Pipeline")
@@ -92,7 +93,7 @@ class Arguments:
         return self.config.get("data", {}).get("chunk_overlap", self.data_defaults.get("CHUNK_OVERLAP"))
 
     @property
-    def s3_bucket(self):
+    def data_s3_bucket(self):
         return self.config.get("data", {}).get("s3_bucket", None)
 
     @property
@@ -136,3 +137,39 @@ class Arguments:
     @property
     def query_instruction_for_retrieval(self):
         return self.config.get("embedding", {}).get("query_instruction_for_retrieval", "")
+
+    @property
+    def vector_db_type(self):
+        return self.config.get("vector_db", {}).get("db_type", self.vector_db_defaults.get("DB_TYPE"))
+
+    @property
+    def vector_db_args(self):
+        return self.config.get("vector_db", {}).get("params", {"gpu": self.vector_db_defaults.get("GPU")})
+
+    @property
+    def vector_db_sim_threshold(self):
+        return self.config.get("vector_db", {}).get(
+            "similarity_threshold", self.vector_db_defaults.get("SIMILARITY_THRESHOLD")
+        )
+
+    @property
+    def vector_db_sim_fn(self):
+        return self.config.get("vector_db", {}).get("similarity_fn", self.vector_db_defaults.get("SIMILARITY_FN"))
+
+    @property
+    def vector_db_index_path(self):
+        return self.config.get("vector_db", {}).get("vector_db_index_path", self.vector_db_defaults.get("INDEX_PATH"))
+
+    @property
+    def use_existing_vector_db_index(self):
+        return self.config.get("vector_db", {}).get(
+            "use_existing_vector_db", self.vector_db_defaults.get("USE_EXISTING_INDEX")
+        )
+
+    @property
+    def vector_db_s3_bucket(self):
+        return self.config.get("vector_db", {}).get("s3_bucket", None)
+
+    @property
+    def vector_db_num_gpus(self):
+        return self.config.get("vector_db", {}).get("num_gpus", None)

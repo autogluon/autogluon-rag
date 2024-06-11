@@ -43,7 +43,10 @@ dependencies = [
     "langchain-community",
     "langchain-text-splitters",
     "transformers",
-    "pypdf"
+    "pypdf",
+    "faiss-cpu",
+    "scikit-learn",
+    "numpy",
 ]
 
 
