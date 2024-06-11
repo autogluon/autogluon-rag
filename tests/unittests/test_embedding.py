@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
+import numpy as np
 import torch
 
 from agrag.modules.embedding.embedding import EmbeddingModule
@@ -48,27 +49,36 @@ class TestEmbeddingModule(unittest.TestCase):
         self.embedding_module.pooling_strategy = "mean"
         mock_model.return_value = MagicMock(last_hidden_state=torch.rand((10, 20, 100)))
         embeddings = torch.rand((10, 20, 100))
+
+        expected_pooled = embeddings.mean(dim=1)
+
         pooled_embeddings = pool(embeddings, self.embedding_module.pooling_strategy)
 
-        self.assertEqual(pooled_embeddings.shape, (10, 100))
+        self.assertTrue(torch.allclose(pooled_embeddings, expected_pooled, atol=1e-6))
 
     @patch("agrag.modules.embedding.embedding.AutoModel.from_pretrained")
     def test_pool_max(self, mock_model):
         self.embedding_module.pooling_strategy = "max"
         mock_model.return_value = MagicMock(last_hidden_state=torch.rand((10, 20, 100)))
         embeddings = torch.rand((10, 20, 100))
+
+        expected_pooled = embeddings.max(dim=1).values
+
         pooled_embeddings = pool(embeddings, self.embedding_module.pooling_strategy)
 
-        self.assertEqual(pooled_embeddings.shape, (10, 100))
+        self.assertTrue(torch.allclose(pooled_embeddings, expected_pooled, atol=1e-6))
 
     @patch("agrag.modules.embedding.embedding.AutoModel.from_pretrained")
     def test_pool_cls(self, mock_model):
         self.embedding_module.pooling_strategy = "cls"
         mock_model.return_value = MagicMock(last_hidden_state=torch.rand((10, 20, 100)))
         embeddings = torch.rand((10, 20, 100))
+
+        expected_pooled = embeddings[:, 0, :]
+
         pooled_embeddings = pool(embeddings, self.embedding_module.pooling_strategy)
 
-        self.assertEqual(pooled_embeddings.shape, (10, 100))
+        self.assertTrue(torch.allclose(pooled_embeddings, expected_pooled, atol=1e-6))
 
     def test_normalize_embedding(self):
         embedding = torch.rand((10, 100))
@@ -78,6 +88,29 @@ class TestEmbeddingModule(unittest.TestCase):
         actual_norm = torch.norm(normalized_embedding, p=2, dim=1)
 
         self.assertTrue(torch.allclose(expected_norm, actual_norm, atol=1e-6))
+
+    @patch.object(EmbeddingModule, "encode")
+    def test_encode_queries_with_instruction(self, mock_encode):
+        queries = ["query1", "query2"]
+        expected_input_texts = ["query1", "query2"]
+        mock_encode.return_value = np.random.rand(2, 10)
+
+        embeddings = self.embedding_module.encode_queries(queries)
+
+        self.assertEqual(mock_encode.call_args[0][0], expected_input_texts)
+        self.assertEqual(embeddings.shape, (2, 10))
+
+    @patch.object(EmbeddingModule, "encode")
+    def test_encode_queries_without_instruction(self, mock_encode):
+        self.embedding_module.query_instruction_for_retrieval = None
+        queries = ["query1", "query2"]
+        expected_input_texts = queries
+        mock_encode.return_value = np.random.rand(2, 10)
+
+        embeddings = self.embedding_module.encode_queries(queries)
+
+        self.assertEqual(mock_encode.call_args[0][0], expected_input_texts)
+        self.assertEqual(embeddings.shape, (2, 10))
 
 
 if __name__ == "__main__":
