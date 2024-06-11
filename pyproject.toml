@@ -45,7 +45,6 @@ dependencies = [
     "transformers",
     "pypdf",
     "faiss-cpu",
-    "faiss-gpu",
     "scikit-learn",
     "numpy",
 ]
