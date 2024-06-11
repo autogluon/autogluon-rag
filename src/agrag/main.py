@@ -40,6 +40,7 @@ def initialize_rag_pipeline() -> RetrieverModule:
         hf_tokenizer_params=args.hf_tokenizer_params,
         hf_forward_params=args.hf_forward_params,
         normalization_params=args.normalization_params,
+        query_instruction_for_retrieval=args.query_instruction_for_retrieval,
     )
     embeddings = embedding_module.encode(processed_data)
 

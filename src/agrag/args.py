@@ -132,3 +132,7 @@ class Arguments:
     @property
     def normalization_params(self):
         return self.config.get("embedding", {}).get("normalization_params", {})
+
+    @property
+    def query_instruction_for_retrieval(self):
+        return self.config.get("embedding", {}).get("query_instruction_for_retrieval", "")
