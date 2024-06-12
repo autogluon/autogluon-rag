@@ -80,7 +80,9 @@ class VectorDatabaseModule:
         Union[faiss.IndexFlatL2,]
             The constructed vector database index.
         """
-        self.metadata = [{k: v for k, v in item.items() if k != "embedding"} for item in embeddings]
+        self.metadata = [
+            {k: v for k, v in item.items() if k != "embedding" and k != "text"} for item in embeddings
+        ]  # only store doc_id and chunk_id
         vectors = [item["embedding"] for item in embeddings]
         vectors = pad_embeddings(vectors)
         vectors = remove_duplicates(vectors, self.similarity_threshold, self.similarity_fn)
