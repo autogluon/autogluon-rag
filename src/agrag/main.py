@@ -22,36 +22,6 @@ logger.addHandler(ch)
 def initialize_rag_pipeline() -> RetrieverModule:
     args = Arguments()
 
-    data_dir = args.data_dir
-    if not data_dir:
-        raise ValueError("Error: 'data_dir' must be specified in the configuration file under 'data' section.")
-
-    logger.info(f"Retrieving Data from {data_dir}")
-    data_processing_module = DataProcessingModule(
-        data_dir=data_dir, chunk_size=args.chunk_size, chunk_overlap=args.chunk_overlap, s3_bucket=args.data_s3_bucket
-    )
-
-    with tqdm(total=100, desc="Data Preprocessing", unit="chunk") as pbar:
-        processed_data = data_processing_module.process_data()
-        pbar.n = 100
-        pbar.refresh()
-
-    total_steps = len(processed_data)
-    with tqdm(total=total_steps, desc="Embedding Generation", unit="step") as pbar:
-
-        embedding_module = EmbeddingModule(
-            hf_model=args.hf_embedding_model,
-            pooling_strategy=args.pooling_strategy,
-            normalize_embeddings=args.normalize_embeddings,
-            hf_model_params=args.hf_model_params,
-            hf_tokenizer_init_params=args.hf_tokenizer_init_params,
-            hf_tokenizer_params=args.hf_tokenizer_params,
-            hf_forward_params=args.hf_forward_params,
-            normalization_params=args.normalization_params,
-            query_instruction_for_retrieval=args.query_instruction_for_retrieval,
-        )
-        embeddings = embedding_module.encode(processed_data, pbar)
-
     db_type = args.vector_db_type
 
     num_gpus = args.vector_db_num_gpus
@@ -77,17 +47,46 @@ def initialize_rag_pipeline() -> RetrieverModule:
 
     if args.use_existing_vector_db_index:
         logger.info(f"Loading existing index from {vector_db_index_path}")
-        with tqdm(total=total_steps, desc="Existing Vector DB Loading", unit="step") as pbar:
-            vector_database_module.index = load_index(
-                db_type,
-                vector_db_index_path,
-                vector_database_module.s3_bucket,
-                vector_database_module.s3_client,
-                pbar,
-            )
+        vector_database_module.index = load_index(
+            db_type,
+            vector_db_index_path,
+            vector_database_module.s3_bucket,
+            vector_database_module.s3_client,
+        )
         load_index_successful = True if vector_database_module.index else False
 
     if not load_index_successful:
+        data_dir = args.data_dir
+        if not data_dir:
+            raise ValueError("Error: 'data_dir' must be specified in the configuration file under 'data' section.")
+
+        logger.info(f"Retrieving Data from {data_dir}")
+        data_processing_module = DataProcessingModule(
+            data_dir=data_dir, chunk_size=args.chunk_size, chunk_overlap=args.chunk_overlap, s3_bucket=args.data_s3_bucket
+        )
+
+        with tqdm(total=100, desc="Data Preprocessing", unit="chunk") as pbar:
+            processed_data = data_processing_module.process_data()
+            pbar.n = 100
+            pbar.refresh()
+
+        total_steps = len(processed_data)
+
+        with tqdm(total=total_steps, desc="Embedding Generation", unit="step") as pbar:
+
+            embedding_module = EmbeddingModule(
+                hf_model=args.hf_embedding_model,
+                pooling_strategy=args.pooling_strategy,
+                normalize_embeddings=args.normalize_embeddings,
+                hf_model_params=args.hf_model_params,
+                hf_tokenizer_init_params=args.hf_tokenizer_init_params,
+                hf_tokenizer_params=args.hf_tokenizer_params,
+                hf_forward_params=args.hf_forward_params,
+                normalization_params=args.normalization_params,
+                query_instruction_for_retrieval=args.query_instruction_for_retrieval,
+            )
+            embeddings = embedding_module.encode(processed_data, pbar)
+
         logger.info(f"Constructing new index and saving at {vector_db_index_path}")
         with tqdm(total=total_steps, desc="Vector DB Construction", unit="step") as pbar:
             vector_database_module.construct_vector_database(embeddings, pbar)
