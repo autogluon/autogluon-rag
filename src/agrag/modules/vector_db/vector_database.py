@@ -1,5 +1,5 @@
 import logging
-from typing import Any, List, Union
+from typing import List, Union
 
 import boto3
 import faiss
