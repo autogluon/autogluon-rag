@@ -62,7 +62,10 @@ def initialize_rag_pipeline() -> RetrieverModule:
 
         logger.info(f"Retrieving Data from {data_dir}")
         data_processing_module = DataProcessingModule(
-            data_dir=data_dir, chunk_size=args.chunk_size, chunk_overlap=args.chunk_overlap, s3_bucket=args.data_s3_bucket
+            data_dir=data_dir,
+            chunk_size=args.chunk_size,
+            chunk_overlap=args.chunk_overlap,
+            s3_bucket=args.data_s3_bucket,
         )
 
         with tqdm(total=100, desc="Data Preprocessing", unit="chunk") as pbar:
