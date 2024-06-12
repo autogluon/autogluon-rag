@@ -7,6 +7,7 @@ import faiss
 import numpy as np
 import torch
 from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances, manhattan_distances
+from tqdm import tqdm
 
 from agrag.modules.vector_db.faiss.faiss_db import (
     load_faiss_index,
@@ -152,6 +153,7 @@ def load_index(
     index_path: str,
     s3_bucket: str = None,
     s3_client: boto3.session.Session.client = None,
+    pbar: tqdm = None,
 ) -> Union[faiss.IndexFlatL2]:
     """
     Loads the Vector DB index from disk.
@@ -174,4 +176,7 @@ def load_index(
         index = load_faiss_index(index_path)
     else:
         raise ValueError("Cannot load index. Unsupported Vector DB {db_type}.")
+    if pbar:
+        pbar.n = pbar.total
+        pbar.refresh()
     return index
