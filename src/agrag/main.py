@@ -30,7 +30,11 @@ def initialize_rag_pipeline() -> RetrieverModule:
     data_processing_module = DataProcessingModule(
         data_dir=data_dir, chunk_size=args.chunk_size, chunk_overlap=args.chunk_overlap, s3_bucket=args.data_s3_bucket
     )
-    processed_data = data_processing_module.process_data()
+
+    with tqdm(total=100, desc="Data Preprocessing", unit="chunk") as pbar:
+        processed_data = data_processing_module.process_data()
+        pbar.n = 100
+        pbar.refresh()
 
     total_steps = len(processed_data)
     with tqdm(total=total_steps, desc="Embedding Generation", unit="step") as pbar:

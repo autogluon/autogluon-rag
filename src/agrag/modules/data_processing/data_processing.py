@@ -5,7 +5,6 @@ from typing import List
 import boto3
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from tqdm import tqdm
 
 from agrag.modules.data_processing.utils import download_directory_from_s3, get_all_file_paths
 
@@ -128,10 +127,7 @@ class DataProcessingModule:
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
             # Process each file in parallel
-            with tqdm(total=len(file_paths), desc="Data Processing", unit="file") as pbar:
-                futures = {executor.submit(self.process_file, file_path): file_path for file_path in file_paths}
-                for future in concurrent.futures.as_completed(futures):
-                    result = future.result()
-                    processed_data.extend(result)
-                    pbar.update(1)
+            results = executor.map(self.process_file, file_paths)
+            for result in results:
+                processed_data.extend(result)
         return processed_data
