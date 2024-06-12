@@ -99,10 +99,8 @@ class DataProcessingModule:
         logger.info(f"Processing File: {file_path}")
         processed_data = []
 
-        # Determine file extension
         _, file_extension = os.path.splitext(file_path)
 
-        # Process based on file extension
         if file_extension.lower() == ".pdf":
             pdf_loader = PyPDFLoader(file_path)
             text_splitter = RecursiveCharacterTextSplitter(
