@@ -3,8 +3,11 @@ import logging
 from typing import List
 
 import boto3
+from docx import Document
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+import textract
+import os
 
 from agrag.modules.data_processing.utils import download_directory_from_s3, get_all_file_paths
 
@@ -59,10 +62,7 @@ class DataProcessingModule:
 
     def chunk_data(self, text: str):
         """
-        Chunks text into segments using a more sophisticated approach.
-
-        This method will provide advanced text chunking
-        that might include considerations like word boundaries or semantic coherence.
+        Chunks text into segments using a specified overlap.
 
         Parameters:
         ----------
@@ -74,7 +74,13 @@ class DataProcessingModule:
         List[str]
             A list of text chunks.
         """
-        raise NotImplementedError
+        chunks = []
+        start = 0
+        while start < len(text):
+            end = min(start + self.chunk_size, len(text))
+            chunks.append(text[start:end])
+            start += self.chunk_size - self.chunk_overlap
+        return chunks
 
     def process_file(self, file_path: str) -> List[str]:
         """
@@ -92,18 +98,36 @@ class DataProcessingModule:
         """
         logger.info(f"Processing File: {file_path}")
         processed_data = []
-        pdf_loader = PyPDFLoader(file_path)
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=self.chunk_size,
-            chunk_overlap=self.chunk_overlap,
-            separators=[".", "\uff0e", "\n"],  # \uff0e -> Fullwidth full stop
-            length_function=len,
-            is_separator_regex=False,
-        )
-        pages = pdf_loader.load_and_split(text_splitter=text_splitter)
-        for page in pages:
-            page_content = "".join(page.page_content)
-            processed_data.append(page_content)
+
+        # Determine file extension
+        _, file_extension = os.path.splitext(file_path)
+
+        # Process based on file extension
+        if file_extension.lower() == ".pdf":
+            pdf_loader = PyPDFLoader(file_path)
+            text_splitter = RecursiveCharacterTextSplitter(
+                chunk_size=self.chunk_size,
+                chunk_overlap=self.chunk_overlap,
+                separators=[".", "\uff0e", "\n"],  # \uff0e -> Fullwidth full stop
+                length_function=len,
+                is_separator_regex=False,
+            )
+            pages = pdf_loader.load_and_split(text_splitter=text_splitter)
+            for page in pages:
+                page_content = "".join(page.page_content)
+                processed_data.append(page_content)
+        elif file_extension.lower() == ".txt":
+            with open(file_path, "r", encoding="utf-8") as f:
+                text = f.read()
+            processed_data.append(self.chunk_data(text))
+        elif file_extension.lower() == ".docx":
+            doc = Document(file_path)
+            text = "\n".join(paragraph.text for paragraph in doc.paragraphs)
+            processed_data.append(self.chunk_data(text))
+        elif file_extension.lower() == ".py":
+            text = textract.process(file_path, method="text", encoding="utf-8")
+            processed_data.append(self.chunk_data(text.decode("utf-8")))
+
         return processed_data
 
     def process_data(self) -> List[str]:

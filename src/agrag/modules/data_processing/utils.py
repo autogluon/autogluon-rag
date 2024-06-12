@@ -6,6 +6,7 @@ import boto3
 
 logger = logging.getLogger("rag-logger")
 
+SUPPORTED_FILE_EXTNS = (".pdf", ".txt", ".docx", ".py")
 
 def download_directory_from_s3(s3_bucket: str, data_dir: str, s3_client: boto3.client):
     """
@@ -70,9 +71,9 @@ def get_all_file_paths(dir_path: str) -> List[str]:
     for root, _, files in os.walk(dir_path):
         for file in files:
             file_path = os.path.join(root, file)
-            if not file_path.endswith(".pdf"):  # Only PDFs for now
+            if not file_path.endswith(SUPPORTED_FILE_EXTNS):
                 logger.warning(
-                    f"\nWARNING: Skipping File {file_path}. Only PDF files are supported in this version.\n"
+                    f"\nWARNING: Skipping File {file_path}. Only file types {list(SUPPORTED_FILE_EXTNS)} are supported in this version.\n"
                 )
                 continue
             file_paths.append(file_path)
