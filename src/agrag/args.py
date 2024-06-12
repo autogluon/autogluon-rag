@@ -97,6 +97,10 @@ class Arguments:
         return self.config.get("data", {}).get("s3_bucket", None)
 
     @property
+    def data_file_extns(self):
+        return self.config.get("data", {}).get("file_extns", [])
+
+    @property
     def hf_embedding_model(self):
         return self.config.get("embedding", {}).get(
             "embedding_model", self.embedding_defaults.get("DEFAULT_EMBEDDING_MODEL")

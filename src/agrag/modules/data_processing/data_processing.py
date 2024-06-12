@@ -9,7 +9,11 @@ from docx import Document
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from agrag.modules.data_processing.utils import download_directory_from_s3, get_all_file_paths
+from agrag.modules.data_processing.utils import (
+    SUPPORTED_FILE_EXTENSIONS,
+    download_directory_from_s3,
+    get_all_file_paths,
+)
 
 logger = logging.getLogger("rag-logger")
 
@@ -28,6 +32,8 @@ class DataProcessingModule:
         The overlap between consecutive chunks of text (default is 128).
     s3_bucket : str, optional
         The name of the S3 bucket containing the data files.
+    file_exts: List[str], optional
+        List of file extensions to support
 
     Example:
     --------
@@ -36,12 +42,20 @@ class DataProcessingModule:
     )
     """
 
-    def __init__(self, data_dir: str, chunk_size: int, chunk_overlap: int, s3_bucket: str = None) -> None:
+    def __init__(
+        self,
+        data_dir: str,
+        chunk_size: int,
+        chunk_overlap: int,
+        s3_bucket: str = None,
+        file_exts: List[str] = SUPPORTED_FILE_EXTENSIONS,
+    ) -> None:
         self.data_dir = data_dir
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         self.s3_bucket = s3_bucket
         self.s3_client = boto3.client("s3") if s3_bucket else None
+        self.file_exts = file_exts
 
     def chunk_data_naive(self, text: str):
         """
@@ -145,7 +159,7 @@ class DataProcessingModule:
                 s3_bucket=self.s3_bucket, data_dir=self.data_dir, s3_client=self.s3_client
             )
 
-        file_paths = get_all_file_paths(self.data_dir)
+        file_paths = get_all_file_paths(self.data_dir, file_exts)
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
             # Process each file in parallel

@@ -3,6 +3,9 @@ data:
   chunk_overlap: 64
   s3_bucket: autogluon-rag-github-dev
   data_dir: test_docs/
+  file_extns:
+    - "pdf"
+    - "txt"
 
 embedding:
   embedding_model: BAAI/bge-large-en
