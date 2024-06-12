@@ -30,7 +30,7 @@ class VectorDatabaseModule:
         The similarity function used for determining similarity scores for embeddings. Options are 'cosine', 'euclidean', 'manhattan' (default is 'cosine').
     num_gpus: int
         Number of GPUs to use when building the index
-    metadata: List
+    metadata: List[dict]
         Metadata for each embedding stored in the database
 
     Methods:

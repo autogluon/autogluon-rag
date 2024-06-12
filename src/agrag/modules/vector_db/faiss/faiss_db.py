@@ -121,7 +121,7 @@ def save_faiss_index_s3(
     Returns:
     -------
     bool:
-        True, if Vector DB Index loaded successfully from S3
+        True, if Vector DB Index saved successfully to S3
         False, else
     """
     try:

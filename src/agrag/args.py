@@ -173,3 +173,9 @@ class Arguments:
     @property
     def vector_db_num_gpus(self):
         return self.config.get("vector_db", {}).get("num_gpus", None)
+
+    @property
+    def metadata_index_path(self):
+        return self.config.get("vector_db", {}).get(
+            "metadata_index_path", self.vector_db_defaults.get("METADATA_PATH")
+        )

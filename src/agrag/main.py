@@ -9,7 +9,7 @@ from agrag.modules.data_processing.data_processing import DataProcessingModule
 from agrag.modules.embedding.embedding import EmbeddingModule
 from agrag.modules.generator.generator import GeneratorModule
 from agrag.modules.retriever.retriever import RetrieverModule
-from agrag.modules.vector_db.utils import load_index, save_index
+from agrag.modules.vector_db.utils import load_index, load_metadata, save_index, save_metadata
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
 
 logger = logging.getLogger("rag-logger")
@@ -32,6 +32,7 @@ def initialize_rag_pipeline() -> RetrieverModule:
         logger.info(f"Using number of GPUs: {num_gpus}")
 
     vector_db_index_path = os.path.join(args.vector_db_index_path, db_type, "index.idx")
+    metadata_index_path = os.path.join(args.metadata_index_path, db_type, "metadata.json")
     vector_database_module = VectorDatabaseModule(
         db_type=db_type,
         params=args.vector_db_args,
@@ -53,7 +54,13 @@ def initialize_rag_pipeline() -> RetrieverModule:
             vector_database_module.s3_bucket,
             vector_database_module.s3_client,
         )
-        load_index_successful = True if vector_database_module.index else False
+        logger.info(f"Loading existing metadata from {metadata_index_path}")
+        vector_database_module.metadata = load_metadata(
+            metadata_index_path,
+            vector_database_module.s3_bucket,
+            vector_database_module.s3_client,
+        )
+        load_index_successful = True if vector_database_module.index and vector_database_module.metadata else False
 
     if not load_index_successful:
         data_dir = args.data_dir
@@ -75,7 +82,7 @@ def initialize_rag_pipeline() -> RetrieverModule:
 
         total_steps = len(processed_data)
 
-        with tqdm(total=total_steps, desc="Embedding Generation", unit="step") as pbar:
+        with tqdm(total=total_steps, desc="\nEmbedding Generation", unit="step") as pbar:
 
             embedding_module = EmbeddingModule(
                 hf_model=args.hf_embedding_model,
@@ -90,7 +97,7 @@ def initialize_rag_pipeline() -> RetrieverModule:
             )
             embeddings = embedding_module.encode(processed_data, pbar)
 
-        logger.info(f"Constructing new index and saving at {vector_db_index_path}")
+        logger.info(f"\nConstructing new index and saving at {vector_db_index_path}")
         with tqdm(total=total_steps, desc="Vector DB Construction", unit="step") as pbar:
             vector_database_module.construct_vector_database(embeddings, pbar)
             basedir = os.path.dirname(vector_db_index_path)
@@ -101,6 +108,12 @@ def initialize_rag_pipeline() -> RetrieverModule:
                 db_type,
                 vector_database_module.index,
                 vector_db_index_path,
+                vector_database_module.s3_bucket,
+                vector_database_module.s3_client,
+            )
+            save_metadata(
+                vector_database_module.metadata,
+                metadata_index_path,
                 vector_database_module.s3_bucket,
                 vector_database_module.s3_client,
             )
