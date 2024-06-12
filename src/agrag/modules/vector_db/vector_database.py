@@ -79,6 +79,7 @@ class VectorDatabaseModule:
         """
         embeddings = pad_embeddings(embeddings)
         embeddings = remove_duplicates(embeddings, self.similarity_threshold, self.similarity_fn)
+        pbar.total = len(embeddings)
         if self.db_type == "faiss":
             self.index = construct_faiss_index(embeddings, self.num_gpus)
         else:
