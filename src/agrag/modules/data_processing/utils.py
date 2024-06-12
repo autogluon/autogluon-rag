@@ -8,6 +8,7 @@ logger = logging.getLogger("rag-logger")
 
 SUPPORTED_FILE_EXTNS = (".pdf", ".txt", ".docx", ".py")
 
+
 def download_directory_from_s3(s3_bucket: str, data_dir: str, s3_client: boto3.client):
     """
     Downloads an entire directory from an S3 bucket to a local directory.

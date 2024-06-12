@@ -1,13 +1,13 @@
 import concurrent.futures
 import logging
+import os
 from typing import List
 
 import boto3
+import textract
 from docx import Document
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-import textract
-import os
 
 from agrag.modules.data_processing.utils import download_directory_from_s3, get_all_file_paths
 
