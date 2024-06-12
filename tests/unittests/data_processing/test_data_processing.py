@@ -1,13 +1,13 @@
 import os
 import tempfile
 import unittest
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import MagicMock, patch
 
 from agrag.modules.data_processing.data_processing import DataProcessingModule
 from agrag.modules.data_processing.utils import download_directory_from_s3, get_all_file_paths
 
 CURRENT_DIR = os.path.dirname(__file__)
-TEST_DIR = os.path.join(CURRENT_DIR, "../test_docs/")
+TEST_DIR = os.path.join(CURRENT_DIR, "../../test_docs/")
 
 
 class TestDataProcessingModule(unittest.TestCase):
@@ -21,10 +21,10 @@ class TestDataProcessingModule(unittest.TestCase):
             data_dir=TEST_DIR, chunk_size=10, chunk_overlap=5, s3_bucket=None
         )
 
-        data = data_processing_module.process_file(os.path.join(TEST_DIR, "Chatbot.pdf"))
+        result = data_processing_module.process_file(os.path.join(TEST_DIR, "Chatbot.pdf"), doc_id=1)
 
-        expected_data = ["This is a test page."]
-        self.assertEqual(data, expected_data)
+        expected_result = [{"doc_id": 1, "chunk_id": 0, "text": "This is a test page."}]
+        self.assertEqual(result, expected_result)
 
     @patch("os.listdir")
     @patch("langchain_community.document_loaders.PyPDFLoader.load_and_split")
@@ -40,11 +40,11 @@ class TestDataProcessingModule(unittest.TestCase):
             data_dir=TEST_DIR, chunk_size=10, chunk_overlap=5, s3_bucket=None
         )
 
-        mock_thread_map.return_value = [["This is a test page."]]
+        mock_thread_map.return_value = [[{"doc_id": 0, "chunk_id": 0, "text": "This is a test page."}]]
 
         data = data_processing_module.process_data()
 
-        expected_data = ["This is a test page."]
+        expected_data = [{"doc_id": 0, "chunk_id": 0, "text": "This is a test page."}]
         self.assertEqual(data, expected_data)
 
     def test_chunk_data_naive(self):
@@ -77,10 +77,10 @@ class TestDataProcessingModule(unittest.TestCase):
         )
 
         mock_s3_key = "test_docs/Chatbot.pdf"
-        data = data_processing_module.process_file(f"s3://autogluon-rag-github-dev/{mock_s3_key}")
+        result = data_processing_module.process_file(f"s3://autogluon-rag-github-dev/{mock_s3_key}", doc_id=1)
 
-        expected_data = ["This is a test page."]
-        self.assertEqual(data, expected_data)
+        expected_result = [{"doc_id": 1, "chunk_id": 0, "text": "This is a test page."}]
+        self.assertEqual(result, expected_result)
 
     @patch("boto3.client")
     @patch("os.makedirs")

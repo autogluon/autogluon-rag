@@ -1,6 +1,6 @@
 import os
 import unittest
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 import faiss
 import torch
@@ -44,7 +44,8 @@ class TestVectorDatabaseModule(unittest.TestCase):
     @patch("agrag.modules.vector_db.faiss.faiss_db.construct_faiss_index")
     def test_construct_vector_database(self, mock_construct_faiss_index):
         mock_construct_faiss_index.return_value = MagicMock()
-        self.vector_db_module.construct_vector_database(self.embeddings)
+        embeddings = [{"embedding": torch.rand(1, 10), "doc_id": 3, "chunk_id": i} for i in range(6)]
+        self.vector_db_module.construct_vector_database(embeddings)
         self.assertIsNotNone(self.vector_db_module.index)
 
     def test_cosine_similarity_fn(self):

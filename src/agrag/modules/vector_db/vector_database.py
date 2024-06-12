@@ -30,6 +30,8 @@ class VectorDatabaseModule:
         The similarity function used for determining similarity scores for embeddings. Options are 'cosine', 'euclidean', 'manhattan' (default is 'cosine').
     num_gpus: int
         Number of GPUs to use when building the index
+    metadata: List
+        Metadata for each embedding stored in the database
 
     Methods:
     -------
@@ -58,6 +60,7 @@ class VectorDatabaseModule:
         self.s3_bucket = s3_bucket
         self.s3_client = boto3.client("s3") if s3_bucket else None
         self.num_gpus = num_gpus
+        self.metadata = []
 
     def construct_vector_database(
         self,
@@ -77,13 +80,15 @@ class VectorDatabaseModule:
         Union[faiss.IndexFlatL2,]
             The constructed vector database index.
         """
-        embeddings = pad_embeddings(embeddings)
-        embeddings = remove_duplicates(embeddings, self.similarity_threshold, self.similarity_fn)
+        self.metadata = [{k: v for k, v in item.items() if k != "embedding"} for item in embeddings]
+        vectors = [item["embedding"] for item in embeddings]
+        vectors = pad_embeddings(vectors)
+        vectors = remove_duplicates(vectors, self.similarity_threshold, self.similarity_fn)
         if pbar:
-            pbar.total = len(embeddings)
+            pbar.total = len(vectors)
         if self.db_type == "faiss":
-            self.index = construct_faiss_index(embeddings, self.num_gpus)
+            self.index = construct_faiss_index(vectors, self.num_gpus)
         else:
             raise ValueError(f"Unsupported database type: {self.db_type}")
         if pbar:
-            pbar.update(len(embeddings))
+            pbar.update(len(vectors))
