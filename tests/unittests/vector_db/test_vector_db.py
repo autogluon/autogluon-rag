@@ -6,7 +6,6 @@ from unittest.mock import MagicMock, mock_open, patch
 import boto3
 import faiss
 import torch
-from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
 
 from agrag.modules.vector_db.utils import (
     cosine_similarity_fn,
