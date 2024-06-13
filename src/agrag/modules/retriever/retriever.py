@@ -70,19 +70,18 @@ class RetrieverModule:
             The embedding of the query.
         """
         inputs = self.tokenizer(query, return_tensors="pt")
-        inputs = {k: v.to(self.device) for k, v in inputs.items()}
         with torch.no_grad():
             outputs = self.model(**inputs)
 
-        query_embedding = pool(outputs.last_hidden_state, self.pooling_strategy).cpu().numpy()
+        query_embedding = pool(outputs.last_hidden_state, self.pooling_strategy).cpu()
         if self.normalize_embedding:
             query_embedding = normalize_embedding(query_embedding, **self.normalization_params)
 
-        return query_embedding
+        return query_embedding.numpy()
 
     def retrieve(self, query: str, top_k: int = 10) -> List[Dict[str, Any]]:
         """
-        Retrieves the top_k most similar documents to the query.
+        Retrieves the top_k most similar document chunks to the query.
 
         Parameters:
         ----------
@@ -93,10 +92,11 @@ class RetrieverModule:
 
         Returns:
         -------
-        List[Dict[str, Any]]
-            A list of metadata for the top_k most similar documents.
+        List[str]
+            A list of text chunks for the top_k most similar documents.
         """
         query_embedding = self.encode_query(query)
         indices = self.vector_database_module.search(query_embedding, top_k)
-        retrieved_docs = [self.vector_database_module.metadata[idx] for idx in indices]
-        return retrieved_docs
+        retrieved_docs = self.vector_database_module.metadata.iloc[indices].to_dict(orient="records")
+        text_chunks = [chunk["text"] for chunk in retrieved_docs]
+        return text_chunks
