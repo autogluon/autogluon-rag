@@ -79,7 +79,7 @@ class RetrieverModule:
 
         return query_embedding.numpy()
 
-    def retrieve(self, query: str, top_k: int = 10) -> List[Dict[str, Any]]:
+    def retrieve(self, query: str, k: int = 5) -> List[Dict[str, Any]]:
         """
         Retrieves the top_k most similar document chunks to the query.
 
@@ -87,8 +87,8 @@ class RetrieverModule:
         ----------
         query : str
             The query to retrieve documents for.
-        top_k : int, optional
-            The number of top documents to retrieve (default is 10).
+        k : int, optional
+            The top-k documents to retrieve (default is 5).
 
         Returns:
         -------
@@ -96,7 +96,7 @@ class RetrieverModule:
             A list of text chunks for the top_k most similar documents.
         """
         query_embedding = self.encode_query(query)
-        indices = self.vector_database_module.search_vector_database(query_embedding, top_k)
+        indices = self.vector_database_module.search_vector_database(embedding=query_embedding, top_k=k)
         retrieved_docs = self.vector_database_module.metadata.iloc[indices].to_dict(orient="records")
         text_chunks = [chunk["text"] for chunk in retrieved_docs]
         return text_chunks
