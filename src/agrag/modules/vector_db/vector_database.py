@@ -64,7 +64,7 @@ class VectorDatabaseModule:
 
     def construct_vector_database(
         self,
-        embeddings: List[torch.Tensor],
+        embeddings: List[dict],
         pbar: tqdm = None,
     ) -> Union[faiss.IndexFlatL2,]:
         """
@@ -73,7 +73,7 @@ class VectorDatabaseModule:
         Parameters:
         ----------
         embeddings : List[torch.Tensor]
-            A list of embeddings to be stored in the vector database.
+            A list of embeddings and metadata to be stored in the vector database.
 
         Returns:
         -------
