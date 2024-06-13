@@ -131,7 +131,7 @@ class TestDataProcessingModule(unittest.TestCase):
             with open(file3, "w") as f:
                 f.write("Test file 3")
 
-            file_paths = get_all_file_paths(tmp_dir)
+            file_paths = get_all_file_paths(tmp_dir, [".pdf"])
 
             expected_paths = [file1, file2, file3]
             self.assertCountEqual(file_paths, expected_paths)

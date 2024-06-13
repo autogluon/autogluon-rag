@@ -159,7 +159,7 @@ class DataProcessingModule:
                 s3_bucket=self.s3_bucket, data_dir=self.data_dir, s3_client=self.s3_client
             )
 
-        file_paths = get_all_file_paths(self.data_dir, file_exts)
+        file_paths = get_all_file_paths(self.data_dir, self.file_exts)
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
             # Process each file in parallel
