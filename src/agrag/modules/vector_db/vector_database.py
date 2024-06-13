@@ -3,6 +3,7 @@ from typing import List, Union
 
 import boto3
 import faiss
+import pandas as pd
 import torch
 from tqdm import tqdm
 
@@ -64,7 +65,7 @@ class VectorDatabaseModule:
 
     def construct_vector_database(
         self,
-        embeddings: List[dict],
+        embeddings: pd.DataFrame,
         pbar: tqdm = None,
     ) -> Union[faiss.IndexFlatL2,]:
         """
@@ -72,18 +73,16 @@ class VectorDatabaseModule:
 
         Parameters:
         ----------
-        embeddings : List[torch.Tensor]
-            A list of embeddings and metadata to be stored in the vector database.
+        embeddings : pd.DataFrame
+            A DataFrame containing embeddings and metadata to be stored in the vector database.
 
         Returns:
         -------
         Union[faiss.IndexFlatL2,]
             The constructed vector database index.
         """
-        self.metadata = [
-            {k: v for k, v in item.items() if k != "embedding"} for item in embeddings
-        ]  # only store doc_id and chunk_id
-        vectors = [item["embedding"] for item in embeddings]
+        self.metadata = embeddings.drop(columns=["embedding"])
+        vectors = [torch.tensor(embedding) for embedding in embeddings["embedding"].values]
         vectors = pad_embeddings(vectors)
         vectors = remove_duplicates(vectors, self.similarity_threshold, self.similarity_fn)
         if pbar:

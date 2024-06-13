@@ -1,6 +1,7 @@
 import logging
 import os
 
+import pandas as pd
 import torch
 from tqdm import tqdm
 
@@ -60,7 +61,9 @@ def initialize_rag_pipeline() -> RetrieverModule:
             vector_database_module.s3_bucket,
             vector_database_module.s3_client,
         )
-        load_index_successful = True if vector_database_module.index and vector_database_module.metadata else False
+        load_index_successful = (
+            True if vector_database_module.index and type(vector_database_module.metadata) is pd.DataFrame else False
+        )
 
     if not load_index_successful:
         data_dir = args.data_dir
@@ -80,7 +83,7 @@ def initialize_rag_pipeline() -> RetrieverModule:
             pbar.n = 100
             pbar.refresh()
 
-        total_steps = len(processed_data)
+        total_steps = len(processed_data.index)
 
         with tqdm(total=total_steps, desc="\nEmbedding Generation", unit="step") as pbar:
 

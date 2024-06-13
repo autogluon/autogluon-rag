@@ -2,6 +2,7 @@ import logging
 from typing import Any, Dict, List, Union
 
 import numpy as np
+import pandas as pd
 import torch
 from torch.nn import DataParallel
 from tqdm import tqdm
@@ -75,45 +76,48 @@ class EmbeddingModule:
         self.model.to(self.device)
         self.pooling_strategy = pooling_strategy
 
-    def encode(self, data: List[str], pbar: tqdm = None) -> Union[List[torch.Tensor], torch.Tensor]:
+    def encode(self, data: pd.DataFrame, pbar: tqdm = None) -> pd.DataFrame:
         """
         Generates embeddings for a list of text data chunks.
 
         Parameters:
         ----------
-        data : List[str]
-            A list of text data chunks to generate embeddings for.
+        data : pd.DataFrame
+            A table of text data chunks to generate embeddings for.
 
         Returns:
         -------
-        Union[List[torch.Tensor], torch.Tensor]
-            A list of embeddings corresponding to the input data chunks if pooling_strategy is 'none',
-            otherwise a single tensor with the pooled embeddings.
+        pd.DataFrame
+            The input DataFrame with an additional column for the embeddings.
 
         Example:
         --------
-        data = ["This is a test sentence.", "This is another test sentence."]
+        data = pd.DataFrame({"text": ["This is a test sentence.", "This is another test sentence."]})
         embeddings = encode(data)
         """
 
         embeddings = []
-        for item in data:
-            text = item["text"]
+        for _, row in data.iterrows():
+            text = row["text"]
             inputs = self.tokenizer(text, return_tensors="pt", **self.hf_tokenizer_params)
             with torch.no_grad():
                 outputs = self.model(**inputs, **self.hf_forward_params)
             embedding = pool(outputs.last_hidden_state, self.pooling_strategy)
             if self.normalize_embeddings:
-                normalize_embedding(embedding, **self.normalization_params)
-            item["embedding"] = embedding
-            embeddings.append(item)
+                embedding = normalize_embedding(embedding, **self.normalization_params)
+
+            embeddings.append(embedding.cpu())
+
             if pbar:
                 pbar.update(1)
+
         if not self.pooling_strategy:
-            return embeddings
+            data["embedding"] = embeddings
         else:
-            # Combine pooled embeddings into a single tensor
-            return torch.cat(embeddings, dim=0)
+            combined_embeddings = torch.cat(embeddings, dim=0)
+            data["embedding"] = combined_embeddings
+
+        return data
 
     def encode_queries(self, queries: Union[List[str], str]) -> np.ndarray:
         """

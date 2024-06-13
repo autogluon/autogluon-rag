@@ -10,3 +10,4 @@ pypdf
 faiss-cpu
 scikit-learn
 numpy
+pandas
