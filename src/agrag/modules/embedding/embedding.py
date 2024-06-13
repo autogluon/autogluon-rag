@@ -103,7 +103,7 @@ class EmbeddingModule:
                 outputs = self.model(**inputs, **self.hf_forward_params)
             embedding = pool(outputs.last_hidden_state, self.pooling_strategy)
             if self.normalize_embeddings:
-                normalize_embedding(embedding, **self.normalization_params)
+                embedding = normalize_embedding(embedding, **self.normalization_params)
             embeddings.append(embedding)
             if pbar:
                 pbar.update(1)

@@ -35,6 +35,8 @@ class VectorDatabaseModule:
     -------
     construct_vector_database(embeddings: List[torch.Tensor]) -> Any:
         Constructs the vector database and stores the embeddings.
+    search_vector_database(embedding: torch.Tensor, top_k: int) -> List[torch.Tensor]:
+        Searches the vector database for the top k most similar embeddings to the given embedding
     """
 
     def __init__(
@@ -87,3 +89,24 @@ class VectorDatabaseModule:
             raise ValueError(f"Unsupported database type: {self.db_type}")
         if pbar:
             pbar.update(len(embeddings))
+
+    def search_vector_database(self, embedding: torch.Tensor, top_k: int) -> List[torch.Tensor]:
+        """
+        Searches the vector database for the top k most similar embeddings to the given embedding
+        Parameters:
+        ----------
+        embedding : torch.Tensor
+            Embedding of the user query. The database is searched to find the k most similar vectors to this embedding
+        top_k: int
+            Number of similar embeddings to search for in the database
+
+        Returns:
+        -------
+        List[torch.Tensor]
+            Top k most similar embeddings
+        """
+        if self.db_type == "faiss":
+            _, indices = self.index.search(embedding, top_k)
+            return indices[0].tolist()
+        else:
+            raise ValueError(f"Unsupported database type: {self.db_type}")
