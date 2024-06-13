@@ -24,3 +24,6 @@ vector_db:
   s3_bucket: autogluon-rag-github-dev
   use_existing_vector_db: true
   num_gpus: 0
+
+retriever:
+  top_k_embeddings: 4

@@ -40,6 +40,7 @@ class Arguments:
         self.data_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/data_processing/default.yaml"))
         self.embedding_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/embedding/default.yaml"))
         self.vector_db_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/vector_db/default.yaml"))
+        self.retriever_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/retriever/default.yaml"))
 
     def _parse_args(self) -> argparse.Namespace:
         parser = argparse.ArgumentParser(description="AutoGluon-RAG - Retrieval-Augmented Generation Pipeline")
@@ -173,3 +174,7 @@ class Arguments:
     @property
     def vector_db_num_gpus(self):
         return self.config.get("vector_db", {}).get("num_gpus", None)
+
+    @property
+    def top_k_embeddings(self):
+        return self.config.get("retriever", {}).get("top_k_embeddings", self.retriever_defaults.get("TOP_K"))

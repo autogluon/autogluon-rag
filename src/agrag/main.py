@@ -19,8 +19,7 @@ ch.setLevel(logging.INFO)
 logger.addHandler(ch)
 
 
-def initialize_rag_pipeline() -> RetrieverModule:
-    args = Arguments()
+def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
 
     data_dir = args.data_dir
     if not data_dir:
@@ -103,16 +102,20 @@ def initialize_rag_pipeline() -> RetrieverModule:
                 vector_database_module.s3_client,
             )
 
-    retriever_module = RetrieverModule(vector_database_module.index)
+    retriever_module = RetrieverModule(
+        vector_database_module=vector_database_module,
+        embedding_module=embedding_module,
+        top_k=args.top_k_embeddings,
+    )
 
     return retriever_module
 
 
 def ag_rag():
     print("\n\nAutoGluon-RAG\n\n")
-
+    args = Arguments()
     logger.info("Initializing RAG Pipeline")
-    retriever_module = initialize_rag_pipeline()
+    retriever_module = initialize_rag_pipeline(args)
     generator_module = GeneratorModule()
 
     while True:
