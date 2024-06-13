@@ -51,10 +51,14 @@ class TestVectorDatabaseModule(unittest.TestCase):
     @patch("faiss.IndexFlatL2.add")
     def test_construct_vector_database(self, mock_construct_faiss_index):
         mock_construct_faiss_index.return_value = MagicMock("some index")
-        embeddings = [{"embedding": torch.rand(1, 10), "doc_id": 3, "chunk_id": i} for i in range(6)]
+        embeddings = [
+            {"embedding": torch.rand(1, 10), "doc_id": i, "chunk_id": i, "text": "some text"} for i in range(6)
+        ]
         self.vector_db_module.construct_vector_database(embeddings)
         self.assertIsNotNone(self.vector_db_module.index)
         self.assertEqual(len(self.vector_db_module.metadata), len(embeddings))
+        metadata = [{k: v for k, v in item.items() if k != "embedding"} for item in embeddings]
+        self.assertEqual(self.vector_db_module.metadata, metadata)
 
     def test_cosine_similarity_fn(self):
         self.embeddings = pad_embeddings(self.embeddings)
