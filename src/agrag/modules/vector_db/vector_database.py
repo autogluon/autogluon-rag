@@ -106,7 +106,7 @@ class VectorDatabaseModule:
             Top k most similar embeddings
         """
         if self.db_type == "faiss":
-            _, indices = self.index.search(embedding, top_k)
+            _, indices = self.index.search(n=1, x=embedding, k=top_k)
             return indices[0].tolist()
         else:
             raise ValueError(f"Unsupported database type: {self.db_type}")

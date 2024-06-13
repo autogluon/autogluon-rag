@@ -96,7 +96,7 @@ class RetrieverModule:
             A list of text chunks for the top_k most similar documents.
         """
         query_embedding = self.encode_query(query)
-        indices = self.vector_database_module.search(n=1, x=query_embedding, k=top_k)
+        indices = self.vector_database_module.search_vector_database(query_embedding, top_k)
         retrieved_docs = self.vector_database_module.metadata.iloc[indices].to_dict(orient="records")
         text_chunks = [chunk["text"] for chunk in retrieved_docs]
         return text_chunks
