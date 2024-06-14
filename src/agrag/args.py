@@ -178,3 +178,19 @@ class Arguments:
     @property
     def top_k_embeddings(self):
         return self.config.get("retriever", {}).get("top_k_embeddings", self.retriever_defaults.get("TOP_K"))
+
+    @property
+    def reranker_type(self):
+        return self.config.get("retriever", {}).get("reranker_type", self.retriever_defaults.get("RERANKER_TYPE"))
+
+    @property
+    def reranker_model_name(self):
+        return self.config.get("retriever", {}).get(
+            "reranker_model_name", self.retriever_defaults.get("RERANKER_MODEL")
+        )
+
+    @property
+    def reranker_batch_size(self):
+        return self.config.get("retriever", {}).get(
+            "reranker_batch_size", self.retriever_defaults.get("RERANKER_BATCH_SIZE")
+        )

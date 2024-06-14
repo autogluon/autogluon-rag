@@ -8,6 +8,7 @@ from agrag.args import Arguments
 from agrag.modules.data_processing.data_processing import DataProcessingModule
 from agrag.modules.embedding.embedding import EmbeddingModule
 from agrag.modules.generator.generator import GeneratorModule
+from agrag.modules.retriever.rerankers.reranker import Reranker
 from agrag.modules.retriever.retriever import RetrieverModule
 from agrag.modules.vector_db.utils import load_index, save_index
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
@@ -102,10 +103,15 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
                 vector_database_module.s3_client,
             )
 
+    reranker = Reranker(
+        reranker_type=args.reranker_type, model_name=args.reranker_model_name, batch_size=args.reranker_batch_size
+    )
+
     retriever_module = RetrieverModule(
         vector_database_module=vector_database_module,
         embedding_module=embedding_module,
         top_k=args.top_k_embeddings,
+        reranker=reranker,
     )
 
     return retriever_module

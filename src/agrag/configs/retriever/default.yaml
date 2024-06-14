@@ -1,1 +1,4 @@
 TOP_K: 5
+RERANKER_TYPE: flag_embedding
+RERANKER_MODEL: BAAI/bge-reranker-large
+RERANKER_BATCH_SIZE: 64

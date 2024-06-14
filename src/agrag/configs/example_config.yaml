@@ -27,3 +27,5 @@ vector_db:
 
 retriever:
   top_k_embeddings: 4
+  reranker_type: flag_embedding
+  reranker_batch_size: 32

@@ -25,6 +25,8 @@ class RetrieverModule:
         The module for generating embeddings.
     top_k: int
         The top-k documents to retrieve (default is 5).
+    reranker: Any
+        An optional reranker instance to rerank the retrieved documents.
     """
 
     def __init__(
@@ -32,6 +34,7 @@ class RetrieverModule:
         vector_database_module: VectorDatabaseModule,
         embedding_module: EmbeddingModule,
         top_k: int = 5,
+        reranker: Any = None,
     ):
         self.embedding_module = embedding_module
 
@@ -43,6 +46,8 @@ class RetrieverModule:
         if self.num_gpus > 1:
             logger.info(f"Using {self.num_gpus} GPUs")
             self.model = DataParallel(self.model)
+
+        self.reranker = reranker
 
     def encode_query(self, query: str) -> np.ndarray:
         """
@@ -79,4 +84,8 @@ class RetrieverModule:
         indices = self.vector_database_module.search_vector_database(embedding=query_embedding, top_k=self.top_k)
         retrieved_docs = self.vector_database_module.metadata.iloc[indices].to_dict(orient="records")
         text_chunks = [chunk["text"] for chunk in retrieved_docs]
+
+        if self.reranker:
+            text_chunks = self.reranker.rerank(query, text_chunks)
+
         return text_chunks
