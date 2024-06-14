@@ -11,6 +11,7 @@ from agrag.modules.generator.generator import GeneratorModule
 from agrag.modules.retriever.retriever import RetrieverModule
 from agrag.modules.vector_db.utils import load_index, load_metadata, save_index, save_metadata
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
+from agrag.utils import parse_path
 
 logger = logging.getLogger("rag-logger")
 logger.setLevel(logging.INFO)
@@ -32,18 +33,10 @@ def initialize_rag_pipeline() -> RetrieverModule:
         logger.info(f"Using number of GPUs: {num_gpus}")
 
     index_path = args.vector_db_index_path
-    if index_path.startswith("s3://"):
-        vector_db_s3_bucket = index_path.split("/")[2]
-        vector_db_index_path = "/".join(index_path.split("/")[3:])
-    else:
-        vector_db_s3_bucket = None
-        vector_db_index_path = index_path
+    vector_db_s3_bucket, vector_db_index_path = parse_path(index_path)
 
     metadata_path = args.metadata_index_path
-    if metadata_path.startswith("s3://"):
-        metadata_index_path = "/".join(metadata_path.split("/")[3:])
-    else:
-        metadata_index_path = metadata_path
+    _, metadata_index_path = parse_path(metadata_path)
 
     vector_database_module = VectorDatabaseModule(
         db_type=db_type,
@@ -80,12 +73,7 @@ def initialize_rag_pipeline() -> RetrieverModule:
             raise ValueError("Error: 'data_dir' must be specified in the configuration file under 'data' section.")
 
         logger.info(f"Retrieving Data from {data_dir}")
-        if data_dir.startswith("s3://"):
-            data_s3_bucket = data_dir.split("/")[2]
-            data_dir = "/".join(data_dir.split("/")[3:])
-        else:
-            data_s3_bucket = None
-            data_dir = data_dir
+        data_s3_bucket, data_dir = parse_path(data_dir)
 
         data_processing_module = DataProcessingModule(
             data_dir=data_dir,
