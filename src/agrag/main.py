@@ -31,14 +31,26 @@ def initialize_rag_pipeline() -> RetrieverModule:
     else:
         logger.info(f"Using number of GPUs: {num_gpus}")
 
-    vector_db_index_path = os.path.join(args.vector_db_index_path, db_type, "index.idx")
-    metadata_index_path = os.path.join(args.metadata_index_path, db_type, "metadata.json")
+    index_path = args.vector_db_index_path
+    if index_path.startswith("s3://"):
+        vector_db_s3_bucket = index_path.split("/")[2]
+        vector_db_index_path = "/".join(index_path.split("/")[3:])
+    else:
+        vector_db_s3_bucket = None
+        vector_db_index_path = index_path
+
+    metadata_path = args.metadata_index_path
+    if metadata_path.startswith("s3://"):
+        metadata_index_path = "/".join(metadata_path.split("/")[3:])
+    else:
+        metadata_index_path = metadata_path
+
     vector_database_module = VectorDatabaseModule(
         db_type=db_type,
         params=args.vector_db_args,
         similarity_threshold=args.vector_db_sim_threshold,
         similarity_fn=args.vector_db_sim_fn,
-        s3_bucket=args.vector_db_s3_bucket,
+        s3_bucket=vector_db_s3_bucket,
         num_gpus=num_gpus,
     )
 
@@ -47,14 +59,14 @@ def initialize_rag_pipeline() -> RetrieverModule:
     load_index_successful = False
 
     if args.use_existing_vector_db_index:
-        logger.info(f"Loading existing index from {vector_db_index_path}")
+        logger.info(f"Loading existing index from {index_path}")
         vector_database_module.index = load_index(
             db_type,
             vector_db_index_path,
             vector_database_module.s3_bucket,
             vector_database_module.s3_client,
         )
-        logger.info(f"Loading existing metadata from {metadata_index_path}")
+        logger.info(f"Loading existing metadata from {metadata_path}")
         vector_database_module.metadata = load_metadata(
             metadata_index_path,
             vector_database_module.s3_bucket,
@@ -68,11 +80,18 @@ def initialize_rag_pipeline() -> RetrieverModule:
             raise ValueError("Error: 'data_dir' must be specified in the configuration file under 'data' section.")
 
         logger.info(f"Retrieving Data from {data_dir}")
+        if data_dir.startswith("s3://"):
+            data_s3_bucket = data_dir.split("/")[2]
+            data_dir = "/".join(data_dir.split("/")[3:])
+        else:
+            data_s3_bucket = None
+            data_dir = data_dir
+
         data_processing_module = DataProcessingModule(
             data_dir=data_dir,
             chunk_size=args.chunk_size,
             chunk_overlap=args.chunk_overlap,
-            s3_bucket=args.data_s3_bucket,
+            s3_bucket=data_s3_bucket,
         )
 
         with tqdm(total=100, desc="Data Preprocessing", unit="chunk") as pbar:
