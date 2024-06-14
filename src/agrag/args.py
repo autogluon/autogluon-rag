@@ -180,6 +180,10 @@ class Arguments:
         return self.config.get("retriever", {}).get("top_k_embeddings", self.retriever_defaults.get("TOP_K"))
 
     @property
+    def use_reranker(self):
+        return self.config.get("retriever", {}).get("use_reranker", self.retriever_defaults.get("USE_RERANKER"))
+
+    @property
     def reranker_type(self):
         return self.config.get("retriever", {}).get("reranker_type", self.retriever_defaults.get("RERANKER_TYPE"))
 

@@ -25,8 +25,8 @@ class Reranker:
 
     def __init__(
         self,
-        reranker_type: str,
-        model_name: str = None,
+        reranker_type: str = "flag_embedding",
+        model_name: str = "BAAI/bge-reranker-large",
         batch_size: int = 64,
     ):
         self.reranker_type = reranker_type
