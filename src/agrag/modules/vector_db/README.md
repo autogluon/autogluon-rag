@@ -24,6 +24,14 @@ vector_db:
 
   use_existing_vector_db: Boolean to decide whether or not to use an existing, stored Vector DB Index from disk memory.
 
-  vector_db_index_path: The Path to an existing, stored Vector DB Index from disk memory.
+  vector_db_index_path: The Path to an existing, stored Vector DB Index file in disk memory or S3.
+
+  num_gpus: Number of GPUs to use when building the index
+  
+  metadata: Metadata for each embedding stored in the database
+
+  metadata_index_path: The Path to an existing, stored Metadata JSON file in disk memory or S4.
+
+  s3_bucket: If applicable, S3 bucket that contains vector DB index and metadata files 
 
 ```
