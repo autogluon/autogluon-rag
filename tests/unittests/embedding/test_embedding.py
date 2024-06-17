@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pandas as pd
 import torch
+from tqdm import tqdm
 
 from agrag.modules.embedding.embedding import EmbeddingModule
 from agrag.modules.embedding.utils import normalize_embedding, pool
