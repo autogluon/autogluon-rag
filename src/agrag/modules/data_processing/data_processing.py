@@ -7,6 +7,7 @@ import pandas as pd
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
+from agrag.constants import CHUNK_ID_KEY, DOC_ID_KEY, DOC_TEXT_KEY
 from agrag.modules.data_processing.utils import download_directory_from_s3, get_all_file_paths
 
 logger = logging.getLogger("rag-logger")
@@ -106,7 +107,7 @@ class DataProcessingModule:
         pages = pdf_loader.load_and_split(text_splitter=text_splitter)
         for chunk_id, page in enumerate(pages):
             page_content = "".join(page.page_content)
-            processed_data.append({"doc_id": doc_id, "chunk_id": chunk_id, "text": page_content})
+            processed_data.append({DOC_ID_KEY: doc_id, CHUNK_ID_KEY: chunk_id, DOC_TEXT_KEY: page_content})
         df = pd.DataFrame(processed_data)
         return df
 

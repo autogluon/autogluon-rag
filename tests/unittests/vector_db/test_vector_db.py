@@ -8,6 +8,7 @@ import faiss
 import pandas as pd
 import torch
 
+from agrag.constants import CHUNK_ID_KEY, DOC_ID_KEY, DOC_TEXT_KEY, EMBEDDING_KEY
 from agrag.modules.vector_db.utils import (
     cosine_similarity_fn,
     euclidean_similarity_fn,
@@ -54,14 +55,14 @@ class TestVectorDatabaseModule(unittest.TestCase):
         mock_construct_faiss_index.return_value = MagicMock("some index")
         embeddings = pd.DataFrame(
             [
-                {"embedding": torch.rand(1, 10).numpy(), "doc_id": i, "chunk_id": i, "text": "some text"}
+                {EMBEDDING_KEY: torch.rand(1, 10).numpy(), DOC_ID_KEY: i, CHUNK_ID_KEY: i, DOC_TEXT_KEY: "some text"}
                 for i in range(6)
             ]
         )
         self.vector_db_module.construct_vector_database(embeddings)
         self.assertIsNotNone(self.vector_db_module.index)
         self.assertEqual(len(self.vector_db_module.metadata), len(embeddings))
-        metadata = embeddings.drop(columns=["embedding"])
+        metadata = embeddings.drop(columns=[EMBEDDING_KEY])
         pd.testing.assert_frame_equal(self.vector_db_module.metadata, metadata)
 
     def test_cosine_similarity_fn(self):
@@ -163,7 +164,7 @@ class TestVectorDatabaseModule(unittest.TestCase):
     @patch("pandas.DataFrame.to_json")
     @patch("os.makedirs")
     def test_save_metadata(self, mock_makedirs, mock_to_json):
-        metadata = pd.DataFrame([{"doc_id": 1, "chunk_id": 0}, {"doc_id": 1, "chunk_id": 1}])
+        metadata = pd.DataFrame([{DOC_ID_KEY: 1, CHUNK_ID_KEY: 0}, {DOC_ID_KEY: 1, CHUNK_ID_KEY: 1}])
         metadata_path = "test_metadata_path"
         save_metadata(metadata, metadata_path)
 
@@ -174,7 +175,7 @@ class TestVectorDatabaseModule(unittest.TestCase):
     @patch("os.makedirs")
     @patch("boto3.client")
     def test_save_metadata_s3(self, mock_boto_client, mock_makedirs, mock_to_json):
-        metadata = pd.DataFrame([{"doc_id": 1, "chunk_id": 0}, {"doc_id": 1, "chunk_id": 1}])
+        metadata = pd.DataFrame([{DOC_ID_KEY: 1, CHUNK_ID_KEY: 0}, {DOC_ID_KEY: 1, CHUNK_ID_KEY: 1}])
         metadata_path = "test_metadata_path"
         mock_s3_client = mock_boto_client.return_value
         save_metadata(metadata, metadata_path, "s3_bucket", mock_s3_client)
@@ -187,19 +188,23 @@ class TestVectorDatabaseModule(unittest.TestCase):
 
     @patch("pandas.read_json")
     def test_load_metadata(self, mock_read_json):
-        mock_read_json.return_value = pd.DataFrame([{"doc_id": 1, "chunk_id": 0}, {"doc_id": 1, "chunk_id": 1}])
+        mock_read_json.return_value = pd.DataFrame(
+            [{DOC_ID_KEY: 1, CHUNK_ID_KEY: 0}, {DOC_ID_KEY: 1, CHUNK_ID_KEY: 1}]
+        )
         metadata_path = "test_metadata_path"
         metadata = load_metadata(metadata_path)
 
         mock_read_json.assert_called_once_with(metadata_path, orient="records", lines=True)
         pd.testing.assert_frame_equal(
-            metadata, pd.DataFrame([{"doc_id": 1, "chunk_id": 0}, {"doc_id": 1, "chunk_id": 1}])
+            metadata, pd.DataFrame([{DOC_ID_KEY: 1, CHUNK_ID_KEY: 0}, {DOC_ID_KEY: 1, CHUNK_ID_KEY: 1}])
         )
 
     @patch("pandas.read_json")
     @patch("boto3.client")
     def test_load_metadata_s3(self, mock_boto_client, mock_read_json):
-        mock_read_json.return_value = pd.DataFrame([{"doc_id": 1, "chunk_id": 0}, {"doc_id": 1, "chunk_id": 1}])
+        mock_read_json.return_value = pd.DataFrame(
+            [{DOC_ID_KEY: 1, CHUNK_ID_KEY: 0}, {DOC_ID_KEY: 1, CHUNK_ID_KEY: 1}]
+        )
         mock_s3_client = mock_boto_client.return_value
         metadata_path = "test_metadata_path"
         metadata = load_metadata(metadata_path, "s3_bucket", mock_s3_client)
@@ -209,7 +214,7 @@ class TestVectorDatabaseModule(unittest.TestCase):
         )
         mock_read_json.assert_called_once_with(metadata_path, orient="records", lines=True)
         pd.testing.assert_frame_equal(
-            metadata, pd.DataFrame([{"doc_id": 1, "chunk_id": 0}, {"doc_id": 1, "chunk_id": 1}])
+            metadata, pd.DataFrame([{DOC_ID_KEY: 1, CHUNK_ID_KEY: 0}, {DOC_ID_KEY: 1, CHUNK_ID_KEY: 1}])
         )
 
 

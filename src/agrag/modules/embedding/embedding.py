@@ -8,6 +8,7 @@ from torch.nn import DataParallel
 from tqdm import tqdm
 from transformers import AutoModel, AutoTokenizer
 
+from agrag.constants import DOC_TEXT_KEY, EMBEDDING_KEY
 from agrag.modules.embedding.utils import normalize_embedding, pool
 
 logger = logging.getLogger("rag-logger")
@@ -92,13 +93,13 @@ class EmbeddingModule:
 
         Example:
         --------
-        data = pd.DataFrame({"text": ["This is a test sentence.", "This is another test sentence."]})
+        data = pd.DataFrame({DOC_TEXT_KEY: ["This is a test sentence.", "This is another test sentence."]})
         embeddings = encode(data)
         """
 
         embeddings = []
         for _, row in data.iterrows():
-            text = row["text"]
+            text = row[DOC_TEXT_KEY]
             inputs = self.tokenizer(text, return_tensors="pt", **self.hf_tokenizer_params)
             with torch.no_grad():
                 outputs = self.model(**inputs, **self.hf_forward_params)
@@ -112,10 +113,10 @@ class EmbeddingModule:
                 pbar.update(1)
 
         if not self.pooling_strategy:
-            data["embedding"] = embeddings
+            data[EMBEDDING_KEY] = embeddings
         else:
             combined_embeddings = torch.cat(embeddings, dim=0)
-            data["embedding"] = combined_embeddings
+            data[EMBEDDING_KEY] = combined_embeddings
 
         return data
 

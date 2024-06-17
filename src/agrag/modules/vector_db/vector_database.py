@@ -7,6 +7,7 @@ import pandas as pd
 import torch
 from tqdm import tqdm
 
+from agrag.constants import EMBEDDING_KEY
 from agrag.modules.vector_db.faiss.faiss_db import construct_faiss_index
 from agrag.modules.vector_db.utils import SUPPORTED_SIMILARITY_FUNCTIONS, pad_embeddings, remove_duplicates
 
@@ -81,8 +82,8 @@ class VectorDatabaseModule:
         Union[faiss.IndexFlatL2,]
             The constructed vector database index.
         """
-        self.metadata = embeddings.drop(columns=["embedding"])
-        vectors = [torch.tensor(embedding) for embedding in embeddings["embedding"].values]
+        self.metadata = embeddings.drop(columns=[EMBEDDING_KEY])
+        vectors = [torch.tensor(embedding) for embedding in embeddings[EMBEDDING_KEY].values]
         vectors = pad_embeddings(vectors)
         vectors = remove_duplicates(vectors, self.similarity_threshold, self.similarity_fn)
         if pbar:

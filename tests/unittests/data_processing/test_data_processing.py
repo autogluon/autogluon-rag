@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pandas as pd
 
+from agrag.constants import CHUNK_ID_KEY, DOC_ID_KEY, DOC_TEXT_KEY
 from agrag.modules.data_processing.data_processing import DataProcessingModule
 from agrag.modules.data_processing.utils import download_directory_from_s3, get_all_file_paths
 
@@ -25,7 +26,7 @@ class TestDataProcessingModule(unittest.TestCase):
 
         result = data_processing_module.process_file(os.path.join(TEST_DIR, "Chatbot.pdf"), doc_id=1)
 
-        expected_result = pd.DataFrame([{"doc_id": 1, "chunk_id": 0, "text": "This is a test page."}])
+        expected_result = pd.DataFrame([{DOC_ID_KEY: 1, CHUNK_ID_KEY: 0, DOC_TEXT_KEY: "This is a test page."}])
         pd.testing.assert_frame_equal(result, expected_result)
 
     @patch("os.listdir")
@@ -42,11 +43,13 @@ class TestDataProcessingModule(unittest.TestCase):
             data_dir=TEST_DIR, chunk_size=10, chunk_overlap=5, s3_bucket=None
         )
 
-        mock_thread_map.return_value = [pd.DataFrame([{"doc_id": 0, "chunk_id": 0, "text": "This is a test page."}])]
+        mock_thread_map.return_value = [
+            pd.DataFrame([{DOC_ID_KEY: 0, CHUNK_ID_KEY: 0, DOC_TEXT_KEY: "This is a test page."}])
+        ]
 
         data = data_processing_module.process_data()
 
-        expected_data = pd.DataFrame([{"doc_id": 0, "chunk_id": 0, "text": "This is a test page."}])
+        expected_data = pd.DataFrame([{DOC_ID_KEY: 0, CHUNK_ID_KEY: 0, DOC_TEXT_KEY: "This is a test page."}])
         pd.testing.assert_frame_equal(data, expected_data)
 
     def test_chunk_data_naive(self):
@@ -81,7 +84,7 @@ class TestDataProcessingModule(unittest.TestCase):
         mock_s3_key = "test_docs/Chatbot.pdf"
         result = data_processing_module.process_file(f"s3://autogluon-rag-github-dev/{mock_s3_key}", doc_id=1)
 
-        expected_result = pd.DataFrame([{"doc_id": 1, "chunk_id": 0, "text": "This is a test page."}])
+        expected_result = pd.DataFrame([{DOC_ID_KEY: 1, CHUNK_ID_KEY: 0, DOC_TEXT_KEY: "This is a test page."}])
         pd.testing.assert_frame_equal(result, expected_result)
 
     @patch("boto3.client")
