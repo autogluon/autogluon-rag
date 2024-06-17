@@ -97,14 +97,16 @@ class EmbeddingModule:
         """
 
         embeddings = []
-        for text in data:
+        for item in data:
+            text = item["text"]
             inputs = self.tokenizer(text, return_tensors="pt", **self.hf_tokenizer_params)
             with torch.no_grad():
                 outputs = self.model(**inputs, **self.hf_forward_params)
             embedding = pool(outputs.last_hidden_state, self.pooling_strategy)
             if self.normalize_embeddings:
                 normalize_embedding(embedding, **self.normalization_params)
-            embeddings.append(embedding)
+            item["embedding"] = embedding
+            embeddings.append(item)
             if pbar:
                 pbar.update(1)
         if not self.pooling_strategy:

@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 import torch
+from tqdm import tqdm
 
 from agrag.modules.embedding.embedding import EmbeddingModule
 from agrag.modules.embedding.utils import normalize_embedding, pool
@@ -36,13 +37,13 @@ class TestEmbeddingModule(unittest.TestCase):
             "input_ids": torch.tensor([[1, 2, 3], [4, 5, 6]]),
             "attention_mask": torch.tensor([[1, 1, 1], [1, 1, 1]]),
         }
-        self.mock_model.return_value = MagicMock(last_hidden_state=torch.rand((10, 20, 100)))
+        self.mock_model.return_value = MagicMock(last_hidden_state=torch.rand((2, 3, 10)))
 
-        data = ["test sentence 1", "test sentence 2"]
+        data = [{"text": "test sentence 1"}, {"text": "test sentence 2"}]
         embeddings = self.embedding_module.encode(data)
 
         self.assertEqual(len(embeddings), 2)
-        self.assertTrue(all(isinstance(embedding, torch.Tensor) for embedding in embeddings))
+        self.assertTrue(all(isinstance(item["embedding"], torch.Tensor) for item in embeddings))
 
     @patch("agrag.modules.embedding.embedding.AutoModel.from_pretrained")
     def test_pool_mean(self, mock_model):
@@ -91,8 +92,9 @@ class TestEmbeddingModule(unittest.TestCase):
 
     @patch.object(EmbeddingModule, "encode")
     def test_encode_queries_with_instruction(self, mock_encode):
+        self.embedding_module.query_instruction_for_retrieval = "Instruction: "
         queries = ["query1", "query2"]
-        expected_input_texts = ["query1", "query2"]
+        expected_input_texts = ["Instruction: query1", "Instruction: query2"]
         mock_encode.return_value = np.random.rand(2, 10)
 
         embeddings = self.embedding_module.encode_queries(queries)

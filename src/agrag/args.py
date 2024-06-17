@@ -93,10 +93,6 @@ class Arguments:
         return self.config.get("data", {}).get("chunk_overlap", self.data_defaults.get("CHUNK_OVERLAP"))
 
     @property
-    def data_s3_bucket(self):
-        return self.config.get("data", {}).get("s3_bucket", None)
-
-    @property
     def hf_embedding_model(self):
         return self.config.get("embedding", {}).get(
             "embedding_model", self.embedding_defaults.get("DEFAULT_EMBEDDING_MODEL")
@@ -167,9 +163,11 @@ class Arguments:
         )
 
     @property
-    def vector_db_s3_bucket(self):
-        return self.config.get("vector_db", {}).get("s3_bucket", None)
-
-    @property
     def vector_db_num_gpus(self):
         return self.config.get("vector_db", {}).get("num_gpus", None)
+
+    @property
+    def metadata_index_path(self):
+        return self.config.get("vector_db", {}).get(
+            "metadata_index_path", self.vector_db_defaults.get("METADATA_PATH")
+        )

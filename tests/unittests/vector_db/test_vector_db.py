@@ -1,7 +1,9 @@
+import json
 import os
 import unittest
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, mock_open, patch
 
+import boto3
 import faiss
 import torch
 
@@ -9,10 +11,12 @@ from agrag.modules.vector_db.utils import (
     cosine_similarity_fn,
     euclidean_similarity_fn,
     load_index,
+    load_metadata,
     manhattan_similarity_fn,
     pad_embeddings,
     remove_duplicates,
     save_index,
+    save_metadata,
 )
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
 
@@ -34,18 +38,27 @@ class TestVectorDatabaseModule(unittest.TestCase):
             db_type="faiss", params={"gpu": False}, similarity_threshold=0.95, similarity_fn="cosine"
         )
         self.index_path = "test_index_path"
+        self.metadata_path = "test_metadata_path"
         self.s3_bucket = "bucket"
-        self.s3_client = "client"
+        self.s3_client = boto3.client("s3")
 
     def tearDown(self):
         if os.path.exists(self.index_path):
             os.remove(self.index_path)
+        if os.path.exists(self.metadata_path):
+            os.remove(self.metadata_path)
 
-    @patch("agrag.modules.vector_db.faiss.faiss_db.construct_faiss_index")
+    @patch("faiss.IndexFlatL2.add")
     def test_construct_vector_database(self, mock_construct_faiss_index):
-        mock_construct_faiss_index.return_value = MagicMock()
-        self.vector_db_module.construct_vector_database(self.embeddings)
+        mock_construct_faiss_index.return_value = MagicMock("some index")
+        embeddings = [
+            {"embedding": torch.rand(1, 10), "doc_id": i, "chunk_id": i, "text": "some text"} for i in range(6)
+        ]
+        self.vector_db_module.construct_vector_database(embeddings)
         self.assertIsNotNone(self.vector_db_module.index)
+        self.assertEqual(len(self.vector_db_module.metadata), len(embeddings))
+        metadata = [{k: v for k, v in item.items() if k != "embedding"} for item in embeddings]
+        self.assertEqual(self.vector_db_module.metadata, metadata)
 
     def test_cosine_similarity_fn(self):
         self.embeddings = pad_embeddings(self.embeddings)
@@ -63,7 +76,6 @@ class TestVectorDatabaseModule(unittest.TestCase):
         self.assertEqual(similarity_matrix.shape, (10, 10))
 
     def test_remove_duplicates(self):
-        print(type(self.embeddings))
         deduplicated_embeddings = remove_duplicates(self.embeddings, 0.95, "cosine")
         self.assertLessEqual(len(deduplicated_embeddings), 8)  # 2 similar embeddings
 
@@ -143,6 +155,63 @@ class TestVectorDatabaseModule(unittest.TestCase):
         index_path = self.index_path
         index = load_index("faiss", index_path)
         self.assertIsNone(index)
+
+    @patch("agrag.modules.vector_db.utils.json.dump")
+    @patch("builtins.open", new_callable=mock_open)
+    @patch("os.makedirs")
+    def test_save_metadata(self, mock_makedirs, mock_open, mock_json_dump):
+        metadata = [{"doc_id": 1, "chunk_id": 0}, {"doc_id": 1, "chunk_id": 1}]
+        metadata_path = self.metadata_path
+        save_metadata(metadata, metadata_path)
+
+        mock_makedirs.assert_called_once_with(os.path.dirname(metadata_path))
+        mock_open.assert_called_once_with(metadata_path, "w")
+        mock_json_dump.assert_called_once_with(metadata, mock_open())
+
+    @patch("agrag.modules.vector_db.utils.json.dump")
+    @patch("builtins.open", new_callable=mock_open)
+    @patch("os.makedirs")
+    @patch("agrag.modules.vector_db.utils.boto3.client")
+    def test_save_metadata_s3(self, mock_boto_client, mock_makedirs, mock_open, mock_json_dump):
+        metadata = [{"doc_id": 1, "chunk_id": 0}, {"doc_id": 1, "chunk_id": 1}]
+        metadata_path = self.metadata_path
+        mock_s3_client = mock_boto_client.return_value
+        save_metadata(metadata, metadata_path, self.s3_bucket, mock_s3_client)
+
+        mock_makedirs.assert_called_once_with(os.path.dirname(metadata_path))
+        mock_open.assert_called_once_with(metadata_path, "w")
+        mock_json_dump.assert_called_once_with(metadata, mock_open())
+
+        mock_s3_client.upload_file.assert_called_once_with(
+            Filename=metadata_path, Bucket=self.s3_bucket, Key=metadata_path
+        )
+
+    @patch("agrag.modules.vector_db.utils.json.load")
+    @patch("builtins.open", new_callable=mock_open)
+    def test_load_metadata(self, mock_open, mock_json_load):
+        mock_json_load.return_value = [{"doc_id": 1, "chunk_id": 0}, {"doc_id": 1, "chunk_id": 1}]
+        metadata_path = self.metadata_path
+        metadata = load_metadata(metadata_path)
+
+        mock_open.assert_called_once_with(metadata_path, "r")
+        mock_json_load.assert_called_once_with(mock_open())
+        self.assertEqual(metadata, [{"doc_id": 1, "chunk_id": 0}, {"doc_id": 1, "chunk_id": 1}])
+
+    @patch("agrag.modules.vector_db.utils.boto3.client")
+    @patch("agrag.modules.vector_db.utils.json.load")
+    @patch("builtins.open", new_callable=mock_open)
+    def test_load_metadata_s3(self, mock_open, mock_json_load, mock_boto_client):
+        mock_json_load.return_value = [{"doc_id": 1, "chunk_id": 0}, {"doc_id": 1, "chunk_id": 1}]
+        mock_s3_client = mock_boto_client.return_value
+        metadata_path = self.metadata_path
+        metadata = load_metadata(metadata_path, self.s3_bucket, mock_s3_client)
+
+        mock_open.assert_called_once_with(metadata_path, "r")
+        mock_json_load.assert_called_once_with(mock_open())
+        mock_s3_client.download_file.assert_called_once_with(
+            Filename=metadata_path, Bucket=self.s3_bucket, Key=metadata_path
+        )
+        self.assertEqual(metadata, [{"doc_id": 1, "chunk_id": 0}, {"doc_id": 1, "chunk_id": 1}])
 
 
 if __name__ == "__main__":

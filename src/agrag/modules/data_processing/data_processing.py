@@ -76,7 +76,7 @@ class DataProcessingModule:
         """
         raise NotImplementedError
 
-    def process_file(self, file_path: str) -> List[str]:
+    def process_file(self, file_path: str, doc_id: int) -> List[str]:
         """
         Processes a single file, extracting and chunking the text.
 
@@ -84,11 +84,13 @@ class DataProcessingModule:
         ----------
         file_path : str
             The path to the file to be processed.
+        doc_id : int
+            The document ID.
 
         Returns:
         -------
-        List[str]
-            A list of processed text chunks from the given file.
+        List[Dict[str, Union[int, str]]]
+            A list of processed text chunks with metadata from the given file.
         """
         logger.info(f"Processing File: {file_path}")
         processed_data = []
@@ -101,9 +103,9 @@ class DataProcessingModule:
             is_separator_regex=False,
         )
         pages = pdf_loader.load_and_split(text_splitter=text_splitter)
-        for page in pages:
+        for chunk_id, page in enumerate(pages):
             page_content = "".join(page.page_content)
-            processed_data.append(page_content)
+            processed_data.append({"doc_id": doc_id, "chunk_id": chunk_id, "text": page_content})
         return processed_data
 
     def process_data(self) -> List[str]:
@@ -127,7 +129,7 @@ class DataProcessingModule:
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
             # Process each file in parallel
-            results = executor.map(self.process_file, file_paths)
+            results = executor.map(self.process_file, file_paths, range(len(file_paths)))
             for result in results:
                 processed_data.extend(result)
         return processed_data
