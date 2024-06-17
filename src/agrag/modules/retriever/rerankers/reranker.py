@@ -15,7 +15,7 @@ class Reranker:
     Parameters:
     ----------
     model_name : str
-        The name of the Huggingface model to use for the reranker.
+        The name of the Huggingface model to use for the reranker (default is "BAAI/bge-large-en").
     batch_size : int
         The size of the batch. If you have limited CUDA memory, decrease the size of the batch (default is 64).
 
@@ -25,7 +25,7 @@ class Reranker:
         Reranks the text chunks based on their relevance to the query.
     """
 
-    def __init__(self, model_name: str, batch_size: int = 64):
+    def __init__(self, model_name: str = "BAAI/bge-large-en", batch_size: int = 64):
         self.model_name = model_name
         self.batch_size = batch_size
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

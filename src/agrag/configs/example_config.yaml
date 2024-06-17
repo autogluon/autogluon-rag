@@ -28,5 +28,5 @@ vector_db:
 retriever:
   top_k_embeddings: 4
   use_reranker: false
-  reranker_type: flag_embedding
+  reranker_model_name: BAAI/bge-large-en
   reranker_batch_size: 32
