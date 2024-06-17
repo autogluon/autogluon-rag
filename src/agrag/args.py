@@ -166,7 +166,7 @@ class Arguments:
     @property
     def vector_db_num_gpus(self):
         return self.config.get("vector_db", {}).get("num_gpus", None)
-    
+
     @property
     def metadata_index_path(self):
         return self.config.get("vector_db", {}).get(
@@ -195,3 +195,4 @@ class Arguments:
     def reranker_batch_size(self):
         return self.config.get("retriever", {}).get(
             "reranker_batch_size", self.retriever_defaults.get("RERANKER_BATCH_SIZE")
+        )
