@@ -63,8 +63,9 @@ class RetrieverModule:
         np.ndarray
             The embedding of the query.
         """
-        query_embedding = self.embedding_module.encode(data=[query])
-        return query_embedding.numpy()
+        query_embedding = self.embedding_module.encode(data=[{"text": query}])
+        query_embedding = query_embedding[0].squeeze(0).numpy()
+        return query_embedding
 
     def retrieve(self, query: str) -> List[Dict[str, Any]]:
         """
@@ -80,12 +81,16 @@ class RetrieverModule:
         List[str]
             A list of text chunks for the top_k most similar documents.
         """
+        logger.info(f"\nRetrieving top {self.top_k} embeddings to query")
         query_embedding = self.encode_query(query)
         indices = self.vector_database_module.search_vector_database(embedding=query_embedding, top_k=self.top_k)
-        retrieved_docs = self.vector_database_module.metadata.iloc[indices].to_dict(orient="records")
+        print(indices)
+        retrieved_docs = self.vector_database_module.metadata[indices].to_dict(orient="records")
         text_chunks = [chunk["text"] for chunk in retrieved_docs]
 
         if self.reranker:
             text_chunks = self.reranker.rerank(query, text_chunks)
+
+        print(text_chunks)
 
         return text_chunks

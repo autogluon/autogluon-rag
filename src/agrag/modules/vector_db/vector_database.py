@@ -112,8 +112,10 @@ class VectorDatabaseModule:
         List[torch.Tensor]
             Top k most similar embeddings
         """
+        if embedding.ndim == 1:
+            embedding = embedding.unsqueeze(0)
         if self.db_type == "faiss":
-            _, indices = self.index.search(n=1, x=embedding, k=top_k)
+            _, indices = self.index.search(x=embedding, k=top_k)
             return indices[0].tolist()
         else:
             raise ValueError(f"Unsupported database type: {self.db_type}")

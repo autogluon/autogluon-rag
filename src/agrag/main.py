@@ -38,6 +38,18 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
     metadata_path = args.metadata_index_path
     _, metadata_index_path = parse_path(metadata_path)
 
+    embedding_module = EmbeddingModule(
+        hf_model=args.hf_embedding_model,
+        pooling_strategy=args.pooling_strategy,
+        normalize_embeddings=args.normalize_embeddings,
+        hf_model_params=args.hf_model_params,
+        hf_tokenizer_init_params=args.hf_tokenizer_init_params,
+        hf_tokenizer_params=args.hf_tokenizer_params,
+        hf_forward_params=args.hf_forward_params,
+        normalization_params=args.normalization_params,
+        query_instruction_for_retrieval=args.query_instruction_for_retrieval,
+    )
+
     vector_database_module = VectorDatabaseModule(
         db_type=db_type,
         params=args.vector_db_args,
@@ -90,18 +102,6 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
         total_steps = len(processed_data)
 
         with tqdm(total=total_steps, desc="\nEmbedding Generation", unit="step") as pbar:
-
-            embedding_module = EmbeddingModule(
-                hf_model=args.hf_embedding_model,
-                pooling_strategy=args.pooling_strategy,
-                normalize_embeddings=args.normalize_embeddings,
-                hf_model_params=args.hf_model_params,
-                hf_tokenizer_init_params=args.hf_tokenizer_init_params,
-                hf_tokenizer_params=args.hf_tokenizer_params,
-                hf_forward_params=args.hf_forward_params,
-                normalization_params=args.normalization_params,
-                query_instruction_for_retrieval=args.query_instruction_for_retrieval,
-            )
             embeddings = embedding_module.encode(processed_data, pbar)
 
         logger.info(f"\nConstructing new index and saving at {vector_db_index_path}")
@@ -127,8 +127,10 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
 
     reranker = None
     if args.use_reranker:
+        logger.info(f"\nUsing reranker {args.reranker_model_name}")
         reranker = Reranker(model_name=args.reranker_model_name, batch_size=args.reranker_batch_size)
 
+    logger.info(f"\nInitializing Retrieval Module")
     retriever_module = RetrieverModule(
         vector_database_module=vector_database_module,
         embedding_module=embedding_module,
