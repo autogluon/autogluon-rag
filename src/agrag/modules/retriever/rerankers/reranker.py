@@ -10,12 +10,12 @@ logger = logging.getLogger("rag-logger")
 
 class Reranker:
     """
-    A unified reranker class that initializes and uses any model from Hugging Face for reranking.
+    A unified reranker class that initializes and uses any model from Huggingface for reranking.
 
     Parameters:
     ----------
     model_name : str
-        The model name to use for the reranker.
+        The name of the Huggingface model to use for the reranker.
     batch_size : int
         The size of the batch. If you have limited CUDA memory, decrease the size of the batch (default is 64).
 
