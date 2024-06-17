@@ -6,6 +6,7 @@ from typing import List, Union
 import boto3
 import faiss
 import numpy as np
+import pandas as pd
 import torch
 from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
 from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances, manhattan_distances
@@ -190,14 +191,14 @@ def load_index(
 
 
 def save_metadata(
-    metadata: List[dict], metadata_path: str, s3_bucket: str = None, s3_client: boto3.session.Session.client = None
+    metadata: pd.DataFrame, metadata_path: str, s3_bucket: str = None, s3_client: boto3.session.Session.client = None
 ):
     """
     Saves metadata to file.
 
     Parameters:
     ----------
-    metadata: List[dict]
+    metadata: pd.DataFrame
         Metadata to store
     metadata_path : str
         The path to the metadata file.
@@ -212,19 +213,20 @@ def save_metadata(
         True, if metadata saved successfully to file
         False, else
     """
-    if not metadata:
+    if metadata.empty:
         raise ValueError("No metadata to save. Please construct metadata first.")
     if not metadata_path:
         logger.warning(f"Cannot save metadata. Invalid path {metadata_path}.")
-        return
+        return False
+    if not isinstance(metadata, pd.DataFrame):
+        raise TypeError("Metadata not a pandas DataFrame.")
 
     metadata_dir = os.path.dirname(metadata_path)
     if not os.path.exists(metadata_dir):
         os.makedirs(metadata_dir)
 
     try:
-        with open(metadata_path, "w") as f:
-            json.dump(metadata, f)
+        metadata.to_json(metadata_path, orient="records", lines=True)
         logger.info(f"Metadata saved to {metadata_path}")
     except (IOError, Exception) as e:
         logger.error(f"Failed to save metadata to {metadata_path}: {e}")
@@ -244,9 +246,12 @@ def save_metadata(
         except Exception as e:
             logger.error(f"An unexpected error occurred while saving metadata to S3: {e}")
             return False
+    return True
 
 
-def load_metadata(metadata_path: str, s3_bucket: str = None, s3_client: boto3.session.Session.client = None):
+def load_metadata(
+    metadata_path: str, s3_bucket: str = None, s3_client: boto3.session.Session.client = None
+) -> pd.DataFrame:
     """
     Loads metadata from file.
 
@@ -261,7 +266,7 @@ def load_metadata(metadata_path: str, s3_bucket: str = None, s3_client: boto3.se
 
     Returns:
     -------
-    List[dict]
+    pd.DataFrame
         Metadata for Vector DB
     """
     if s3_bucket:
@@ -270,19 +275,21 @@ def load_metadata(metadata_path: str, s3_bucket: str = None, s3_client: boto3.se
             logger.info(f"Metadata loaded from S3 Bucket {s3_bucket} at {metadata_path}.")
         except (NoCredentialsError, PartialCredentialsError):
             logger.error("AWS credentials not found or incomplete.")
-            return None
+            return pd.DataFrame()
         except ClientError as e:
             logger.error(f"Failed to download metadata from S3: {e}")
-            return None
+            return pd.DataFrame()
         except Exception as e:
             logger.error(f"An unexpected error occurred while loading metadata from S3: {e}")
-            return None
+            return pd.DataFrame()
 
     try:
-        with open(metadata_path, "r") as f:
-            metadata = json.load(f)
+        metadata = pd.read_json(metadata_path, orient="records", lines=True)
         logger.info(f"Metadata loaded from {metadata_path}")
     except (IOError, Exception) as e:
         logger.error(f"Failed to load metadata from {metadata_path}: {e}")
-        return None
+        return pd.DataFrame()
+
+    if not isinstance(metadata, pd.DataFrame):
+        raise TypeError("Metadata not a pandas DataFrame.")
     return metadata

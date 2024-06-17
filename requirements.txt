@@ -10,4 +10,4 @@ pypdf
 faiss-cpu
 scikit-learn
 numpy
-sentence_transformers
+pandas

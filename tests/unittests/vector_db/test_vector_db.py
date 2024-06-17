@@ -5,8 +5,10 @@ from unittest.mock import MagicMock, mock_open, patch
 
 import boto3
 import faiss
+import pandas as pd
 import torch
 
+from agrag.constants import CHUNK_ID_KEY, DOC_ID_KEY, DOC_TEXT_KEY, EMBEDDING_KEY
 from agrag.modules.vector_db.utils import (
     cosine_similarity_fn,
     euclidean_similarity_fn,
@@ -51,14 +53,17 @@ class TestVectorDatabaseModule(unittest.TestCase):
     @patch("faiss.IndexFlatL2.add")
     def test_construct_vector_database(self, mock_construct_faiss_index):
         mock_construct_faiss_index.return_value = MagicMock("some index")
-        embeddings = [
-            {"embedding": torch.rand(1, 10), "doc_id": i, "chunk_id": i, "text": "some text"} for i in range(6)
-        ]
+        embeddings = pd.DataFrame(
+            [
+                {EMBEDDING_KEY: torch.rand(1, 10).numpy(), DOC_ID_KEY: i, CHUNK_ID_KEY: i, DOC_TEXT_KEY: "some text"}
+                for i in range(6)
+            ]
+        )
         self.vector_db_module.construct_vector_database(embeddings)
         self.assertIsNotNone(self.vector_db_module.index)
         self.assertEqual(len(self.vector_db_module.metadata), len(embeddings))
-        metadata = [{k: v for k, v in item.items() if k != "embedding"} for item in embeddings]
-        self.assertEqual(self.vector_db_module.metadata, metadata)
+        metadata = embeddings.drop(columns=[EMBEDDING_KEY])
+        pd.testing.assert_frame_equal(self.vector_db_module.metadata, metadata)
 
     def test_cosine_similarity_fn(self):
         self.embeddings = pad_embeddings(self.embeddings)
@@ -156,62 +161,61 @@ class TestVectorDatabaseModule(unittest.TestCase):
         index = load_index("faiss", index_path)
         self.assertIsNone(index)
 
-    @patch("agrag.modules.vector_db.utils.json.dump")
-    @patch("builtins.open", new_callable=mock_open)
+    @patch("pandas.DataFrame.to_json")
     @patch("os.makedirs")
-    def test_save_metadata(self, mock_makedirs, mock_open, mock_json_dump):
-        metadata = [{"doc_id": 1, "chunk_id": 0}, {"doc_id": 1, "chunk_id": 1}]
-        metadata_path = self.metadata_path
+    def test_save_metadata(self, mock_makedirs, mock_to_json):
+        metadata = pd.DataFrame([{DOC_ID_KEY: 1, CHUNK_ID_KEY: 0}, {DOC_ID_KEY: 1, CHUNK_ID_KEY: 1}])
+        metadata_path = "test_metadata_path"
         save_metadata(metadata, metadata_path)
 
         mock_makedirs.assert_called_once_with(os.path.dirname(metadata_path))
-        mock_open.assert_called_once_with(metadata_path, "w")
-        mock_json_dump.assert_called_once_with(metadata, mock_open())
+        mock_to_json.assert_called_once_with(metadata_path, orient="records", lines=True)
 
-    @patch("agrag.modules.vector_db.utils.json.dump")
-    @patch("builtins.open", new_callable=mock_open)
+    @patch("pandas.DataFrame.to_json")
     @patch("os.makedirs")
-    @patch("agrag.modules.vector_db.utils.boto3.client")
-    def test_save_metadata_s3(self, mock_boto_client, mock_makedirs, mock_open, mock_json_dump):
-        metadata = [{"doc_id": 1, "chunk_id": 0}, {"doc_id": 1, "chunk_id": 1}]
-        metadata_path = self.metadata_path
+    @patch("boto3.client")
+    def test_save_metadata_s3(self, mock_boto_client, mock_makedirs, mock_to_json):
+        metadata = pd.DataFrame([{DOC_ID_KEY: 1, CHUNK_ID_KEY: 0}, {DOC_ID_KEY: 1, CHUNK_ID_KEY: 1}])
+        metadata_path = "test_metadata_path"
         mock_s3_client = mock_boto_client.return_value
-        save_metadata(metadata, metadata_path, self.s3_bucket, mock_s3_client)
+        save_metadata(metadata, metadata_path, "s3_bucket", mock_s3_client)
 
         mock_makedirs.assert_called_once_with(os.path.dirname(metadata_path))
-        mock_open.assert_called_once_with(metadata_path, "w")
-        mock_json_dump.assert_called_once_with(metadata, mock_open())
-
+        mock_to_json.assert_called_once_with(metadata_path, orient="records", lines=True)
         mock_s3_client.upload_file.assert_called_once_with(
-            Filename=metadata_path, Bucket=self.s3_bucket, Key=metadata_path
+            Filename=metadata_path, Bucket="s3_bucket", Key=metadata_path
         )
 
-    @patch("agrag.modules.vector_db.utils.json.load")
-    @patch("builtins.open", new_callable=mock_open)
-    def test_load_metadata(self, mock_open, mock_json_load):
-        mock_json_load.return_value = [{"doc_id": 1, "chunk_id": 0}, {"doc_id": 1, "chunk_id": 1}]
-        metadata_path = self.metadata_path
+    @patch("pandas.read_json")
+    def test_load_metadata(self, mock_read_json):
+        mock_read_json.return_value = pd.DataFrame(
+            [{DOC_ID_KEY: 1, CHUNK_ID_KEY: 0}, {DOC_ID_KEY: 1, CHUNK_ID_KEY: 1}]
+        )
+        metadata_path = "test_metadata_path"
         metadata = load_metadata(metadata_path)
 
-        mock_open.assert_called_once_with(metadata_path, "r")
-        mock_json_load.assert_called_once_with(mock_open())
-        self.assertEqual(metadata, [{"doc_id": 1, "chunk_id": 0}, {"doc_id": 1, "chunk_id": 1}])
-
-    @patch("agrag.modules.vector_db.utils.boto3.client")
-    @patch("agrag.modules.vector_db.utils.json.load")
-    @patch("builtins.open", new_callable=mock_open)
-    def test_load_metadata_s3(self, mock_open, mock_json_load, mock_boto_client):
-        mock_json_load.return_value = [{"doc_id": 1, "chunk_id": 0}, {"doc_id": 1, "chunk_id": 1}]
-        mock_s3_client = mock_boto_client.return_value
-        metadata_path = self.metadata_path
-        metadata = load_metadata(metadata_path, self.s3_bucket, mock_s3_client)
-
-        mock_open.assert_called_once_with(metadata_path, "r")
-        mock_json_load.assert_called_once_with(mock_open())
-        mock_s3_client.download_file.assert_called_once_with(
-            Filename=metadata_path, Bucket=self.s3_bucket, Key=metadata_path
+        mock_read_json.assert_called_once_with(metadata_path, orient="records", lines=True)
+        pd.testing.assert_frame_equal(
+            metadata, pd.DataFrame([{DOC_ID_KEY: 1, CHUNK_ID_KEY: 0}, {DOC_ID_KEY: 1, CHUNK_ID_KEY: 1}])
         )
-        self.assertEqual(metadata, [{"doc_id": 1, "chunk_id": 0}, {"doc_id": 1, "chunk_id": 1}])
+
+    @patch("pandas.read_json")
+    @patch("boto3.client")
+    def test_load_metadata_s3(self, mock_boto_client, mock_read_json):
+        mock_read_json.return_value = pd.DataFrame(
+            [{DOC_ID_KEY: 1, CHUNK_ID_KEY: 0}, {DOC_ID_KEY: 1, CHUNK_ID_KEY: 1}]
+        )
+        mock_s3_client = mock_boto_client.return_value
+        metadata_path = "test_metadata_path"
+        metadata = load_metadata(metadata_path, "s3_bucket", mock_s3_client)
+
+        mock_s3_client.download_file.assert_called_once_with(
+            Filename=metadata_path, Bucket="s3_bucket", Key=metadata_path
+        )
+        mock_read_json.assert_called_once_with(metadata_path, orient="records", lines=True)
+        pd.testing.assert_frame_equal(
+            metadata, pd.DataFrame([{DOC_ID_KEY: 1, CHUNK_ID_KEY: 0}, {DOC_ID_KEY: 1, CHUNK_ID_KEY: 1}])
+        )
 
 
 if __name__ == "__main__":

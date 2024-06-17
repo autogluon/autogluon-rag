@@ -1,6 +1,7 @@
 import logging
 import os
 
+import pandas as pd
 import torch
 from tqdm import tqdm
 
@@ -77,7 +78,9 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
             vector_database_module.s3_bucket,
             vector_database_module.s3_client,
         )
-        load_index_successful = True if vector_database_module.index and vector_database_module.metadata else False
+        load_index_successful = (
+            True if vector_database_module.index and vector_database_module.metadata is not None else False
+        )
 
     if not load_index_successful:
         data_dir = args.data_dir

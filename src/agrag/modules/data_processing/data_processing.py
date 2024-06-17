@@ -3,9 +3,11 @@ import logging
 from typing import List
 
 import boto3
+import pandas as pd
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
+from agrag.constants import CHUNK_ID_KEY, DOC_ID_KEY, DOC_TEXT_KEY
 from agrag.modules.data_processing.utils import download_directory_from_s3, get_all_file_paths
 
 logger = logging.getLogger("rag-logger")
@@ -76,7 +78,7 @@ class DataProcessingModule:
         """
         raise NotImplementedError
 
-    def process_file(self, file_path: str, doc_id: int) -> List[str]:
+    def process_file(self, file_path: str, doc_id: int) -> pd.DataFrame:
         """
         Processes a single file, extracting and chunking the text.
 
@@ -89,8 +91,8 @@ class DataProcessingModule:
 
         Returns:
         -------
-        List[Dict[str, Union[int, str]]]
-            A list of processed text chunks with metadata from the given file.
+        pd.DataFrame
+            A table containing processed text chunks and metadata from the given file.
         """
         logger.info(f"Processing File: {file_path}")
         processed_data = []
@@ -105,8 +107,9 @@ class DataProcessingModule:
         pages = pdf_loader.load_and_split(text_splitter=text_splitter)
         for chunk_id, page in enumerate(pages):
             page_content = "".join(page.page_content)
-            processed_data.append({"doc_id": doc_id, "chunk_id": chunk_id, "text": page_content})
-        return processed_data
+            processed_data.append({DOC_ID_KEY: doc_id, CHUNK_ID_KEY: chunk_id, DOC_TEXT_KEY: page_content})
+        df = pd.DataFrame(processed_data)
+        return df
 
     def process_data(self) -> List[str]:
         """
@@ -128,8 +131,8 @@ class DataProcessingModule:
         file_paths = get_all_file_paths(self.data_dir)
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            # Process each file in parallel
             results = executor.map(self.process_file, file_paths, range(len(file_paths)))
             for result in results:
-                processed_data.extend(result)
-        return processed_data
+                processed_data.append(result)
+
+        return pd.concat(processed_data).reset_index(drop=True)
