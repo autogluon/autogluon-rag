@@ -2,9 +2,10 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 import numpy as np
+import pandas as pd
 import torch
-from tqdm import tqdm
 
+from agrag.constants import DOC_TEXT_KEY, EMBEDDING_KEY
 from agrag.modules.embedding.embedding import EmbeddingModule
 from agrag.modules.embedding.utils import normalize_embedding, pool
 
@@ -39,11 +40,26 @@ class TestEmbeddingModule(unittest.TestCase):
         }
         self.mock_model.return_value = MagicMock(last_hidden_state=torch.rand((2, 3, 10)))
 
-        data = [{"text": "test sentence 1"}, {"text": "test sentence 2"}]
-        embeddings = self.embedding_module.encode(data)
+        data = pd.DataFrame([{DOC_TEXT_KEY: "test sentence 1"}, {DOC_TEXT_KEY: "test sentence 2"}])
+        embeddings_df = self.embedding_module.encode(data)
 
-        self.assertEqual(len(embeddings), 2)
-        self.assertTrue(all(isinstance(item["embedding"], torch.Tensor) for item in embeddings))
+        self.assertEqual(len(embeddings_df), 2)
+        self.assertTrue(all(isinstance(embedding, torch.Tensor) for embedding in embeddings_df[EMBEDDING_KEY]))
+
+    def test_encode_hf_pool(self):
+        self.mock_tokenizer.return_tensors.return_value = {
+            "input_ids": torch.tensor([[1, 2, 3], [4, 5, 6]]),
+            "attention_mask": torch.tensor([[1, 1, 1], [1, 1, 1]]),
+        }
+        self.mock_model.return_value = MagicMock(last_hidden_state=torch.rand((2, 3, 10)))
+
+        data = pd.DataFrame([{DOC_TEXT_KEY: "test sentence 1"}, {DOC_TEXT_KEY: "test sentence 2"}])
+        embeddings_df = self.embedding_module.encode(data)
+
+        self.embedding_module.pooling_strategy = "mean"
+
+        self.assertEqual(len(embeddings_df), 2)
+        self.assertTrue(all(isinstance(embedding, torch.Tensor) for embedding in embeddings_df[EMBEDDING_KEY]))
 
     @patch("agrag.modules.embedding.embedding.AutoModel.from_pretrained")
     def test_pool_mean(self, mock_model):
