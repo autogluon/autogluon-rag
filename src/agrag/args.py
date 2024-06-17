@@ -182,10 +182,6 @@ class Arguments:
         return self.config.get("retriever", {}).get("use_reranker", self.retriever_defaults.get("USE_RERANKER"))
 
     @property
-    def reranker_type(self):
-        return self.config.get("retriever", {}).get("reranker_type", self.retriever_defaults.get("RERANKER_TYPE"))
-
-    @property
     def reranker_model_name(self):
         return self.config.get("retriever", {}).get(
             "reranker_model_name", self.retriever_defaults.get("RERANKER_MODEL")

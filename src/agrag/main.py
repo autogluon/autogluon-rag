@@ -127,9 +127,7 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
 
     reranker = None
     if args.use_reranker:
-        reranker = Reranker(
-            reranker_type=args.reranker_type, model_name=args.reranker_model_name, batch_size=args.reranker_batch_size
-        )
+        reranker = Reranker(model_name=args.reranker_model_name, batch_size=args.reranker_batch_size)
 
     retriever_module = RetrieverModule(
         vector_database_module=vector_database_module,
