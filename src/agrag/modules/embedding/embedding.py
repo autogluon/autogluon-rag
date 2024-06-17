@@ -97,7 +97,8 @@ class EmbeddingModule:
         """
 
         embeddings = []
-        for text in data:
+        for item in data:
+            text = item["text"]
             inputs = self.tokenizer(text, return_tensors="pt", **self.hf_tokenizer_params)
             with torch.no_grad():
                 outputs = self.model(**inputs, **self.hf_forward_params)

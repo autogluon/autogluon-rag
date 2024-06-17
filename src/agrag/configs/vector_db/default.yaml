@@ -4,3 +4,4 @@ SIMILARITY_THRESHOLD: 0.95
 USE_EXISTING_INDEX: false
 INDEX_PATH: vectorDB_index_save/
 SIMILARITY_FN: cosine
+METADATA_PATH: vectorDB_metadata_save/

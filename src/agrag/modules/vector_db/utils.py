@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from typing import List, Union
@@ -6,6 +7,7 @@ import boto3
 import faiss
 import numpy as np
 import torch
+from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
 from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances, manhattan_distances
 from tqdm import tqdm
 
@@ -102,7 +104,7 @@ def pad_embeddings(embeddings: List[torch.Tensor]) -> torch.Tensor:
     padded_embeddings = [
         torch.nn.functional.pad(embedding, (0, 0, 0, max_len - embedding.shape[1])) for embedding in embeddings
     ]
-    return torch.cat(padded_embeddings, dim=0).view(len(padded_embeddings), -1)
+    return torch.cat(padded_embeddings, dim=0)
 
 
 def save_index(
@@ -168,6 +170,11 @@ def load_index(
         S3 bucket to store the index in
     s3_client: boto3.session.Session.client
         S3 client to interface with AWS resources
+
+    Returns:
+    -------
+    Union[faiss.IndexFlatL2]
+        Vector DB Index
     """
     index = None
     if db_type == "faiss":
@@ -180,3 +187,102 @@ def load_index(
         pbar.n = pbar.total
         pbar.refresh()
     return index
+
+
+def save_metadata(
+    metadata: List[dict], metadata_path: str, s3_bucket: str = None, s3_client: boto3.session.Session.client = None
+):
+    """
+    Saves metadata to file.
+
+    Parameters:
+    ----------
+    metadata: List[dict]
+        Metadata to store
+    metadata_path : str
+        The path to the metadata file.
+    s3_bucket : str
+        The S3 bucket name.
+    s3_client : boto3.session.Session.client
+        The S3 client to interface with AWS resources.
+
+    Returns:
+    -------
+    bool:
+        True, if metadata saved successfully to file
+        False, else
+    """
+    if not metadata:
+        raise ValueError("No metadata to save. Please construct metadata first.")
+    if not metadata_path:
+        logger.warning(f"Cannot save metadata. Invalid path {metadata_path}.")
+        return
+
+    metadata_dir = os.path.dirname(metadata_path)
+    if not os.path.exists(metadata_dir):
+        os.makedirs(metadata_dir)
+
+    try:
+        with open(metadata_path, "w") as f:
+            json.dump(metadata, f)
+        logger.info(f"Metadata saved to {metadata_path}")
+    except (IOError, Exception) as e:
+        logger.error(f"Failed to save metadata to {metadata_path}: {e}")
+        return False
+
+    if s3_bucket:
+        try:
+            s3_client.upload_file(Filename=metadata_path, Bucket=s3_bucket, Key=metadata_path)
+            logger.info(f"Metadata saved to S3 Bucket {s3_bucket} at {metadata_path}.")
+            return True
+        except (NoCredentialsError, PartialCredentialsError):
+            logger.error("AWS credentials not found or incomplete.")
+            return False
+        except ClientError as e:
+            logger.error(f"Failed to upload metadata to S3: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"An unexpected error occurred while saving metadata to S3: {e}")
+            return False
+
+
+def load_metadata(metadata_path: str, s3_bucket: str = None, s3_client: boto3.session.Session.client = None):
+    """
+    Loads metadata from file.
+
+    Parameters:
+    ----------
+    metadata_path : str
+        The path to the metadata file.
+    s3_bucket : str
+        The S3 bucket name.
+    s3_client : boto3.session.Session.client
+        The S3 client to interface with AWS resources.
+
+    Returns:
+    -------
+    List[dict]
+        Metadata for Vector DB
+    """
+    if s3_bucket:
+        try:
+            s3_client.download_file(Filename=metadata_path, Bucket=s3_bucket, Key=metadata_path)
+            logger.info(f"Metadata loaded from S3 Bucket {s3_bucket} at {metadata_path}.")
+        except (NoCredentialsError, PartialCredentialsError):
+            logger.error("AWS credentials not found or incomplete.")
+            return None
+        except ClientError as e:
+            logger.error(f"Failed to download metadata from S3: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"An unexpected error occurred while loading metadata from S3: {e}")
+            return None
+
+    try:
+        with open(metadata_path, "r") as f:
+            metadata = json.load(f)
+        logger.info(f"Metadata loaded from {metadata_path}")
+    except (IOError, Exception) as e:
+        logger.error(f"Failed to load metadata from {metadata_path}: {e}")
+        return None
+    return metadata
