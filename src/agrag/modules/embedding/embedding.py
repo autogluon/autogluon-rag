@@ -111,13 +111,15 @@ class EmbeddingModule:
             pbar.update(1)
 
         with torch.no_grad():
-            embeddings = self.model(**inputs, **self.hf_forward_params)
+            outputs = self.model(**inputs, **self.hf_forward_params)
 
         logger.info("\nProcessing embeddings")
         if pbar is not None:
             pbar.update(1)
             pbar.close()
 
+        embeddings = outputs[0]  # The first element in the tuple returned by the model is the embeddings generated
+        # The tuple elements are (embeddings,  hidden_states, past_key_values, attentions, cross_attentions)
         embeddings = pool(embeddings, self.pooling_strategy)
         if self.normalize_embeddings:
             embeddings = normalize_embedding(embeddings, **self.normalization_params)
