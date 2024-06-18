@@ -18,7 +18,7 @@ class TestReranker(unittest.TestCase):
         mock_model.return_value = self.mock_model
 
     def test_rerank(self):
-        query = "What is the capital of France?"
+        query = "Some query"
         text_chunks = ["test chunk 1", "test chunk 2"]
 
         self.mock_tokenizer.return_tensors.return_value = {
