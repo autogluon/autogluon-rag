@@ -98,6 +98,7 @@ class EmbeddingModule:
         """
 
         texts = data[DOC_TEXT_KEY].tolist()
+
         logger.info("\nTokenizing text chunks")
         if pbar is not None:
             pbar.update(1)

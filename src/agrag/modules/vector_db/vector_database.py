@@ -86,8 +86,6 @@ class VectorDatabaseModule:
             The constructed vector database index.
         """
         logger.info("Initializing Vector DB Construction")
-        if pbar:
-            pbar.reset(total=4)
 
         self.metadata = embeddings.drop(columns=[EMBEDDING_KEY])
         if pbar:
