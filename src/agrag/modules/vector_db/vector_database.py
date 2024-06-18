@@ -85,17 +85,28 @@ class VectorDatabaseModule:
         Union[faiss.IndexFlatL2,]
             The constructed vector database index.
         """
+        logger.info("Initializing Vector DB Construction")
+
         self.metadata = embeddings.drop(columns=[EMBEDDING_KEY])
-        vectors = [torch.tensor(embedding) for embedding in embeddings[EMBEDDING_KEY].values]
-        vectors, indices_to_keep = remove_duplicates(vectors, self.similarity_threshold, self.similarity_fn)
-        print(indices_to_keep)
-        self.metadata = self.metadata.iloc[indices_to_keep]
         if pbar:
-            pbar.total = len(vectors)
+            pbar.update(1)
+
+        vectors = [torch.tensor(embedding) for embedding in embeddings[EMBEDDING_KEY].values]
+        logger.info("\nRemoving Duplicates")
+        if pbar:
+            pbar.update(1)
+
+        vectors, indices_to_keep = remove_duplicates(vectors, self.similarity_threshold, self.similarity_fn)
+        self.metadata = self.metadata.iloc[indices_to_keep]
+        logger.info("Constructing FAISS Index")
+        if pbar:
+            pbar.update(1)
+
         if self.db_type == "faiss":
             self.index = construct_faiss_index(vectors, self.num_gpus)
         else:
             raise ValueError(f"Unsupported database type: {self.db_type}")
+
         if pbar:
             pbar.update(len(embeddings))
 

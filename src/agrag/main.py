@@ -97,18 +97,28 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
             s3_bucket=data_s3_bucket,
         )
 
-        with tqdm(total=100, desc="Data Preprocessing", unit="chunk") as pbar:
+        with tqdm(total=100, desc="Data Preprocessing Module", unit="chunk") as pbar:
             processed_data = data_processing_module.process_data()
             pbar.n = 100
             pbar.refresh()
 
-        total_steps = len(processed_data)
+        with tqdm(total=3, desc="\nEmbedding Module", unit="step") as pbar:
 
-        with tqdm(total=total_steps, desc="\nEmbedding Generation", unit="step") as pbar:
+            embedding_module = EmbeddingModule(
+                hf_model=args.hf_embedding_model,
+                pooling_strategy=args.pooling_strategy,
+                normalize_embeddings=args.normalize_embeddings,
+                hf_model_params=args.hf_model_params,
+                hf_tokenizer_init_params=args.hf_tokenizer_init_params,
+                hf_tokenizer_params=args.hf_tokenizer_params,
+                hf_forward_params=args.hf_forward_params,
+                normalization_params=args.normalization_params,
+                query_instruction_for_retrieval=args.query_instruction_for_retrieval,
+            )
             embeddings = embedding_module.encode(processed_data, pbar)
 
         logger.info(f"\nConstructing new index and saving at {vector_db_index_path}")
-        with tqdm(total=total_steps, desc="Vector DB Construction", unit="step") as pbar:
+        with tqdm(total=4, desc="Vector DB Module", unit="step") as pbar:
             vector_database_module.construct_vector_database(embeddings, pbar)
             basedir = os.path.dirname(vector_db_index_path)
             if not os.path.exists(basedir):
