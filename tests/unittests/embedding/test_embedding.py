@@ -38,7 +38,7 @@ class TestEmbeddingModule(unittest.TestCase):
             "input_ids": torch.tensor([[1, 2, 3], [4, 5, 6]]),
             "attention_mask": torch.tensor([[1, 1, 1], [1, 1, 1]]),
         }
-        self.mock_model.return_value = torch.rand((2, 3, 10))
+        self.mock_model.return_value = [torch.rand((2, 3, 10))]
 
         data = pd.DataFrame([{DOC_TEXT_KEY: "test sentence 1"}, {DOC_TEXT_KEY: "test sentence 2"}])
         embeddings_df = self.embedding_module.encode(data)
@@ -51,7 +51,7 @@ class TestEmbeddingModule(unittest.TestCase):
             "input_ids": torch.tensor([[1, 2, 3], [4, 5, 6]]),
             "attention_mask": torch.tensor([[1, 1, 1], [1, 1, 1]]),
         }
-        self.mock_model.return_value = torch.rand((2, 3, 10))
+        self.mock_model.return_value = [torch.rand((2, 3, 10))]
 
         data = pd.DataFrame([{DOC_TEXT_KEY: "test sentence 1"}, {DOC_TEXT_KEY: "test sentence 2"}])
         self.embedding_module.pooling_strategy = "mean"
@@ -89,7 +89,7 @@ class TestEmbeddingModule(unittest.TestCase):
         self.embedding_module.pooling_strategy = "cls"
         embeddings = torch.rand((10, 20, 100))
 
-        expected_pooled = embeddings[0][:, 0]
+        expected_pooled = embeddings[:, 0]
 
         pooled_embeddings = pool(embeddings, self.embedding_module.pooling_strategy)
 

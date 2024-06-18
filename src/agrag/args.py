@@ -136,6 +136,10 @@ class Arguments:
         return self.config.get("embedding", {}).get("query_instruction_for_retrieval", "")
 
     @property
+    def embedding_batch_size(self):
+        return self.config.get("embedding", {}).get("embedding_batch_size", "")
+
+    @property
     def vector_db_type(self):
         return self.config.get("vector_db", {}).get("db_type", self.vector_db_defaults.get("DB_TYPE"))
 

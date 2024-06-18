@@ -102,7 +102,7 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
             pbar.n = 100
             pbar.refresh()
 
-        with tqdm(total=3, desc="\nEmbedding Module", unit="step") as pbar:
+        with tqdm(total=len(processed_data), desc="\nEmbedding Module", unit="step") as pbar:
 
             embedding_module = EmbeddingModule(
                 hf_model=args.hf_embedding_model,
@@ -115,10 +115,10 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
                 normalization_params=args.normalization_params,
                 query_instruction_for_retrieval=args.query_instruction_for_retrieval,
             )
-            embeddings = embedding_module.encode(processed_data, pbar)
+            embeddings = embedding_module.encode(processed_data, pbar, batch_size=args.embedding_batch_size)
 
         logger.info(f"\nConstructing new index and saving at {vector_db_index_path}")
-        with tqdm(total=4, desc="Vector DB Module", unit="step") as pbar:
+        with tqdm(total=3, desc="Vector DB Module", unit="step") as pbar:
             vector_database_module.construct_vector_database(embeddings, pbar)
             basedir = os.path.dirname(vector_db_index_path)
             if not os.path.exists(basedir):

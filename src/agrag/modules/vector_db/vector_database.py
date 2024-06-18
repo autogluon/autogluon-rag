@@ -92,16 +92,14 @@ class VectorDatabaseModule:
             pbar.update(1)
 
         vectors = [torch.tensor(embedding) for embedding in embeddings[EMBEDDING_KEY].values]
-        logger.info("\nRemoving Duplicates")
-        if pbar:
-            pbar.update(1)
 
+        logger.info("\nRemoving Duplicates")
         vectors, indices_to_keep = remove_duplicates(vectors, self.similarity_threshold, self.similarity_fn)
         self.metadata = self.metadata.iloc[indices_to_keep]
-        logger.info("Constructing FAISS Index")
         if pbar:
             pbar.update(1)
 
+        logger.info("Constructing FAISS Index")
         if self.db_type == "faiss":
             self.index = construct_faiss_index(vectors, self.num_gpus)
         else:
