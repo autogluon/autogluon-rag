@@ -38,7 +38,7 @@ def pool(embeddings: List[torch.Tensor], pooling_strategy: str) -> List[torch.Te
     elif pooling_strategy == "max":
         embeddings = embeddings.max(dim=1).values
     elif pooling_strategy == "cls":
-        embeddings = embeddings[:, 0, :]
+        embeddings = embeddings[0][:, 0]
     elif pooling_strategy:
         raise NotImplementedError("Provided pooling strategy not implemented")
     return embeddings

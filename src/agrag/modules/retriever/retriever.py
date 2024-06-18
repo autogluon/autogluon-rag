@@ -2,10 +2,11 @@ import logging
 from typing import Any, Dict, List
 
 import numpy as np
+import pandas as pd
 import torch
 from torch.nn import DataParallel
-from transformers import AutoModel, AutoTokenizer
 
+from agrag.constants import DOC_TEXT_KEY, EMBEDDING_KEY
 from agrag.modules.embedding.embedding import EmbeddingModule
 from agrag.modules.embedding.utils import normalize_embedding, pool
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
@@ -63,8 +64,9 @@ class RetrieverModule:
         np.ndarray
             The embedding of the query.
         """
-        query_embedding = self.embedding_module.encode(data=[{"text": query}])
-        query_embedding = query_embedding[0].squeeze(0).numpy()
+        query_embedding = self.embedding_module.encode(data=pd.DataFrame([{DOC_TEXT_KEY: query}]))
+        query_embedding = query_embedding[EMBEDDING_KEY][0]
+        print(query_embedding.shape)
         return query_embedding
 
     def retrieve(self, query: str) -> List[Dict[str, Any]]:
@@ -81,11 +83,20 @@ class RetrieverModule:
         List[str]
             A list of text chunks for the top_k most similar documents.
         """
-        logger.info(f"\nRetrieving top {self.top_k} embeddings to query")
+        logger.info(f"\nRetrieving top {self.top_k} most similar embeddings")
         query_embedding = self.encode_query(query)
         indices = self.vector_database_module.search_vector_database(embedding=query_embedding, top_k=self.top_k)
-        print(indices)
-        retrieved_docs = self.vector_database_module.metadata[indices].to_dict(orient="records")
+        print(f"Metadata size: {self.vector_database_module.metadata.shape[0]}")
+        print(f"Returned indices: {indices}")
+
+        valid_indices = [idx for idx in indices if idx < self.vector_database_module.metadata.shape[0]]
+        print(valid_indices)
+
+        if not valid_indices:
+            logger.warning("No valid indices returned from the vector database search.")
+            return None
+
+        retrieved_docs = self.vector_database_module.metadata.iloc[valid_indices].to_dict(orient="records")
         text_chunks = [chunk["text"] for chunk in retrieved_docs]
 
         if self.reranker:

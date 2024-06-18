@@ -1,11 +1,11 @@
 data:
   chunk_size: 512
   chunk_overlap: 64
-  data_dir: s3://autogluon-rag-github-dev/test_docs/
+  data_dir: autogluon_docs
 
 embedding:
   embedding_model: BAAI/bge-large-en
-  pooling_strategy: null
+  pooling_strategy: cls
   normalize_embeddings: false
   hf_model_params: null
   hf_tokenizer_init_params: null
@@ -20,13 +20,13 @@ vector_db:
   params: {gpu: False}
   similarity_threshold: 0.95
   similarity_fn: cosine
-  use_existing_vector_db: true
+  use_existing_vector_db: false
   num_gpus: 0
   vector_db_index_path: s3://autogluon-rag-github-dev/vectorDB_index_save/faiss/index.idx
   metadata_index_path: s3://autogluon-rag-github-dev/vectorDB_metadata_save/faiss/metadata.json
 
 retriever:
-  top_k_embeddings: 4
+  top_k_embeddings: 5
   use_reranker: false
   reranker_model_name: BAAI/bge-large-en
   reranker_batch_size: 32

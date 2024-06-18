@@ -5,6 +5,7 @@ import boto3
 import faiss
 import pandas as pd
 import torch
+import numpy as np
 from tqdm import tqdm
 
 from agrag.constants import EMBEDDING_KEY
@@ -86,8 +87,9 @@ class VectorDatabaseModule:
         """
         self.metadata = embeddings.drop(columns=[EMBEDDING_KEY])
         vectors = [torch.tensor(embedding) for embedding in embeddings[EMBEDDING_KEY].values]
-        vectors = pad_embeddings(vectors)
-        vectors = remove_duplicates(vectors, self.similarity_threshold, self.similarity_fn)
+        vectors, indices_to_keep = remove_duplicates(vectors, self.similarity_threshold, self.similarity_fn)
+        print(indices_to_keep)
+        self.metadata  = self.metadata.iloc[indices_to_keep]
         if pbar:
             pbar.total = len(vectors)
         if self.db_type == "faiss":
@@ -97,12 +99,12 @@ class VectorDatabaseModule:
         if pbar:
             pbar.update(len(embeddings))
 
-    def search_vector_database(self, embedding: torch.Tensor, top_k: int) -> List[torch.Tensor]:
+    def search_vector_database(self, embedding: np.array, top_k: int) -> List[torch.Tensor]:
         """
         Searches the vector database for the top k most similar embeddings to the given embedding
         Parameters:
         ----------
-        embedding : torch.Tensor
+        embedding : np.array
             Embedding of the user query. The database is searched to find the k most similar vectors to this embedding
         top_k: int
             Number of similar embeddings to search for in the database
@@ -113,7 +115,7 @@ class VectorDatabaseModule:
             Top k most similar embeddings
         """
         if embedding.ndim == 1:
-            embedding = embedding.unsqueeze(0)
+            embedding = embedding.reshape(1, embedding.shape[0])
         if self.db_type == "faiss":
             _, indices = self.index.search(x=embedding, k=top_k)
             return indices[0].tolist()
