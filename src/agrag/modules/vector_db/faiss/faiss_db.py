@@ -39,9 +39,8 @@ def construct_faiss_index(embeddings: List[torch.Tensor], num_gpus: int = 1) -> 
         index = faiss.index_cpu_to_gpu_multiple(devices, index, config)
         logger.info(f"Using FAISS GPU index on {num_gpus} GPUs")
 
-    for embedding in embeddings:
-        index.add(embedding.numpy())
-    logger.info(f"Stored {len(embeddings)} embeddings in the FAISS index")
+    index.add(np.array(embeddings))
+    logger.info(f"Stored {index.ntotal} embeddings in the FAISS index, expected {len(embeddings)}")
 
     return index
 

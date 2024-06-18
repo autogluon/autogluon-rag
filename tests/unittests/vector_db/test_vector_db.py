@@ -84,7 +84,7 @@ class TestVectorDatabaseModule(unittest.TestCase):
         deduplicated_embeddings = remove_duplicates(self.embeddings, 0.95, "cosine")
         self.assertLessEqual(len(deduplicated_embeddings), 8)  # 2 similar embeddings
 
-        deduplicated_set = {tuple(embedding.flatten().tolist()) for embedding in deduplicated_embeddings}
+        deduplicated_set = {tuple(embedding) for embedding in deduplicated_embeddings}
 
         self.assertNotIn(tuple(self.embedding_duplicate1), deduplicated_set)
         self.assertNotIn(tuple(self.embedding_duplicate2), deduplicated_set)
