@@ -77,14 +77,18 @@ class EmbeddingModule:
         self.model.to(self.device)
         self.pooling_strategy = pooling_strategy
 
-    def encode(self, data: pd.DataFrame, pbar: tqdm = None) -> pd.DataFrame:
+    def encode(self, data: pd.DataFrame, pbar: tqdm = None, batch_size: int = 32) -> pd.DataFrame:
         """
-        Generates embeddings for a list of text data chunks.
+        Generates embeddings for a list of text data chunks in batches.
 
         Parameters:
         ----------
         data : pd.DataFrame
             A table of text data chunks to generate embeddings for.
+        pbar : tqdm, optional
+            A tqdm progress bar to show progress.
+        batch_size : int, optional
+            The batch size to use for encoding (default is 32).
 
         Returns:
         -------
@@ -98,35 +102,44 @@ class EmbeddingModule:
         """
 
         texts = data[DOC_TEXT_KEY].tolist()
+        all_embeddings = []
 
-        logger.info("\nTokenizing text chunks")
+        logger.info(f"Using batch size {batch_size}")
+
+        batch_num = 1
+
+        for i in range(0, len(texts), batch_size):
+            logger.info(f"Batch {batch_num}")
+
+            logger.info("\nTokenizing text chunks")
+            batch_texts = texts[i : i + batch_size]
+            inputs = self.tokenizer(batch_texts, return_tensors="pt", **self.hf_tokenizer_params)
+
+            logger.info("\nGenerating embeddings")
+            with torch.no_grad():
+                outputs = self.model(**inputs, **self.hf_forward_params)
+
+            logger.info("\nProcessing embeddings")
+
+            # The first element in the tuple returned by the model is the embeddings generated
+            # The tuple elements are (embeddings, hidden_states, past_key_values, attentions, cross_attentions)
+            batch_embeddings = outputs[0]
+
+            batch_embeddings = pool(batch_embeddings, self.pooling_strategy)
+            if self.normalize_embeddings:
+                batch_embeddings = normalize_embedding(batch_embeddings, **self.normalization_params)
+
+            all_embeddings.extend(batch_embeddings.cpu().numpy())
+
+            if pbar is not None:
+                pbar.update(len(batch_texts))
+
+            batch_num += 1
+
         if pbar is not None:
-            pbar.update(1)
-
-        inputs = self.tokenizer(texts, return_tensors="pt", **self.hf_tokenizer_params)
-
-        logger.info("\nGenerating embeddings")
-
-        if pbar is not None:
-            pbar.update(1)
-
-        with torch.no_grad():
-            outputs = self.model(**inputs, **self.hf_forward_params)
-
-        logger.info("\nProcessing embeddings")
-        if pbar is not None:
-            pbar.update(1)
             pbar.close()
 
-        embeddings = outputs[0]  # The first element in the tuple returned by the model is the embeddings generated
-        # The tuple elements are (embeddings,  hidden_states, past_key_values, attentions, cross_attentions)
-        embeddings = pool(embeddings, self.pooling_strategy)
-        if self.normalize_embeddings:
-            embeddings = normalize_embedding(embeddings, **self.normalization_params)
-
-        embeddings = embeddings.numpy()
-
-        data[EMBEDDING_KEY] = list(embeddings)
+        data[EMBEDDING_KEY] = all_embeddings
 
         return data
 
