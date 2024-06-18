@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import Any, Dict, List
 
 import torch
 from torch.nn import DataParallel
@@ -18,6 +18,14 @@ class Reranker:
         The name of the Huggingface model to use for the reranker (default is "BAAI/bge-large-en").
     batch_size : int
         The size of the batch. If you have limited CUDA memory, decrease the size of the batch (default is 64).
+    hf_model_params : dict
+        Additional parameters to pass to the Huggingface model's `from_pretrained` initializer method.
+    hf_tokenizer_init_params : dict
+        Additional parameters to pass to the Huggingface tokenizer's `from_pretrained` initializer method.
+    hf_tokenizer_params : dict
+        Additional parameters to pass to the `tokenizer` method for the Huggingface model.
+    hf_forward_params : dict
+        Additional parameters to pass to the Huggingface model's `forward` method.
 
     Methods:
     -------
@@ -25,13 +33,27 @@ class Reranker:
         Reranks the text chunks based on their relevance to the query.
     """
 
-    def __init__(self, model_name: str = "BAAI/bge-large-en", batch_size: int = 64):
+    def __init__(
+        self,
+        model_name: str = "BAAI/bge-large-en",
+        batch_size: int = 64,
+        hf_model_params: Dict[str, Any] = None,
+        hf_tokenizer_init_params: Dict[str, Any] = None,
+        hf_tokenizer_params: Dict[str, Any] = None,
+        hf_forward_params: Dict[str, Any] = None,
+    ):
         self.model_name = model_name
         self.batch_size = batch_size
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        self.model = AutoModel.from_pretrained(model_name).to(self.device)
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.hf_model_params = hf_model_params or {}
+        self.hf_tokenizer_init_params = hf_tokenizer_init_params or {}
+        self.hf_tokenizer_params = hf_tokenizer_params or {}
+        self.hf_forward_params = hf_forward_params or {}
+
+        self.model = AutoModel.from_pretrained(model_name, **self.hf_model_params).to(self.device)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name, **self.hf_tokenizer_init_params)
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         self.num_gpus = torch.cuda.device_count()
         if self.num_gpus > 1:
@@ -57,22 +79,22 @@ class Reranker:
             A list of text chunks sorted by their relevance to the query.
         """
         scores = []
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         for i in range(0, len(text_chunks), self.batch_size):
             batch = text_chunks[i : i + self.batch_size]
             inputs = self.tokenizer(
                 [query] * len(batch),
                 batch,
-                padding=True,
-                truncation=True,
-                max_length=512,
-                return_tensors="pt",
+                **self.hf_tokenizer_params,
             )
-            inputs = {k: v.to(self.device) for k, v in inputs.items()}
+            print(inputs)
+            if self.num_gpus > 1:
+                inputs = {k: v.to(self.device) for k, v in inputs.items()}
             with torch.no_grad():
-                outputs = self.model(**inputs, return_dict=True)
+                outputs = self.model(**inputs, **self.hf_forward_params)
+                print(outputs)
                 batch_scores = outputs[0][:, 0].cpu().numpy().tolist()
+                print(batch_scores)
             scores.extend(batch_scores)
 
         scored_chunks = list(zip(text_chunks, scores))

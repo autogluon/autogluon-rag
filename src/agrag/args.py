@@ -196,3 +196,19 @@ class Arguments:
         return self.config.get("retriever", {}).get(
             "reranker_batch_size", self.retriever_defaults.get("RERANKER_BATCH_SIZE")
         )
+
+    @property
+    def reranker_hf_model_params(self):
+        return self.config.get("retriever", {}).get("reranker_hf_model_params", {})
+
+    @property
+    def reranker_hf_tokenizer_params(self):
+        return self.config.get("retriever", {}).get("reranker_hf_tokenizer_params", {})
+
+    @property
+    def reranker_hf_tokenizer_init_params(self):
+        return self.config.get("retriever", {}).get("reranker_hf_tokenizer_params", {})
+
+    @property
+    def reranker_hf_forward_params(self):
+        return self.config.get("retriever", {}).get("reranker_hf_forward_params", {})

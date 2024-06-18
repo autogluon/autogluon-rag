@@ -141,7 +141,14 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
     reranker = None
     if args.use_reranker:
         logger.info(f"\nUsing reranker {args.reranker_model_name}")
-        reranker = Reranker(model_name=args.reranker_model_name, batch_size=args.reranker_batch_size)
+        reranker = Reranker(
+            model_name=args.reranker_model_name,
+            batch_size=args.reranker_batch_size,
+            hf_forward_params=args.reranker_hf_forward_params,
+            hf_tokenizer_init_params=args.reranker_hf_tokenizer_init_params,
+            hf_tokenizer_params=args.reranker_hf_tokenizer_params,
+            hf_model_params=args.reranker_hf_model_params,
+        )
 
     logger.info(f"\nInitializing Retrieval Module")
     retriever_module = RetrieverModule(

@@ -7,6 +7,7 @@ import torch
 
 from agrag.constants import DOC_TEXT_KEY, EMBEDDING_KEY
 from agrag.modules.embedding.embedding import EmbeddingModule
+from agrag.modules.retriever.rerankers.reranker import Reranker
 from agrag.modules.retriever.retriever import RetrieverModule
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
 
@@ -34,6 +35,7 @@ class TestRetrieverModule(unittest.TestCase):
             vector_database_module=self.vector_database_module,
             embedding_module=self.embedding_module,
             top_k=5,
+            reranker=Reranker(model_name="some model"),
         )
 
     def test_encode_query(self):

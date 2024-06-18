@@ -31,3 +31,9 @@ retriever:
   use_reranker: true
   reranker_model_name: BAAI/bge-large-en
   reranker_batch_size: 32
+  reranker_hf_tokenizer_params:
+    padding: true
+    truncation: true
+    max_length: 512
+    return_tensors: pt
+    return_dict: true 
