@@ -106,7 +106,7 @@ def initialize_rag_pipeline() -> RetrieverModule:
             embeddings = embedding_module.encode(processed_data, pbar, batch_size=args.embedding_batch_size)
 
         logger.info(f"\nConstructing new index and saving at {vector_db_index_path}")
-        with tqdm(total=4, desc="Vector DB Module", unit="step") as pbar:
+        with tqdm(total=3, desc="Vector DB Module", unit="step") as pbar:
             vector_database_module.construct_vector_database(embeddings, pbar)
             basedir = os.path.dirname(vector_db_index_path)
             if not os.path.exists(basedir):
