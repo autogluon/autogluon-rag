@@ -1,11 +1,11 @@
 data:
   chunk_size: 512
   chunk_overlap: 64
-  data_dir: s3://autogluon-rag-github-dev/test_docs/
+  data_dir: s3://autogluon-rag-github-dev/autogluon_docs/
 
 embedding:
   embedding_model: BAAI/bge-large-en
-  pooling_strategy: null
+  pooling_strategy: cls
   normalize_embeddings: false
   hf_model_params: null
   hf_tokenizer_init_params: null

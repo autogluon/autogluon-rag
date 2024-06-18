@@ -1,7 +1,6 @@
-import json
 import logging
 import os
-from typing import List, Union
+from typing import List, Tuple, Union
 
 import boto3
 import faiss
@@ -43,7 +42,7 @@ SUPPORTED_SIMILARITY_FUNCTIONS = {
 
 def remove_duplicates(
     embeddings: List[torch.Tensor], similarity_threshold: float, similarity_fn: str
-) -> List[torch.Tensor]:
+) -> Tuple[List[torch.Tensor], List[int]]:
     """
     Removes duplicate embeddings based on cosine similarity.
 
@@ -52,31 +51,33 @@ def remove_duplicates(
     embeddings : List[torch.Tensor]
         A list of embeddings to be deduplicated.
     similarity_threshold : float
-        The threshold for considering embeddings as duplicates based on cosine similarity
+        The threshold for considering embeddings as duplicates based on cosine similarity.
     similarity_fn : str
         The name of the similarity function to use. Must be one of the supported functions.
 
     Returns:
     -------
-    List[torch.Tensor]
-        A list of deduplicated embeddings.
+    Tuple[List[torch.Tensor], List[int]]
+        A list of deduplicated embeddings and their indices.
     """
     if len(embeddings) <= 1:
-        return embeddings
+        return embeddings, list(range(len(embeddings)))
 
     if similarity_fn not in SUPPORTED_SIMILARITY_FUNCTIONS:
         raise ValueError(
             f"Unsupported similarity function: {similarity_fn}. Please choose from: {list(SUPPORTED_SIMILARITY_FUNCTIONS.keys())}"
         )
 
-    embeddings_array = np.array(embeddings).reshape(len(embeddings), -1)
+    embeddings_array = np.array([emb.numpy().flatten() for emb in embeddings])
     sim_fn = SUPPORTED_SIMILARITY_FUNCTIONS[similarity_fn]
     similarity_matrix = sim_fn(embeddings_array)
 
     remove = set()
+    indices_to_keep = []
     for i in range(len(similarity_matrix)):
         if i in remove:
             continue
+        indices_to_keep.append(i)
         duplicates = np.where(similarity_matrix[i, i + 1 :] > similarity_threshold)[0] + (
             i + 1
         )  # Only consider the upper triangle of the similarity matrix.
@@ -84,7 +85,7 @@ def remove_duplicates(
 
     deduplicated_embeddings = [embedding for i, embedding in enumerate(embeddings) if i not in remove]
     logger.info(f"Removed {len(remove)} duplicate embeddings")
-    return deduplicated_embeddings
+    return deduplicated_embeddings, indices_to_keep
 
 
 def pad_embeddings(embeddings: List[torch.Tensor]) -> torch.Tensor:

@@ -3,6 +3,7 @@ from typing import List, Union
 
 import boto3
 import faiss
+import numpy as np
 import pandas as pd
 import torch
 from tqdm import tqdm
@@ -39,6 +40,8 @@ class VectorDatabaseModule:
     -------
     construct_vector_database(embeddings: List[torch.Tensor]) -> Any:
         Constructs the vector database and stores the embeddings.
+    search_vector_database(embedding: torch.Tensor, top_k: int) -> List[torch.Tensor]:
+        Searches the vector database for the top k most similar embeddings to the given embedding
     """
 
     def __init__(
@@ -82,15 +85,55 @@ class VectorDatabaseModule:
         Union[faiss.IndexFlatL2,]
             The constructed vector database index.
         """
-        self.metadata = embeddings.drop(columns=[EMBEDDING_KEY])
-        vectors = [torch.tensor(embedding) for embedding in embeddings[EMBEDDING_KEY].values]
-        vectors = pad_embeddings(vectors)
-        vectors = remove_duplicates(vectors, self.similarity_threshold, self.similarity_fn)
+        logger.info("Initializing Vector DB Construction")
         if pbar:
-            pbar.total = len(vectors)
+            pbar.reset(total=4)
+
+        self.metadata = embeddings.drop(columns=[EMBEDDING_KEY])
+        if pbar:
+            pbar.update(1)
+
+        vectors = [torch.tensor(embedding) for embedding in embeddings[EMBEDDING_KEY].values]
+        logger.info("\nRemoving Duplicates")
+        if pbar:
+            pbar.update(1)
+
+        vectors, indices_to_keep = remove_duplicates(vectors, self.similarity_threshold, self.similarity_fn)
+        self.metadata = self.metadata.iloc[indices_to_keep]
+        logger.info("Constructing FAISS Index")
+        if pbar:
+            pbar.update(1)
+
         if self.db_type == "faiss":
             self.index = construct_faiss_index(vectors, self.num_gpus)
         else:
             raise ValueError(f"Unsupported database type: {self.db_type}")
+
         if pbar:
-            pbar.update(len(vectors))
+            pbar.update(1)
+            pbar.close()
+
+        return self.index
+
+    def search_vector_database(self, embedding: np.array, top_k: int) -> List[torch.Tensor]:
+        """
+        Searches the vector database for the top k most similar embeddings to the given embedding
+        Parameters:
+        ----------
+        embedding : np.array
+            Embedding of the user query. The database is searched to find the k most similar vectors to this embedding
+        top_k: int
+            Number of similar embeddings to search for in the database
+
+        Returns:
+        -------
+        List[torch.Tensor]
+            Top k most similar embeddings
+        """
+        if embedding.ndim == 1:
+            embedding = embedding.reshape(1, embedding.shape[0])
+        if self.db_type == "faiss":
+            _, indices = self.index.search(x=embedding, k=top_k)
+            return indices[0].tolist()
+        else:
+            raise ValueError(f"Unsupported database type: {self.db_type}")

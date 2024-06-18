@@ -97,26 +97,33 @@ class EmbeddingModule:
         embeddings = encode(data)
         """
 
-        embeddings = []
-        for _, row in data.iterrows():
-            text = row[DOC_TEXT_KEY]
-            inputs = self.tokenizer(text, return_tensors="pt", **self.hf_tokenizer_params)
-            with torch.no_grad():
-                outputs = self.model(**inputs, **self.hf_forward_params)
-            embedding = pool(outputs.last_hidden_state, self.pooling_strategy)
-            if self.normalize_embeddings:
-                embedding = normalize_embedding(embedding, **self.normalization_params)
+        texts = data[DOC_TEXT_KEY].tolist()
+        logger.info("\nTokenizing text chunks")
+        if pbar is not None:
+            pbar.update(1)
 
-            embeddings.append(embedding.cpu())
+        inputs = self.tokenizer(texts, return_tensors="pt", **self.hf_tokenizer_params)
 
-            if pbar:
-                pbar.update(1)
+        logger.info("\nGenerating embeddings")
 
-        if not self.pooling_strategy:
-            data[EMBEDDING_KEY] = embeddings
-        else:
-            combined_embeddings = torch.cat(embeddings, dim=0)
-            data[EMBEDDING_KEY] = combined_embeddings
+        if pbar is not None:
+            pbar.update(1)
+
+        with torch.no_grad():
+            embeddings = self.model(**inputs, **self.hf_forward_params)
+
+        logger.info("\nProcessing embeddings")
+        if pbar is not None:
+            pbar.update(1)
+            pbar.close()
+
+        embeddings = pool(embeddings, self.pooling_strategy)
+        if self.normalize_embeddings:
+            embeddings = normalize_embedding(embeddings, **self.normalization_params)
+
+        embeddings = embeddings.numpy()
+
+        data[EMBEDDING_KEY] = list(embeddings)
 
         return data
 
