@@ -9,6 +9,7 @@ from torch.nn import DataParallel
 from agrag.constants import DOC_TEXT_KEY, EMBEDDING_KEY
 from agrag.modules.embedding.embedding import EmbeddingModule
 from agrag.modules.embedding.utils import normalize_embedding, pool
+from agrag.modules.retriever.rerankers.reranker import Reranker
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
 
 logger = logging.getLogger("rag-logger")
@@ -35,7 +36,7 @@ class RetrieverModule:
         vector_database_module: VectorDatabaseModule,
         embedding_module: EmbeddingModule,
         top_k: int = 5,
-        reranker: Any = None,
+        reranker: Reranker = None,
     ):
         self.embedding_module = embedding_module
 
@@ -98,6 +99,8 @@ class RetrieverModule:
 
         retrieved_docs = self.vector_database_module.metadata.iloc[valid_indices].to_dict(orient="records")
         text_chunks = [chunk["text"] for chunk in retrieved_docs]
+
+        print(text_chunks)
 
         if self.reranker:
             text_chunks = self.reranker.rerank(query, text_chunks)

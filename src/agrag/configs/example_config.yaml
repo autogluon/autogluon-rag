@@ -20,13 +20,13 @@ vector_db:
   params: {gpu: False}
   similarity_threshold: 0.95
   similarity_fn: cosine
-  use_existing_vector_db: false
+  use_existing_vector_db: true
   num_gpus: 0
   vector_db_index_path: s3://autogluon-rag-github-dev/vectorDB_index_save/faiss/index.idx
   metadata_index_path: s3://autogluon-rag-github-dev/vectorDB_metadata_save/faiss/metadata.json
 
 retriever:
   top_k_embeddings: 5
-  use_reranker: false
+  use_reranker: true
   reranker_model_name: BAAI/bge-large-en
   reranker_batch_size: 32
