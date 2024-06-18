@@ -36,4 +36,3 @@ retriever:
     truncation: true
     max_length: 512
     return_tensors: pt
-    return_dict: true 

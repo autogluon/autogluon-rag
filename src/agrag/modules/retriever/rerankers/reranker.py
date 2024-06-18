@@ -87,14 +87,11 @@ class Reranker:
                 batch,
                 **self.hf_tokenizer_params,
             )
-            print(inputs)
             if self.num_gpus > 1:
                 inputs = {k: v.to(self.device) for k, v in inputs.items()}
             with torch.no_grad():
-                outputs = self.model(**inputs, **self.hf_forward_params)
-                print(outputs)
+                outputs = self.model(**inputs, **self.hf_forward_params, return_dict=True)
                 batch_scores = outputs[0][:, 0].cpu().numpy().tolist()
-                print(batch_scores)
             scores.extend(batch_scores)
 
         scored_chunks = list(zip(text_chunks, scores))
