@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import List, Union, Tuple
+from typing import List, Tuple, Union
 
 import boto3
 import faiss
@@ -86,7 +86,6 @@ def remove_duplicates(
     deduplicated_embeddings = [embedding for i, embedding in enumerate(embeddings) if i not in remove]
     logger.info(f"Removed {len(remove)} duplicate embeddings")
     return deduplicated_embeddings, indices_to_keep
-
 
 
 def pad_embeddings(embeddings: List[torch.Tensor]) -> torch.Tensor:

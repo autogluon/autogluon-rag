@@ -3,9 +3,9 @@ from typing import List, Union
 
 import boto3
 import faiss
+import numpy as np
 import pandas as pd
 import torch
-import numpy as np
 from tqdm import tqdm
 
 from agrag.constants import EMBEDDING_KEY
@@ -89,7 +89,7 @@ class VectorDatabaseModule:
         vectors = [torch.tensor(embedding) for embedding in embeddings[EMBEDDING_KEY].values]
         vectors, indices_to_keep = remove_duplicates(vectors, self.similarity_threshold, self.similarity_fn)
         print(indices_to_keep)
-        self.metadata  = self.metadata.iloc[indices_to_keep]
+        self.metadata = self.metadata.iloc[indices_to_keep]
         if pbar:
             pbar.total = len(vectors)
         if self.db_type == "faiss":
