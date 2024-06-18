@@ -141,7 +141,6 @@ class EmbeddingModule:
 
         data[EMBEDDING_KEY] = all_embeddings
 
-        data[EMBEDDING_KEY] = list(embeddings)
         return data
 
     def encode_queries(self, queries: Union[List[str], str]) -> np.ndarray:
