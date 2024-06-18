@@ -1,4 +1,4 @@
-## Embedding Module
+## Retriever Module
 
 This module is responsible for retrieving and reranking the most similar (top k) vector embeddings compared to the user provided query related to the documents processed.
 
