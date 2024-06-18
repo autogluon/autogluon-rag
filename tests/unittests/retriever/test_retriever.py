@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import torch
 
-from agrag.constants import DOC_TEXT_KEY, EMBEDDING_KEY
+from agrag.constants import DOC_TEXT_KEY
 from agrag.modules.embedding.embedding import EmbeddingModule
 from agrag.modules.retriever.rerankers.reranker import Reranker
 from agrag.modules.retriever.retriever import RetrieverModule

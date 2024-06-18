@@ -1,7 +1,6 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-import numpy as np
 import torch
 
 from agrag.modules.retriever.rerankers.reranker import Reranker

@@ -8,7 +8,6 @@ from torch.nn import DataParallel
 
 from agrag.constants import DOC_TEXT_KEY, EMBEDDING_KEY
 from agrag.modules.embedding.embedding import EmbeddingModule
-from agrag.modules.embedding.utils import normalize_embedding, pool
 from agrag.modules.retriever.rerankers.reranker import Reranker
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
 
@@ -40,7 +39,6 @@ class RetrieverModule:
     ):
         self.embedding_module = embedding_module
 
-        self.normalize_embedding = normalize_embedding
         self.vector_database_module = vector_database_module
         self.top_k = top_k
 
