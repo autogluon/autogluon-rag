@@ -1,9 +1,9 @@
 import logging
-from typing import Any, Dict, List
+from typing import List
 
 import torch
 from torch.nn import DataParallel
-from transformers import AutoModelForSequenceClassification, AutoTokenizer
+from transformers import AutoModel, AutoTokenizer
 
 logger = logging.getLogger("rag-logger")
 
@@ -29,13 +29,16 @@ class Reranker:
         self.model_name = model_name
         self.batch_size = batch_size
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+        self.model = AutoModel.from_pretrained(model_name).to(self.device)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+
         self.num_gpus = torch.cuda.device_count()
         if self.num_gpus > 1:
             logger.info(f"Using {self.num_gpus} GPUs")
             self.model = DataParallel(self.model)
 
-        self.model = AutoModelForSequenceClassification.from_pretrained(model_name).to(self.device)
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.model.eval()
 
     def rerank(self, query: str, text_chunks: List[str]) -> List[str]:
         """
@@ -69,7 +72,7 @@ class Reranker:
             inputs = {k: v.to(self.device) for k, v in inputs.items()}
             with torch.no_grad():
                 outputs = self.model(**inputs, return_dict=True)
-                batch_scores = outputs.logits.view(-1).float().cpu().numpy()
+                batch_scores = outputs[0][:, 0].cpu().numpy().tolist()
             scores.extend(batch_scores)
 
         scored_chunks = list(zip(text_chunks, scores))
