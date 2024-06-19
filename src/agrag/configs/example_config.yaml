@@ -1,6 +1,6 @@
 data:
-  chunk_size: 512
-  chunk_overlap: 64
+  chunk_size: 128
+  chunk_overlap: 16
   data_dir: s3://autogluon-rag-github-dev/autogluon_docs/
 
 embedding:
@@ -25,3 +25,15 @@ vector_db:
   num_gpus: 0
   vector_db_index_path: s3://autogluon-rag-github-dev/vectorDB_index_save/faiss/index.idx
   metadata_index_path: s3://autogluon-rag-github-dev/vectorDB_metadata_save/faiss/metadata.json
+
+retriever:
+  top_k_embeddings: 20
+  use_reranker: true
+  reranker_model_name: BAAI/bge-large-en
+  reranker_batch_size: 32
+  num_gpus: 0
+  reranker_hf_tokenizer_params:
+    padding: true
+    truncation: true
+    max_length: 512
+    return_tensors: pt

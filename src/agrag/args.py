@@ -40,6 +40,7 @@ class Arguments:
         self.data_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/data_processing/default.yaml"))
         self.embedding_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/embedding/default.yaml"))
         self.vector_db_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/vector_db/default.yaml"))
+        self.retriever_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/retriever/default.yaml"))
 
     def _parse_args(self) -> argparse.Namespace:
         parser = argparse.ArgumentParser(description="AutoGluon-RAG - Retrieval-Augmented Generation Pipeline")
@@ -175,3 +176,43 @@ class Arguments:
         return self.config.get("vector_db", {}).get(
             "metadata_index_path", self.vector_db_defaults.get("METADATA_PATH")
         )
+
+    @property
+    def top_k_embeddings(self):
+        return self.config.get("retriever", {}).get("top_k_embeddings", self.retriever_defaults.get("TOP_K"))
+
+    @property
+    def use_reranker(self):
+        return self.config.get("retriever", {}).get("use_reranker", self.retriever_defaults.get("USE_RERANKER"))
+
+    @property
+    def reranker_model_name(self):
+        return self.config.get("retriever", {}).get(
+            "reranker_model_name", self.retriever_defaults.get("RERANKER_MODEL")
+        )
+
+    @property
+    def reranker_batch_size(self):
+        return self.config.get("retriever", {}).get(
+            "reranker_batch_size", self.retriever_defaults.get("RERANKER_BATCH_SIZE")
+        )
+
+    @property
+    def reranker_hf_model_params(self):
+        return self.config.get("retriever", {}).get("reranker_hf_model_params", {})
+
+    @property
+    def reranker_hf_tokenizer_params(self):
+        return self.config.get("retriever", {}).get("reranker_hf_tokenizer_params", {})
+
+    @property
+    def reranker_hf_tokenizer_init_params(self):
+        return self.config.get("retriever", {}).get("reranker_hf_tokenizer_params", {})
+
+    @property
+    def reranker_hf_forward_params(self):
+        return self.config.get("retriever", {}).get("reranker_hf_forward_params", {})
+
+    @property
+    def retriever_num_gpus(self):
+        return self.config.get("retriever", {}).get("num_gpus", None)
