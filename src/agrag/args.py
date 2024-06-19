@@ -212,3 +212,7 @@ class Arguments:
     @property
     def reranker_hf_forward_params(self):
         return self.config.get("retriever", {}).get("reranker_hf_forward_params", {})
+
+    @property
+    def retriever_num_gpus(self):
+        return self.config.get("retriever", {}).get("num_gpus", None)

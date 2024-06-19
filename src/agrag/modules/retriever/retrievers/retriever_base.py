@@ -28,6 +28,8 @@ class RetrieverModule:
         The top-k documents to retrieve (default is 20).
     reranker: Any
         An optional reranker instance to rerank the retrieved documents.
+    num_gpus: int
+        Number of GPUs to use when building the index
     """
 
     def __init__(
@@ -36,13 +38,14 @@ class RetrieverModule:
         embedding_module: EmbeddingModule,
         top_k: int = 20,
         reranker: Reranker = None,
+        num_gpus: int = 0,
     ):
         self.embedding_module = embedding_module
 
         self.vector_database_module = vector_database_module
         self.top_k = top_k
 
-        self.num_gpus = torch.cuda.device_count()
+        self.num_gpus = num_gpus
         if self.num_gpus > 1:
             logger.info(f"Using {self.num_gpus} GPUs")
             self.model = DataParallel(self.model)

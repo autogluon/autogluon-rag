@@ -156,6 +156,7 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
         embedding_module=embedding_module,
         top_k=args.top_k_embeddings,
         reranker=reranker,
+        num_gpus=args.retriever_num_gpus,
     )
 
     return retriever_module
