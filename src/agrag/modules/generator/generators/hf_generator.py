@@ -3,7 +3,7 @@ from typing import Dict, List
 
 import torch
 from torch.nn import DataParallel
-from transformers import AutoModelForSeq2SeqLM, AutoModelForCausalLM, AutoTokenizer, pipeline
+from transformers import AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoTokenizer, pipeline
 
 logger = logging.getLogger("rag-logger")
 
@@ -45,7 +45,9 @@ class HFGenerator:
         inputs = self.tokenizer(final_query, return_tensors="pt", **self.hf_tokenizer_params).to(self.device)
 
         with torch.no_grad():
-            outputs = self.model.generate(inputs["input_ids"], **self.hf_generate_params, pad_token_id=tokenizer.eos_token_id)
+            outputs = self.model.generate(
+                inputs["input_ids"], **self.hf_generate_params, pad_token_id=tokenizer.eos_token_id
+            )
 
         response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
         return response

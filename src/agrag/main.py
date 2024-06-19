@@ -177,7 +177,7 @@ def ag_rag():
     retriever_module = initialize_rag_pipeline(args)
     openai_api_key = read_openai_key(args.openai_key_file)
     generator_module = GeneratorModule(
-        model_name=args.generator_model_name, 
+        model_name=args.generator_model_name,
         hf_model_params=args.generator_hf_model_params,
         hf_tokenizer_init_params=args.generator_hf_tokenizer_init_params,
         hf_tokenizer_params=args.generator_hf_tokenizer_params,

@@ -28,9 +28,9 @@ class GPTGenerator:
             model=self.model_name,
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": final_query}
+                {"role": "user", "content": final_query},
             ],
-            **self.gpt_generate_params
+            **self.gpt_generate_params,
         )
 
         return response.choices[0].message.content.strip()

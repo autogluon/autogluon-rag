@@ -223,11 +223,11 @@ class Arguments:
         return self.config.get("generator", {}).get(
             "generator_model_name", self.generator_defaults.get("GENERATOR_MODEL")
         )
-    
+
     @property
     def generator_num_gpus(self):
         return self.config.get("generator", {}).get("num_gpus", 0)
-    
+
     @property
     def generator_hf_model_params(self):
         return self.config.get("generator", {}).get("reranker_hf_model_params", {})
@@ -247,14 +247,14 @@ class Arguments:
     @property
     def generator_hf_generate_params(self):
         return self.config.get("generator", {}).get("generator_hf_generate_params", {})
-    
+
     @property
     def gpt_generate_params(self):
         return self.config.get("generator", {}).get("gpt_generate_params", {})
 
     @property
     def use_vllm(self):
-        return self.config.get("generator", {}).get("use_vllm",  self.generator_defaults.get("USE_VLLM"))
+        return self.config.get("generator", {}).get("use_vllm", self.generator_defaults.get("USE_VLLM"))
 
     @property
     def vllm_sampling_params(self):
