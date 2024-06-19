@@ -171,7 +171,7 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
 
 
 def ag_rag():
-    print("\n\nAutoGluon-RAG\n\n")
+    logger.info("\n\nAutoGluon-RAG\n\n")
     args = Arguments()
     logger.info("Initializing RAG Pipeline")
     retriever_module = initialize_rag_pipeline(args)
