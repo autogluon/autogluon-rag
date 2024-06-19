@@ -11,3 +11,4 @@ faiss-cpu
 scikit-learn
 numpy
 pandas
+openai
