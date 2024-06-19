@@ -197,13 +197,11 @@ def ag_rag():
             # correctly shutdown modules (VectorDB connection; for example)
             break
 
-        retrieved_context = retriever_module.retrieve(query_text)[:10]
-
-        logger.info(f"\n Retrieved Context: {retrieved_context}\n")
+        retrieved_context = retriever_module.retrieve(query_text)
 
         response = generator_module.generate_response(query_text, retrieved_context)
 
-        print("Response:", response)
+        logger.info(f"\nResponse: {response}\n")
 
 
 if __name__ == "__main__":
