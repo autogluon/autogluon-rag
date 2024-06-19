@@ -6,7 +6,7 @@ Here are the configurable parameters for this module:
 
 ```
 retriever:
-  top_k_embeddings: The top-k documents to retrieve (default is 5).
+  top_k_embeddings: The top-k documents to retrieve (default is 20).
 
   use_reranker: Whether or not to use a reranker
 

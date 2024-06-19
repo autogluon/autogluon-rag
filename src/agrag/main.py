@@ -171,7 +171,7 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
 
 
 def ag_rag():
-    print("\n\nAutoGluon-RAG\n\n")
+    logger.info("\n\nAutoGluon-RAG\n\n")
     args = Arguments()
     logger.info("Initializing RAG Pipeline")
     retriever_module = initialize_rag_pipeline(args)
@@ -189,7 +189,7 @@ def ag_rag():
 
         response = generator_module.generate_response(query_text, retrieved_context)
 
-        print("Response:", response)
+        logger.info(f"\nResponse: {response}\n")
 
 
 if __name__ == "__main__":
