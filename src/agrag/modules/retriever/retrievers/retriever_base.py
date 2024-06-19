@@ -50,6 +50,7 @@ class RetrieverModule:
             logger.info(f"Using {self.num_gpus} GPUs")
             self.model = DataParallel(self.model)
 
+        vector_database_module.num_gpus = num_gpus
         self.reranker = reranker
 
     def encode_query(self, query: str) -> np.ndarray:

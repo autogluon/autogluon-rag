@@ -26,13 +26,6 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
 
     db_type = args.vector_db_type
 
-    num_gpus = args.vector_db_num_gpus
-    if num_gpus is None:
-        num_gpus = torch.cuda.device_count()
-        logger.info(f"Using max number of GPUs: {num_gpus}")
-    else:
-        logger.info(f"Using number of GPUs: {num_gpus}")
-
     index_path = args.vector_db_index_path
     vector_db_s3_bucket, vector_db_index_path = parse_path(index_path)
 
@@ -50,6 +43,8 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
         normalization_params=args.normalization_params,
         query_instruction_for_retrieval=args.query_instruction_for_retrieval,
     )
+
+    num_gpus = args.vector_db_num_gpus
 
     vector_database_module = VectorDatabaseModule(
         db_type=db_type,
@@ -119,6 +114,11 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
 
         logger.info(f"\nConstructing new index and saving at {vector_db_index_path}")
         with tqdm(total=3, desc="Vector DB Module", unit="step") as pbar:
+            if num_gpus is None:
+                num_gpus = torch.cuda.device_count()
+                logger.info(f"Using max number of GPUs for Vector DB: {num_gpus}")
+            else:
+                logger.info(f"Using number of GPUs: {num_gpus} for Vector DB")
             vector_database_module.construct_vector_database(embeddings, pbar)
             basedir = os.path.dirname(vector_db_index_path)
             if not os.path.exists(basedir):
@@ -149,6 +149,13 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
             hf_tokenizer_params=args.reranker_hf_tokenizer_params,
             hf_model_params=args.reranker_hf_model_params,
         )
+
+    num_gpus = args.retriever_num_gpus
+    if num_gpus is None:
+        num_gpus = torch.cuda.device_count()
+        logger.info(f"Using max number of GPUs for Retrieval: {num_gpus}")
+    else:
+        logger.info(f"Using number of GPUs: {num_gpus} for Retrieval")
 
     logger.info(f"\nInitializing Retrieval Module")
     retriever_module = RetrieverModule(
