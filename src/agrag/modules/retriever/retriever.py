@@ -65,7 +65,6 @@ class RetrieverModule:
         """
         query_embedding = self.embedding_module.encode(data=pd.DataFrame([{DOC_TEXT_KEY: query}]))
         query_embedding = query_embedding[EMBEDDING_KEY][0]
-        print(query_embedding.shape)
         return query_embedding
 
     def retrieve(self, query: str) -> List[Dict[str, Any]]:
@@ -85,11 +84,8 @@ class RetrieverModule:
         logger.info(f"\nRetrieving top {self.top_k} most similar embeddings")
         query_embedding = self.encode_query(query)
         indices = self.vector_database_module.search_vector_database(embedding=query_embedding, top_k=self.top_k)
-        print(f"Metadata size: {self.vector_database_module.metadata.shape[0]}")
-        print(f"Returned indices: {indices}")
 
         valid_indices = [idx for idx in indices if idx < self.vector_database_module.metadata.shape[0]]
-        print(valid_indices)
 
         if not valid_indices:
             logger.warning("No valid indices returned from the vector database search.")
@@ -98,11 +94,7 @@ class RetrieverModule:
         retrieved_docs = self.vector_database_module.metadata.iloc[valid_indices].to_dict(orient="records")
         text_chunks = [chunk["text"] for chunk in retrieved_docs]
 
-        print(text_chunks)
-
         if self.reranker:
             text_chunks = self.reranker.rerank(query, text_chunks)
-
-        print(text_chunks)
 
         return text_chunks
