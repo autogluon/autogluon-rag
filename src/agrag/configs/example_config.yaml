@@ -27,7 +27,7 @@ vector_db:
   metadata_index_path: s3://autogluon-rag-github-dev/vectorDB_metadata_save/faiss/metadata.json
 
 retriever:
-  top_k_embeddings: 5
+  top_k_embeddings: 20
   use_reranker: true
   reranker_model_name: BAAI/bge-large-en
   reranker_batch_size: 32
