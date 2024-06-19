@@ -3,7 +3,7 @@ from typing import Dict, List
 
 import torch
 from torch.nn import DataParallel
-from transformers import AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoTokenizer, pipeline
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 logger = logging.getLogger("rag-logger")
 
@@ -52,13 +52,3 @@ class HFGenerator:
 
         response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
         return response
-
-    # def generate_mistral_response(self, query: str, context: List[str]) -> str:
-    #     combined_context = "\n".join(context)
-    #     final_query = f"{query}\n\nHere is some useful context:\n{combined_context}"
-    #     messages = [
-    #         {"role": "system", "content": "You are a helpful chatbot assistant"},
-    #         {"role": "user", "content": final_query},
-    #     ]
-    #     chatbot = pipeline("text-generation", model=self.model_name)
-    #     return chatbot(messages)
