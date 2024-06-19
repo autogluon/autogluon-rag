@@ -37,3 +37,9 @@ retriever:
     truncation: true
     max_length: 512
     return_tensors: pt
+
+generator:
+  generator_model_name: meta-llama/Llama-2-7b-chat-hf
+  openai_key_file: /Users/shriyen/Desktop/autogluon24/autogluon-rag/openai.txt
+  generator_hf_generate_params:
+    max_new_tokens: 120

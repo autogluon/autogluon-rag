@@ -1,0 +1,2 @@
+GENERATOR_MODEL: t5-small
+USE_VLLM: false

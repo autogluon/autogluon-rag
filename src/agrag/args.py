@@ -41,6 +41,7 @@ class Arguments:
         self.embedding_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/embedding/default.yaml"))
         self.vector_db_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/vector_db/default.yaml"))
         self.retriever_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/retriever/default.yaml"))
+        self.generator_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/generator/default.yaml"))
 
     def _parse_args(self) -> argparse.Namespace:
         parser = argparse.ArgumentParser(description="AutoGluon-RAG - Retrieval-Augmented Generation Pipeline")
@@ -216,3 +217,49 @@ class Arguments:
     @property
     def retriever_num_gpus(self):
         return self.config.get("retriever", {}).get("num_gpus", None)
+
+    @property
+    def generator_model_name(self):
+        return self.config.get("generator", {}).get(
+            "generator_model_name", self.generator_defaults.get("GENERATOR_MODEL")
+        )
+    
+    @property
+    def generator_num_gpus(self):
+        return self.config.get("generator", {}).get("num_gpus", 0)
+    
+    @property
+    def generator_hf_model_params(self):
+        return self.config.get("generator", {}).get("reranker_hf_model_params", {})
+
+    @property
+    def generator_hf_tokenizer_params(self):
+        return self.config.get("generator", {}).get("reranker_hf_tokenizer_params", {})
+
+    @property
+    def generator_hf_tokenizer_init_params(self):
+        return self.config.get("generator", {}).get("reranker_hf_tokenizer_params", {})
+
+    @property
+    def generator_hf_forward_params(self):
+        return self.config.get("generator", {}).get("reranker_hf_forward_params", {})
+
+    @property
+    def generator_hf_generate_params(self):
+        return self.config.get("generator", {}).get("generator_hf_generate_params", {})
+    
+    @property
+    def gpt_generate_params(self):
+        return self.config.get("generator", {}).get("gpt_generate_params", {})
+
+    @property
+    def use_vllm(self):
+        return self.config.get("generator", {}).get("use_vllm",  self.generator_defaults.get("USE_VLLM"))
+
+    @property
+    def vllm_sampling_params(self):
+        return self.config.get("generator", {}).get("vllm_sampling_params", {})
+
+    @property
+    def openai_key_file(self):
+        return self.config.get("generator", {}).get("openai_key_file", "")

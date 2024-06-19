@@ -89,6 +89,9 @@ class RetrieverModule:
         query_embedding = self.encode_query(query)
         indices = self.vector_database_module.search_vector_database(embedding=query_embedding, top_k=self.top_k)
 
+        print(indices)
+        print(self.vector_database_module.metadata.shape)
+
         valid_indices = [idx for idx in indices if idx < self.vector_database_module.metadata.shape[0]]
 
         if not valid_indices:

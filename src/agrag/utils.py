@@ -24,3 +24,34 @@ def parse_path(path: str) -> Tuple[Optional[str], str]:
         return s3_bucket, s3_path
     else:
         return None, path
+    
+def read_openai_key(file_path: str) -> str:
+    """
+    Reads the OpenAI secret key from a text file.
+
+    Parameters:
+    ----------
+    file_path : str
+        The path to the text file containing the OpenAI secret key.
+
+    Returns:
+    -------
+    str
+        The OpenAI secret key.
+
+    Raises:
+    ------
+    FileNotFoundError
+        If the specified file does not exist.
+    IOError
+        If there is an error reading the file.
+    """
+    try:
+        with open(file_path, 'r') as file:
+            key = file.read().strip()
+            return key
+    except FileNotFoundError:
+        raise FileNotFoundError(f"The file at {file_path} does not exist.")
+    except IOError as e:
+        raise IOError(f"An error occurred while reading the file at {file_path}: {e}")
+

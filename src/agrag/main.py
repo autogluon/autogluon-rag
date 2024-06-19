@@ -13,7 +13,7 @@ from agrag.modules.retriever.rerankers.reranker import Reranker
 from agrag.modules.retriever.retrievers.retriever_base import RetrieverModule
 from agrag.modules.vector_db.utils import load_index, load_metadata, save_index, save_metadata
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
-from agrag.utils import parse_path
+from agrag.utils import parse_path, read_openai_key
 
 logger = logging.getLogger("rag-logger")
 logger.setLevel(logging.INFO)
@@ -175,7 +175,19 @@ def ag_rag():
     args = Arguments()
     logger.info("Initializing RAG Pipeline")
     retriever_module = initialize_rag_pipeline(args)
-    generator_module = GeneratorModule()
+    openai_api_key = read_openai_key(args.openai_key_file)
+    generator_module = GeneratorModule(
+        model_name=args.generator_model_name, 
+        hf_model_params=args.generator_hf_model_params,
+        hf_tokenizer_init_params=args.generator_hf_tokenizer_init_params,
+        hf_tokenizer_params=args.generator_hf_tokenizer_params,
+        hf_generate_params=args.generator_hf_generate_params,
+        gpt_generate_params=args.gpt_generate_params,
+        vllm_sampling_params=args.vllm_sampling_params,
+        num_gpus=args.generator_num_gpus,
+        use_vllm=args.use_vllm,
+        openai_api_key=openai_api_key,
+    )
 
     while True:
         query_text = input(
