@@ -35,10 +35,12 @@ class VLLMGenerator:
     ):
         self.model_name = model_name
 
-        self.sampling_params = SamplingParams(**vllm_sampling_params) if vllm_sampling_params else SamplingParams()
+        if found:
+            self.sampling_params = SamplingParams(**vllm_sampling_params) if vllm_sampling_params else SamplingParams()
 
         logger.info(f"Using vLLM Model {self.model_name} for VLLM Generator")
-        self.llm = LLM(model=self.model_name)
+        if found:
+            self.llm = LLM(model=self.model_name)
 
     def generate_response(self, query: str, context: List[str]) -> str:
         """
