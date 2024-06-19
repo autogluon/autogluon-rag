@@ -40,18 +40,12 @@ class HFGenerator:
             self.model = DataParallel(self.model, device_ids=list(range(self.num_gpus))) if self.model else None
 
     def generate_response(self, query: str, context: List[str]) -> str:
-        # if "mistral" in self.model_name:
-        #     return self.generate_mistral_response(query, context)
         combined_context = "\n".join(context)
         final_query = f"{query}\n\nHere is some useful context:\n{combined_context}"
         inputs = self.tokenizer(final_query, return_tensors="pt", **self.hf_tokenizer_params).to(self.device)
 
-        print("HERE")
-
         with torch.no_grad():
-            outputs = self.model.generate(inputs["input_ids"], **self.hf_generate_params)
-
-        print("HERE")
+            outputs = self.model.generate(inputs["input_ids"], **self.hf_generate_params, pad_token_id=tokenizer.eos_token_id)
 
         response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
         return response
