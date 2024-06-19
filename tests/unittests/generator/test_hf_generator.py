@@ -45,7 +45,7 @@ class TestHFGenerator(unittest.TestCase):
 
         self.mock_tokenizer.decode.return_value = "The weather is sunny and warm."
 
-        response = self.hf_generator.generate_response(query, context)
+        response = self.hf_generator.generate_response(final_query, context)
 
         self.assertEqual(response, "The weather is sunny and warm.")
 
