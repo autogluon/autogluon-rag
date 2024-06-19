@@ -69,7 +69,7 @@ class RetrieverModule:
 
     def retrieve(self, query: str) -> List[Dict[str, Any]]:
         """
-        Retrieves the top_k most similar document chunks to the query.
+        Retrieves the top_k most similar embeddings to the query.
 
         Parameters:
         ----------
@@ -79,7 +79,7 @@ class RetrieverModule:
         Returns:
         -------
         List[str]
-            A list of text chunks for the top_k most similar documents.
+            A list of chunks for the top_k most similar embeddings.
         """
         logger.info(f"\nRetrieving top {self.top_k} most similar embeddings")
         query_embedding = self.encode_query(query)
@@ -91,10 +91,10 @@ class RetrieverModule:
             logger.warning("No valid indices returned from the vector database search.")
             return None
 
-        retrieved_docs = self.vector_database_module.metadata.iloc[valid_indices].to_dict(orient="records")
-        text_chunks = [chunk["text"] for chunk in retrieved_docs]
+        retrieved_content = self.vector_database_module.metadata.iloc[valid_indices].to_dict(orient="records")
+        retrieved_content = [chunk["text"] for chunk in retrieved_content]
 
         if self.reranker:
-            text_chunks = self.reranker.rerank(query, text_chunks)
+            retrieved_content = self.reranker.rerank(query, retrieved_content)
 
-        return text_chunks
+        return retrieved_content
