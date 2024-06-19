@@ -29,7 +29,7 @@ class RetrieverModule:
     reranker: Any
         An optional reranker instance to rerank the retrieved documents.
     num_gpus: int
-        Number of GPUs to use when building the index
+        Number of GPUs to use when building the index.
     """
 
     def __init__(

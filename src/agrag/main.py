@@ -138,6 +138,7 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
                 vector_database_module.s3_client,
             )
 
+    num_gpus = args.retriever_num_gpus
     reranker = None
     if args.use_reranker:
         logger.info(f"\nUsing reranker {args.reranker_model_name}")
@@ -148,9 +149,9 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
             hf_tokenizer_init_params=args.reranker_hf_tokenizer_init_params,
             hf_tokenizer_params=args.reranker_hf_tokenizer_params,
             hf_model_params=args.reranker_hf_model_params,
+            num_gpus=num_gpus,
         )
 
-    num_gpus = args.retriever_num_gpus
     if num_gpus is None:
         num_gpus = torch.cuda.device_count()
         logger.info(f"Using max number of GPUs for Retrieval: {num_gpus}")
@@ -163,7 +164,7 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
         embedding_module=embedding_module,
         top_k=args.top_k_embeddings,
         reranker=reranker,
-        num_gpus=args.retriever_num_gpus,
+        num_gpus=num_gpus,
     )
 
     return retriever_module

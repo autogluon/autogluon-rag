@@ -26,6 +26,8 @@ class Reranker:
         Additional parameters to pass to the `tokenizer` method for the Huggingface model.
     hf_forward_params : dict
         Additional parameters to pass to the Huggingface model's `forward` method.
+    num_gpus: int
+        Number of GPUs to use for reranking.
 
     Methods:
     -------
@@ -41,6 +43,7 @@ class Reranker:
         hf_tokenizer_init_params: Dict[str, Any] = None,
         hf_tokenizer_params: Dict[str, Any] = None,
         hf_forward_params: Dict[str, Any] = None,
+        num_gpus: int = 0,
     ):
         self.model_name = model_name
         self.batch_size = batch_size
@@ -55,10 +58,11 @@ class Reranker:
         self.tokenizer = AutoTokenizer.from_pretrained(model_name, **self.hf_tokenizer_init_params)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        self.num_gpus = torch.cuda.device_count()
+        self.num_gpus = num_gpus
         if self.num_gpus > 1:
             logger.info(f"Using {self.num_gpus} GPUs")
-            self.model = DataParallel(self.model)
+            self.model = DataParallel(self.model, device_ids=list(range(self.num_gpus)))
+            self.model = self.model.to("cuda" if self.num_gpus > 0 else "cpu")
 
         self.model.eval()
 
