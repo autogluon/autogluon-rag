@@ -1,2 +1,3 @@
 GENERATOR_MODEL: t5-small
 USE_VLLM: false
+USE_BEDROCK: true

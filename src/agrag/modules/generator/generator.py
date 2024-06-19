@@ -1,5 +1,6 @@
 from typing import Dict, List
 
+from agrag.modules.generator.generators.bedrock_generator import BedrockGenerator
 from agrag.modules.generator.generators.gpt_generator import GPTGenerator
 from agrag.modules.generator.generators.hf_generator import HFGenerator
 from agrag.modules.generator.generators.vllm_generator import VLLMGenerator
@@ -15,6 +16,8 @@ class GeneratorModule:
         hf_generate_params: Dict = None,
         gpt_generate_params: Dict = None,
         vllm_sampling_params: Dict = None,
+        use_bedrock: bool = False,
+        bedrock_generate_params: Dict = None,
         num_gpus: int = 0,
         use_vllm: bool = False,
         openai_api_key: str = None,
@@ -27,6 +30,11 @@ class GeneratorModule:
                 model_name=self.model_name,
                 openai_api_key=openai_api_key,
                 gpt_generate_params=gpt_generate_params,
+            )
+        elif use_bedrock:
+            self.generator = BedrockGenerator(
+                model_name=self.model_name,
+                bedrock_generate_params=bedrock_generate_params,
             )
         elif self.use_vllm:
             self.generator = VLLMGenerator(

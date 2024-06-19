@@ -263,3 +263,11 @@ class Arguments:
     @property
     def openai_key_file(self):
         return self.config.get("generator", {}).get("openai_key_file", "")
+
+    @property
+    def use_bedrock(self):
+        return self.config.get("generator", {}).get("use_bedrock", self.generator_defaults.get("USE_BEDROCK"))
+
+    @property
+    def bedrock_generate_params(self):
+        return self.config.get("generator", {}).get("bedrock_generate_params", {})

@@ -187,6 +187,8 @@ def ag_rag():
         num_gpus=args.generator_num_gpus,
         use_vllm=args.use_vllm,
         openai_api_key=openai_api_key,
+        bedrock_generate_params=args.bedrock_generate_params,
+        use_bedrock=args.use_bedrock,
     )
 
     while True:
