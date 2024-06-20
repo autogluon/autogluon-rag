@@ -10,6 +10,7 @@ logger = logging.getLogger("rag-logger")
 class BedrockGenerator:
     """
     A class used to generate responses based on a query and a given context using AWS Bedrock.
+    Refer to https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html for supported models in Bedrock.
 
     Attributes:
     ----------

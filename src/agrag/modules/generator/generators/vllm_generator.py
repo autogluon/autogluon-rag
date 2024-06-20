@@ -14,6 +14,7 @@ logger = logging.getLogger("rag-logger")
 class VLLMGenerator:
     """
     A class used to generate responses based on a query and a given context using the vLLM library.
+    Refer to https://docs.vllm.ai/en/latest/ for more information.
 
     Attributes:
     ----------
