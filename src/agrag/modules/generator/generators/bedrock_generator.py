@@ -76,8 +76,10 @@ class BedrockGenerator:
         str
             The extracted response text.
         """
+        # Used for Mistral response
         if "outputs" in output and isinstance(output["outputs"], list) and "text" in output["outputs"][0]:
             return output["outputs"][0]["text"].strip()
+        # Used for Anthropic response
         elif "type" in output and output["type"] == "completion":
             return output["completion"].strip()
         else:
