@@ -46,3 +46,4 @@ generator:
   openai_key_file: /Users/shriyen/Desktop/autogluon24/autogluon-rag/openai.txt
   generator_hf_generate_params:
     max_new_tokens: 1024
+  generator_query_prefix: You are a helpful chat assistant. You will be provided with a query and you must answer it to the best of your abilities. You will be provided with some additional context that is related to the query and will help you answer the question.

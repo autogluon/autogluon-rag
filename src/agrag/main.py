@@ -191,6 +191,8 @@ def ag_rag():
         use_bedrock=args.use_bedrock,
     )
 
+    query_prefix = args.generator_query_prefix
+
     while True:
         query_text = input(
             "Please enter a query for your RAG pipeline, based on the documents you provided (type 'q' to quit): "
@@ -200,6 +202,9 @@ def ag_rag():
             break
 
         retrieved_context = retriever_module.retrieve(query_text)
+
+        if query_prefix:
+            query_text = f"{query_prefix}\n{query_text}"
 
         response = generator_module.generate_response(query_text, retrieved_context)
 

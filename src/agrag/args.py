@@ -249,6 +249,10 @@ class Arguments:
         return self.config.get("generator", {}).get("generator_hf_generate_params", {})
 
     @property
+    def generator_query_prefix(self):
+        return self.config.get("generator", {}).get("generator_query_prefix", "")
+
+    @property
     def gpt_generate_params(self):
         return self.config.get("generator", {}).get("gpt_generate_params", {})
 
