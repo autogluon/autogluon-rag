@@ -82,6 +82,7 @@ class BedrockGenerator:
         # Used for Anthropic response
         elif "type" in output and output["type"] == "completion":
             return output["completion"].strip()
+        # Used for Llama response
         elif "generation" in output:
             return output["generation"].strip()
         else:
