@@ -21,7 +21,7 @@ def format_query(model_name: str, query: str, context: List[str]) -> str:
     """
     final_query = f"{query}\n\nHere is some useful context:\n{context}"
 
-    if model_name.lower() == "mistral":
+    if "mistral" in model_name.lower():
         formatted_query = f"[INST] {final_query} [/INST]"
     elif "anthropic" in model_name.lower():
         formatted_query = f"\n\nHuman: {query}\n\nAssistant: Here is some useful context:\n{context}\n\nAssistant:"
