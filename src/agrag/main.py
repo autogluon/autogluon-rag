@@ -207,7 +207,9 @@ def ag_rag():
         if query_prefix:
             query_text = f"{query_prefix}\n{query_text}"
 
-        formatted_query = format_query(query_text, retrieved_context)
+        formatted_query = format_query(
+            model_name=args.generator_model_name, query=query_text, context=retrieved_context
+        )
 
         response = generator_module.generate_response(formatted_query)
 
