@@ -28,7 +28,7 @@ class TestGPTGenerator(unittest.TestCase):
         mock_response.choices[0].message.content = "The weather is sunny and warm."
         self.mock_openai_instance.chat.completions.create.return_value = mock_response
 
-        response = self.gpt_generator.generate_response(query, context)
+        response = self.gpt_generator.generate_response(final_query)
 
         self.mock_openai_instance.chat.completions.create.assert_called_once_with(
             model=self.model_name,

@@ -28,7 +28,7 @@ class TestBedrockGenerator(unittest.TestCase):
         mock_response.get.return_value.read.return_value = mock_body
         self.mock_boto_client_instance.invoke_model.return_value = mock_response
 
-        response = self.bedrock_generator.generate_response(query, context)
+        response = self.bedrock_generator.generate_response(final_query)
 
         self.mock_boto_client_instance.invoke_model.assert_called_once_with(
             body=json.dumps({"prompt": final_query, **self.bedrock_generate_params}),

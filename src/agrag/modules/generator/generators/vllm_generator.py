@@ -42,7 +42,7 @@ class VLLMGenerator:
         if found:
             self.llm = LLM(model=self.model_name)
 
-    def generate_response(self, query: str, context: List[str]) -> str:
+    def generate_response(self, query: str) -> str:
         """
         Generates a response based on the query and context.
 
@@ -50,17 +50,13 @@ class VLLMGenerator:
         ----------
         query : str
             The user query.
-        context : List[str]
-            A list of context text chunks to be included in the query.
 
         Returns:
         -------
         str
             The generated response.
         """
-        combined_context = "\n".join(context)
-        final_query = f"{query}\n\nHere is some useful context:\n{combined_context}"
-        prompts = [final_query]
+        prompts = [query]
 
         outputs = self.llm.generate(prompts, self.sampling_params)
 

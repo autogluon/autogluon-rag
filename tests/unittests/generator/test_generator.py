@@ -100,9 +100,9 @@ class TestGeneratorModule(unittest.TestCase):
 
         generator_module.generator.generate_response = MagicMock(return_value=mock_response)
 
-        response = generator_module.generate_response(query, context)
+        response = generator_module.generate_response(query)
 
-        generator_module.generator.generate_response.assert_called_once_with(query, context)
+        generator_module.generator.generate_response.assert_called_once_with(query)
         self.assertEqual(response, mock_response)
 
 

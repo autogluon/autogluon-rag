@@ -51,5 +51,5 @@ class GeneratorModule:
                 num_gpus=num_gpus,
             )
 
-    def generate_response(self, query: str, context: List[str]) -> str:
-        return self.generator.generate_response(query, context)
+    def generate_response(self, query: str) -> str:
+        return self.generator.generate_response(query)

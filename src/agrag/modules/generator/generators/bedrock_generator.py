@@ -35,26 +35,22 @@ class BedrockGenerator:
 
         logger.info(f"Using AWS Bedrock Model {self.model_name} for Generator Module")
 
-    def generate_response(self, query: str, context: List[str]) -> str:
+    def generate_response(self, query: str) -> str:
         """
-        Generates a response based on the query and context.
+        Generates a response based on the query.
 
         Parameters:
         ----------
         query : str
             The user query.
-        context : List[str]
-            A list of context text chunks to be included in the query.
 
         Returns:
         -------
         str
             The generated response.
         """
-        combined_context = "\n".join(context)
-        final_query = f"{query}\n\nHere is some useful context:\n{combined_context}"
 
-        body = json.dumps({"prompt": final_query, **self.bedrock_generate_params})
+        body = json.dumps({"prompt": query, **self.bedrock_generate_params})
 
         accept = "application/json"
         contentType = "application/json"

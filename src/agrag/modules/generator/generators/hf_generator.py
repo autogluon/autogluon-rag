@@ -39,10 +39,8 @@ class HFGenerator:
             logger.info(f"Using {self.num_gpus} GPUs")
             self.model = DataParallel(self.model, device_ids=list(range(self.num_gpus))) if self.model else None
 
-    def generate_response(self, query: str, context: List[str]) -> str:
-        combined_context = "\n".join(context)
-        final_query = f"{query}\n\nHere is some useful context:\n{combined_context}"
-        inputs = self.tokenizer(final_query, return_tensors="pt", **self.hf_tokenizer_params)
+    def generate_response(self, query: str) -> str:
+        inputs = self.tokenizer(query, return_tensors="pt", **self.hf_tokenizer_params)
         inputs = {k: v.to(self.device) for k, v in inputs.items()}
 
         with torch.no_grad():

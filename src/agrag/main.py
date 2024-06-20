@@ -9,6 +9,7 @@ from agrag.args import Arguments
 from agrag.modules.data_processing.data_processing import DataProcessingModule
 from agrag.modules.embedding.embedding import EmbeddingModule
 from agrag.modules.generator.generator import GeneratorModule
+from agrag.modules.generator.utils import format_query
 from agrag.modules.retriever.rerankers.reranker import Reranker
 from agrag.modules.retriever.retrievers.retriever_base import RetrieverModule
 from agrag.modules.vector_db.utils import load_index, load_metadata, save_index, save_metadata
@@ -206,7 +207,9 @@ def ag_rag():
         if query_prefix:
             query_text = f"{query_prefix}\n{query_text}"
 
-        response = generator_module.generate_response(query_text, retrieved_context)
+        formatted_query = format_query(query_text, retrieved_context)
+
+        response = generator_module.generate_response(formatted_query)
 
         logger.info(f"\nResponse: {response}\n")
 
