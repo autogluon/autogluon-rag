@@ -59,5 +59,27 @@ class BedrockGenerator:
         output = self.client.invoke_model(body=body, modelId=self.model_name, accept=accept, contentType=contentType)
 
         output = json.loads(output.get("body").read())
-        response = output["outputs"][0]["text"]
+        response = self.extract_response(output)
         return response
+
+    def extract_response(self, output: Dict) -> str:
+        """
+        Extracts the response text from the model output.
+
+        Parameters:
+        ----------
+        output : Dict
+            The output dictionary from the Bedrock model.
+
+        Returns:
+        -------
+        str
+            The extracted response text.
+        """
+        if "outputs" in output and isinstance(output["outputs"], list) and "text" in output["outputs"][0]:
+            return output["outputs"][0]["text"].strip()
+        elif "type" in output and output["type"] == "completion" and "completion" in output:
+            return output["completion"].strip()
+        else:
+            logger.error("Unknown output structure: %s", output)
+            return ""
