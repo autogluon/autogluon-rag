@@ -8,9 +8,9 @@ from agrag.modules.generator.generators.vllm_generator import VLLMGenerator
 
 class GeneratorModule:
     """
-    A unified interface for generating responses using different types of models.
+    A class for generating responses using different types of models.
 
-    Depending on the model name, this module can use one of several generator classes:
+    Depending on the model name, this module will one of several generator classes:
     - GPTGenerator for GPT-3 and GPT-4 models.
     - BedrockGenerator for AWS Bedrock models.
     - VLLMGenerator for vLLM models.
