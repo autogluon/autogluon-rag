@@ -78,7 +78,7 @@ class BedrockGenerator:
         """
         if "outputs" in output and isinstance(output["outputs"], list) and "text" in output["outputs"][0]:
             return output["outputs"][0]["text"].strip()
-        elif "type" in output and output["type"] == "completion" and "completion" in output:
+        elif "type" in output and output["type"] == "completion":
             return output["completion"].strip()
         else:
             logger.error("Unknown output structure: %s", output)
