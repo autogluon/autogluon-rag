@@ -9,6 +9,7 @@ logger = logging.getLogger("rag-logger")
 class GPTGenerator:
     """
     A class to generate responses using OpenAI's GPT models.
+    Refer to https://platform.openai.com/docs/models for supported models through the OpenAI API.
 
     Attributes:
     ----------

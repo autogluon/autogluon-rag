@@ -11,6 +11,7 @@ logger = logging.getLogger("rag-logger")
 class HFGenerator:
     """
     A class to generate responses using Huggingface models.
+    Refer to https://huggingface.co/models for supported models through the HuggingFace API.
 
     Attributes:
     ----------
