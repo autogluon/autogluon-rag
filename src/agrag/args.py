@@ -230,19 +230,19 @@ class Arguments:
 
     @property
     def generator_hf_model_params(self):
-        return self.config.get("generator", {}).get("reranker_hf_model_params", {})
+        return self.config.get("generator", {}).get("generator_hf_model_params", {})
 
     @property
     def generator_hf_tokenizer_params(self):
-        return self.config.get("generator", {}).get("reranker_hf_tokenizer_params", {})
+        return self.config.get("generator", {}).get("generator_hf_tokenizer_params", {})
 
     @property
     def generator_hf_tokenizer_init_params(self):
-        return self.config.get("generator", {}).get("reranker_hf_tokenizer_params", {})
+        return self.config.get("generator", {}).get("generator_hf_tokenizer_params", {})
 
     @property
     def generator_hf_forward_params(self):
-        return self.config.get("generator", {}).get("reranker_hf_forward_params", {})
+        return self.config.get("generator", {}).get("generator_hf_forward_params", {})
 
     @property
     def generator_hf_generate_params(self):
