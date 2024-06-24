@@ -64,7 +64,7 @@ class HFGenerator:
         local_model_path : str, optional
             Path to a local model to use for generation.
         """
-        self.model_name = model_name
+        self.model_name = local_model_path if local_model_path else model_name
 
         self.hf_model_params = hf_model_params or {}
         self.hf_tokenizer_init_params = hf_tokenizer_init_params or {}
@@ -74,8 +74,6 @@ class HFGenerator:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         logger.info(f"Using Huggingface Model {self.model_name} for HF Generator")
-
-        self.model_name = self.local_model_path if self.local_model_path else self.model_name
 
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, **self.hf_tokenizer_init_params)
         self.model = AutoModelForCausalLM.from_pretrained(self.model_name, **self.hf_model_params).to(self.device)
