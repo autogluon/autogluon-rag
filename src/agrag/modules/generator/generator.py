@@ -45,6 +45,7 @@ class GeneratorModule:
         num_gpus: int = 0,
         use_vllm: bool = False,
         openai_api_key: str = None,
+        local_model_path: str = None,
     ):
         """
         Initializes the GeneratorModule with the specified model and parameters.
@@ -75,9 +76,10 @@ class GeneratorModule:
             Flag indicating whether to use vLLM.
         openai_api_key : str, optional
             API key for accessing OpenAI models.
+        local_model_path : str, optional
+            Path to a local model to use for generation.
         """
         self.model_name = model_name
-        self.use_vllm = use_vllm
 
         if "gpt-3" in self.model_name or "gpt-4" in self.model_name:
             self.generator = GPTGenerator(
@@ -90,7 +92,7 @@ class GeneratorModule:
                 model_name=self.model_name,
                 bedrock_generate_params=bedrock_generate_params,
             )
-        elif self.use_vllm:
+        elif use_vllm:
             self.generator = VLLMGenerator(
                 model_name=self.model_name,
                 vllm_sampling_params=vllm_sampling_params,
@@ -98,6 +100,7 @@ class GeneratorModule:
         else:
             self.generator = HFGenerator(
                 model_name=self.model_name,
+                local_model_path=local_model_path,
                 hf_model_params=hf_model_params,
                 hf_tokenizer_init_params=hf_tokenizer_init_params,
                 hf_tokenizer_params=hf_tokenizer_params,

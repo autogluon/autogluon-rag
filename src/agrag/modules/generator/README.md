@@ -40,4 +40,6 @@ generator:
   
   bedrock_generate_params: Additional parameters to pass to the AWS Bedrock generate API method.
 
+  local_model_path: Path to a local model to use for generation.
+
 ```

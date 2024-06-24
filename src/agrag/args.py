@@ -275,3 +275,7 @@ class Arguments:
     @property
     def bedrock_generate_params(self):
         return self.config.get("generator", {}).get("bedrock_generate_params", {})
+
+    @property
+    def generator_local_model_path(self):
+        return self.config.get("generator", {}).get("local_model_path", None)

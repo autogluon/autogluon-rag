@@ -190,6 +190,7 @@ def ag_rag():
         openai_api_key=openai_api_key,
         bedrock_generate_params=args.bedrock_generate_params,
         use_bedrock=args.use_bedrock,
+        local_model_path=args.generator_local_model_path,
     )
 
     query_prefix = args.generator_query_prefix

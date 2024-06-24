@@ -42,6 +42,7 @@ class HFGenerator:
         hf_tokenizer_params: Dict = None,
         hf_generate_params: Dict = None,
         num_gpus: int = 0,
+        local_model_path: str = None,
     ):
         """
         Initializes the HFGenerator with the specified model and parameters.
@@ -60,6 +61,8 @@ class HFGenerator:
             Additional parameters for the Huggingface model's `generate` method.
         num_gpus : int
             Number of GPUs to use for generation.
+        local_model_path : str, optional
+            Path to a local model to use for generation.
         """
         self.model_name = model_name
 
@@ -71,6 +74,8 @@ class HFGenerator:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         logger.info(f"Using Huggingface Model {self.model_name} for HF Generator")
+
+        self.model_name = self.local_model_path if self.local_model_path else self.model_name
 
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, **self.hf_tokenizer_init_params)
         self.model = AutoModelForCausalLM.from_pretrained(self.model_name, **self.hf_model_params).to(self.device)
