@@ -22,7 +22,7 @@ class GeneratorModule:
         The name of the model to be used for generating responses.
     use_vllm : bool
         Flag indicating whether to use vLLM.
-    generator : object
+    generator : Union[BedrockGenerator, GPTGenerator, HFGenerator, VLLMGenerator]
         The specific generator instance to be used based on the model_name.
 
     Methods:
