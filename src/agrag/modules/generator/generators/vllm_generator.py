@@ -1,6 +1,6 @@
 import importlib.util
 import logging
-from typing import Dict, List
+from typing import Dict
 
 spec = importlib.util.find_spec("vllm")
 found = spec is not None
