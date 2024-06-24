@@ -21,13 +21,15 @@ def format_query(model_name: str, query: str, context: List[str]) -> str:
     """
     final_query = f"{query}\n\nHere is some useful context:\n{context}"
 
-    if "mistral" in model_name.lower():
+    model_name = model_name.lower()
+
+    if "mistral" in model_name:
         formatted_query = f"[INST] {final_query} [/INST]"
-    elif "llama" in model_name.lower():
+    elif "llama" in model_name:
         formatted_query = f"<s>[INST] <<SYS>> {context} <</SYS>> \n\n {query} [/INST]"
-    elif "anthropic" in model_name.lower():
+    elif "anthropic" in model_name:
         formatted_query = f"\n\nHuman: {query}\n\nAssistant: Here is some useful context:\n{context}\n\nAssistant:"
-    elif "gpt-" in model_name.lower():
+    elif "gpt-" in model_name:
         formatted_query = final_query
     else:
         # Default formatting for other HuggingFace models
