@@ -38,10 +38,11 @@ class VLLMGenerator:
 
         if found:
             self.sampling_params = SamplingParams(**vllm_sampling_params) if vllm_sampling_params else SamplingParams()
-
-        logger.info(f"Using vLLM Model {self.model_name} for VLLM Generator")
-        if found:
             self.llm = LLM(model=self.model_name)
+
+            logger.info(f"Using vLLM Model {self.model_name} for VLLM Generator")
+        else:
+            logger.warning("vLLM is not supported on this message")
 
     def generate_response(self, query: str) -> str:
         """
