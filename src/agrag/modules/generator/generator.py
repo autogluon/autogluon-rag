@@ -10,7 +10,7 @@ class GeneratorModule:
     """
     A class for generating responses using different types of models.
 
-    Depending on the model name, this module will one of several generator classes:
+    Depending on the model name, this module will use one of the following generator classes:
     - GPTGenerator for GPT-3 and GPT-4 models.
     - BedrockGenerator for AWS Bedrock models.
     - VLLMGenerator for vLLM models.
