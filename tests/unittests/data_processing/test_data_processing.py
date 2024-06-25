@@ -142,7 +142,6 @@ class TestDataProcessingModule(unittest.TestCase):
             self.assertCountEqual(file_paths, expected_paths)
 
     def test_unsupported_file_extension(self):
-
         with tempfile.TemporaryDirectory() as tmp_dir:
             file_path = os.path.join(tmp_dir, "unsupported_file.unsupported")
             with open(file_path, "w") as f:
