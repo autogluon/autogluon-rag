@@ -9,11 +9,12 @@ from agrag.args import Arguments
 from agrag.modules.data_processing.data_processing import DataProcessingModule
 from agrag.modules.embedding.embedding import EmbeddingModule
 from agrag.modules.generator.generator import GeneratorModule
+from agrag.modules.generator.utils import format_query
 from agrag.modules.retriever.rerankers.reranker import Reranker
 from agrag.modules.retriever.retrievers.retriever_base import RetrieverModule
 from agrag.modules.vector_db.utils import load_index, load_metadata, save_index, save_metadata
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
-from agrag.utils import parse_path
+from agrag.utils import parse_path, read_openai_key
 
 logger = logging.getLogger("rag-logger")
 logger.setLevel(logging.INFO)
@@ -175,7 +176,24 @@ def ag_rag():
     args = Arguments()
     logger.info("Initializing RAG Pipeline")
     retriever_module = initialize_rag_pipeline(args)
-    generator_module = GeneratorModule()
+    openai_api_key = read_openai_key(args.openai_key_file)
+    generator_module = GeneratorModule(
+        model_name=args.generator_model_name,
+        hf_model_params=args.generator_hf_model_params,
+        hf_tokenizer_init_params=args.generator_hf_tokenizer_init_params,
+        hf_tokenizer_params=args.generator_hf_tokenizer_params,
+        hf_generate_params=args.generator_hf_generate_params,
+        gpt_generate_params=args.gpt_generate_params,
+        vllm_sampling_params=args.vllm_sampling_params,
+        num_gpus=args.generator_num_gpus,
+        use_vllm=args.use_vllm,
+        openai_api_key=openai_api_key,
+        bedrock_generate_params=args.bedrock_generate_params,
+        use_bedrock=args.use_bedrock,
+        local_model_path=args.generator_local_model_path,
+    )
+
+    query_prefix = args.generator_query_prefix
 
     while True:
         query_text = input(
@@ -187,7 +205,14 @@ def ag_rag():
 
         retrieved_context = retriever_module.retrieve(query_text)
 
-        response = generator_module.generate_response(query_text, retrieved_context)
+        if query_prefix:
+            query_text = f"{query_prefix}\n{query_text}"
+
+        formatted_query = format_query(
+            model_name=args.generator_model_name, query=query_text, context=retrieved_context
+        )
+
+        response = generator_module.generate_response(formatted_query)
 
         logger.info(f"\nResponse: {response}\n")
 
