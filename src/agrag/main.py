@@ -1,8 +1,6 @@
 import logging
 import os
 
-import pandas as pd
-import torch
 from tqdm import tqdm
 
 from agrag.args import Arguments
@@ -14,7 +12,7 @@ from agrag.modules.retriever.rerankers.reranker import Reranker
 from agrag.modules.retriever.retrievers.retriever_base import RetrieverModule
 from agrag.modules.vector_db.utils import load_index, load_metadata, save_index, save_metadata
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
-from agrag.utils import parse_path, read_openai_key
+from agrag.utils import get_num_gpus, parse_path, read_openai_key
 
 logger = logging.getLogger("rag-logger")
 logger.setLevel(logging.INFO)
@@ -169,20 +167,15 @@ def ag_rag():
     args = Arguments()
     logger.info("Initializing RAG Pipeline")
 
-    num_gpus = args.num_gpus
-    if num_gpus is None:
-        num_gpus = torch.cuda.device_count()
-        logger.info(f"Using max number of GPUs: {num_gpus}")
-    else:
-        logger.info(f"Using number of GPUs: {num_gpus}")
-    args.num_gpus = num_gpus
+    args.num_gpus = get_num_gpus(args.num_gpus)
 
     retriever_module = initialize_rag_pipeline(args)
 
+    openai_api_key = None
     if "gpt" in args.generator_model_name:
         openai_api_key = read_openai_key(args.openai_key_file)
 
-    logger.info(f"Using number of GPUs: {num_gpus} for GeneratorModule")
+    logger.info(f"Using number of GPUs: {args.num_gpus} for GeneratorModule")
     generator_module = GeneratorModule(
         model_name=args.generator_model_name,
         hf_model_params=args.generator_hf_model_params,
@@ -191,7 +184,7 @@ def ag_rag():
         hf_generate_params=args.generator_hf_generate_params,
         gpt_generate_params=args.gpt_generate_params,
         vllm_sampling_params=args.vllm_sampling_params,
-        num_gpus=num_gpus,
+        num_gpus=args.num_gpus,
         use_vllm=args.use_vllm,
         openai_api_key=openai_api_key,
         bedrock_generate_params=args.bedrock_generate_params,

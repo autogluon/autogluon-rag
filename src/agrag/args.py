@@ -86,6 +86,10 @@ class Arguments:
     def num_gpus(self):
         return self.config.get("misc", {}).get("num_gpus", None)
 
+    @num_gpus.setter
+    def num_gpus(self, value):
+        self._num_gpus = value
+
     @property
     def data_dir(self):
         return self.config.get("data", {}).get("data_dir", None)

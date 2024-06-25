@@ -1,4 +1,9 @@
+import logging
 from typing import Optional, Tuple
+
+import torch
+
+logger = logging.getLogger("rag-logger")
 
 
 def parse_path(path: str) -> Tuple[Optional[str], str]:
@@ -55,3 +60,28 @@ def read_openai_key(file_path: str) -> str:
         raise FileNotFoundError(f"The file at {file_path} does not exist.")
     except IOError as e:
         raise IOError(f"An error occurred while reading the file at {file_path}: {e}")
+
+
+def get_num_gpus(num_gpus):
+    """
+    Determines the number of GPUs to use, based on the available GPUs and the requested number.
+
+    Parameters:
+    ----------
+    num_gpus : int or None
+        The desired number of GPUs to use. If None, the maximum available GPUs will be used.
+
+    Returns:
+    -------
+    int
+        The number of GPUs to use, which is the minimum of the requested number and the available GPUs.
+    """
+    max_gpus = torch.cuda.device_count()
+    if num_gpus is None:
+        num_gpus = max_gpus
+        logger.info(f"Using max number of GPUs: {num_gpus}")
+        return num_gpus
+    elif num_gpus > 0:
+        num_gpus = min(num_gpus, max_gpus)
+    logger.info(f"Using number of GPUs: {num_gpus}")
+    return num_gpus
