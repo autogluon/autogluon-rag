@@ -5,16 +5,16 @@ from typing import List
 
 import boto3
 import pandas as pd
-import textract
-from docx import Document
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from agrag.constants import CHUNK_ID_KEY, DOC_ID_KEY, DOC_TEXT_KEY
+from agrag.constants import SUPPORTED_FILE_EXTENSIONS
 from agrag.modules.data_processing.utils import (
-    SUPPORTED_FILE_EXTENSIONS,
     download_directory_from_s3,
     get_all_file_paths,
+    process_csv,
+    process_docx_doc,
+    process_pdf,
+    process_rtf,
+    process_txt_md_py,
 )
 
 logger = logging.getLogger("rag-logger")
@@ -115,50 +115,32 @@ class DataProcessingModule:
             A table containing processed text chunks and metadata from the given file.
         """
         logger.info(f"Processing File: {file_path}")
-        processed_data = []
 
         _, file_extension = os.path.splitext(file_path)
 
         if file_extension.lower() == ".pdf":
-            pdf_loader = PyPDFLoader(file_path)
-            text_splitter = RecursiveCharacterTextSplitter(
-                chunk_size=self.chunk_size,
-                chunk_overlap=self.chunk_overlap,
-                separators=[".", "\uff0e", "\n"],  # \uff0e -> Fullwidth full stop
-                length_function=len,
-                is_separator_regex=False,
-            )
-            pages = pdf_loader.load_and_split(text_splitter=text_splitter)
-            for chunk_id, page in enumerate(pages):
-                page_content = "".join(page.page_content)
-                processed_data.append({DOC_ID_KEY: doc_id, CHUNK_ID_KEY: chunk_id, DOC_TEXT_KEY: page_content})
-        elif file_extension.lower() == ".txt":
-            with open(file_path, "r", encoding="utf-8") as f:
-                text = f.read()
-            processed_data.append({DOC_ID_KEY: doc_id, CHUNK_ID_KEY: chunk_id, DOC_TEXT_KEY: self.chunk_data(text)})
-        elif file_extension.lower() == ".docx":
-            doc = Document(file_path)
-            text = "\n".join(paragraph.text for paragraph in doc.paragraphs)
-            processed_data.append({DOC_ID_KEY: doc_id, CHUNK_ID_KEY: chunk_id, DOC_TEXT_KEY: self.chunk_data(text)})
-        elif file_extension.lower() == ".py":
-            text = textract.process(file_path, method="text", encoding="utf-8")
-            processed_data.append(
-                {DOC_ID_KEY: doc_id, CHUNK_ID_KEY: chunk_id, DOC_TEXT_KEY: self.chunk_data(text.decode("utf-8"))}
-            )
+            return process_pdf(file_path, self.chunk_size, self.chunk_overlap, doc_id)
+        elif file_extension.lower() in [".txt", ".md", ".py"]:
+            return process_txt_md_py(file_path, self.chunk_data, doc_id)
+        elif file_extension.lower() in [".docx", ".doc"]:
+            return process_docx_doc(file_path, self.chunk_data, doc_id)
+        elif file_extension.lower() == ".rtf":
+            return process_rtf(file_path, self.chunk_data, doc_id)
+        elif file_extension.lower() == ".csv":
+            return process_csv(file_path, self.chunk_data, doc_id)
 
-        df = pd.DataFrame(processed_data)
-        return df
+        return pd.DataFrame()
 
-    def process_data(self) -> List[str]:
+    def process_data(self) -> pd.DataFrame:
         """
         Processes all files in the data directory.
 
-        Extracts and chunks text from each file and compiles the results into a single list.
+        Extracts and chunks text from each file and compiles the results into a single DataFrame.
 
         Returns:
         -------
-        List[str]
-            A list of processed text chunks from all files in the directory.
+        pd.DataFrame
+            A DataFrame of processed text chunks from all files in the directory.
         """
         processed_data = []
         if self.s3_bucket:
