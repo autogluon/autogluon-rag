@@ -71,11 +71,6 @@ def get_all_file_paths(dir_path: str, file_exts: List[str]) -> List[str]:
     for root, _, files in os.walk(dir_path):
         for file in files:
             file_path = os.path.join(root, file)
-            if not file_path.endswith(tuple(file_exts)):
-                logger.warning(
-                    f"\nWARNING: Skipping File {file_path}. Only file types {file_exts} are supported in this version.\n"
-                )
-                continue
             file_paths.append(file_path)
     return file_paths
 
