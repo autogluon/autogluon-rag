@@ -135,14 +135,16 @@ class DataProcessingModule:
         elif file_extension.lower() == ".txt":
             with open(file_path, "r", encoding="utf-8") as f:
                 text = f.read()
-            processed_data.append(self.chunk_data(text))
+            processed_data.append({DOC_ID_KEY: doc_id, CHUNK_ID_KEY: chunk_id, DOC_TEXT_KEY: self.chunk_data(text)})
         elif file_extension.lower() == ".docx":
             doc = Document(file_path)
             text = "\n".join(paragraph.text for paragraph in doc.paragraphs)
-            processed_data.append(self.chunk_data(text))
+            processed_data.append({DOC_ID_KEY: doc_id, CHUNK_ID_KEY: chunk_id, DOC_TEXT_KEY: self.chunk_data(text)})
         elif file_extension.lower() == ".py":
             text = textract.process(file_path, method="text", encoding="utf-8")
-            processed_data.append(self.chunk_data(text.decode("utf-8")))
+            processed_data.append(
+                {DOC_ID_KEY: doc_id, CHUNK_ID_KEY: chunk_id, DOC_TEXT_KEY: self.chunk_data(text.decode("utf-8"))}
+            )
 
         df = pd.DataFrame(processed_data)
         return df
