@@ -4,22 +4,18 @@ import os
 from typing import List
 
 import boto3
+import pandas as pd
 import textract
 from docx import Document
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
+from agrag.constants import CHUNK_ID_KEY, DOC_ID_KEY, DOC_TEXT_KEY
 from agrag.modules.data_processing.utils import (
     SUPPORTED_FILE_EXTENSIONS,
     download_directory_from_s3,
     get_all_file_paths,
 )
-import pandas as pd
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-
-from agrag.constants import CHUNK_ID_KEY, DOC_ID_KEY, DOC_TEXT_KEY
-from agrag.modules.data_processing.utils import download_directory_from_s3, get_all_file_paths
 
 logger = logging.getLogger("rag-logger")
 
@@ -133,9 +129,9 @@ class DataProcessingModule:
                 is_separator_regex=False,
             )
             pages = pdf_loader.load_and_split(text_splitter=text_splitter)
-            for page in pages:
+            for chunk_id, page in enumerate(pages):
                 page_content = "".join(page.page_content)
-                processed_data.append(page_content)
+                processed_data.append({DOC_ID_KEY: doc_id, CHUNK_ID_KEY: chunk_id, DOC_TEXT_KEY: page_content})
         elif file_extension.lower() == ".txt":
             with open(file_path, "r", encoding="utf-8") as f:
                 text = f.read()
@@ -148,7 +144,8 @@ class DataProcessingModule:
             text = textract.process(file_path, method="text", encoding="utf-8")
             processed_data.append(self.chunk_data(text.decode("utf-8")))
 
-        return processed_data
+        df = pd.DataFrame(processed_data)
+        return df
 
     def process_data(self) -> List[str]:
         """
