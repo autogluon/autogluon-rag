@@ -41,3 +41,4 @@ options:
 ```
 
 The configuration file contains the specific parameters to use for each module in the RAG pipeline. For an example of a config file, please refer to `example_config.yaml` in `src/agrag/configs/`. For specific details about the parameters in each individual module, refer to the `README` files in each module in `src/agrag/modules/`.
+The configuration file also contains a section called 'misc', which refers to parameters that will be shared across modules throughout the pipeline. For example, `num_gpus`, which refers to the number of GPUs to use in a given module is one such parameter.

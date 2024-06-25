@@ -38,6 +38,8 @@ class EmbeddingModule:
         Additional parameters to pass to the PyTorch `nn.functional.normalize` method.
     query_instruction_for_retrieval: str, optional
         Instruction for query when using embedding model.
+    num_gpus: int
+        Number of GPUs to use when building the index
 
     Methods:
     -------
@@ -56,6 +58,7 @@ class EmbeddingModule:
         hf_forward_params: Dict[str, Any] = None,
         normalization_params: Dict[str, Any] = None,
         query_instruction_for_retrieval: str = None,
+        num_gpus: int = 0,
     ):
         self.hf_model = hf_model
         self.normalize_embeddings = normalize_embeddings
@@ -70,7 +73,7 @@ class EmbeddingModule:
         logger.info(f"Using Huggingface Model {self.hf_model} for Embedding Module")
         self.tokenizer = AutoTokenizer.from_pretrained(self.hf_model, **self.hf_tokenizer_init_params)
         self.model = AutoModel.from_pretrained(self.hf_model, **self.hf_model_params)
-        self.num_gpus = torch.cuda.device_count()
+        self.num_gpus = num_gpus
         if self.num_gpus > 1:
             logger.info(f"Using {self.num_gpus} GPUs")
             self.model = DataParallel(self.model)

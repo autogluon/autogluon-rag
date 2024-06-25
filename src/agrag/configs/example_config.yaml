@@ -1,3 +1,6 @@
+misc:
+  num_gpus: 0
+
 data:
   chunk_size: 128
   chunk_overlap: 16
@@ -22,7 +25,6 @@ vector_db:
   similarity_threshold: 0.95
   similarity_fn: cosine
   use_existing_vector_db: true
-  num_gpus: 0
   vector_db_index_path: s3://autogluon-rag-github-dev/vectorDB_index_save/faiss/index.idx
   metadata_index_path: s3://autogluon-rag-github-dev/vectorDB_metadata_save/faiss/metadata.json
 
@@ -31,7 +33,6 @@ retriever:
   use_reranker: true
   reranker_model_name: BAAI/bge-large-en
   reranker_batch_size: 32
-  num_gpus: 0
   reranker_hf_tokenizer_params:
     padding: true
     truncation: true

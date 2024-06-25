@@ -33,6 +33,8 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
     metadata_path = args.metadata_index_path
     _, metadata_index_path = parse_path(metadata_path)
 
+    num_gpus = args.num_gpus
+
     embedding_module = EmbeddingModule(
         hf_model=args.hf_embedding_model,
         pooling_strategy=args.pooling_strategy,
@@ -43,9 +45,8 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
         hf_forward_params=args.hf_forward_params,
         normalization_params=args.normalization_params,
         query_instruction_for_retrieval=args.query_instruction_for_retrieval,
+        num_gpus=num_gpus,
     )
-
-    num_gpus = args.vector_db_num_gpus
 
     vector_database_module = VectorDatabaseModule(
         db_type=db_type,
@@ -99,6 +100,7 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
             pbar.refresh()
 
         with tqdm(total=len(processed_data), desc="\nEmbedding Module", unit="step") as pbar:
+            logger.info(f"Using number of GPUs: {num_gpus} for Embedding Module")
 
             embedding_module = EmbeddingModule(
                 hf_model=args.hf_embedding_model,
@@ -115,11 +117,7 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
 
         logger.info(f"\nConstructing new index and saving at {vector_db_index_path}")
         with tqdm(total=3, desc="Vector DB Module", unit="step") as pbar:
-            if num_gpus is None:
-                num_gpus = torch.cuda.device_count()
-                logger.info(f"Using max number of GPUs for Vector DB: {num_gpus}")
-            else:
-                logger.info(f"Using number of GPUs: {num_gpus} for Vector DB")
+            logger.info(f"Using number of GPUs: {num_gpus} for Vector DB Module")
             vector_database_module.construct_vector_database(embeddings, pbar)
             basedir = os.path.dirname(vector_db_index_path)
             if not os.path.exists(basedir):
@@ -139,7 +137,6 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
                 vector_database_module.s3_client,
             )
 
-    num_gpus = args.retriever_num_gpus
     reranker = None
     if args.use_reranker:
         logger.info(f"\nUsing reranker {args.reranker_model_name}")
@@ -153,11 +150,7 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
             num_gpus=num_gpus,
         )
 
-    if num_gpus is None:
-        num_gpus = torch.cuda.device_count()
-        logger.info(f"Using max number of GPUs for Retrieval: {num_gpus}")
-    else:
-        logger.info(f"Using number of GPUs: {num_gpus} for Retrieval")
+    logger.info(f"Using number of GPUs: {num_gpus} for Retrieval Module")
 
     logger.info(f"\nInitializing Retrieval Module")
     retriever_module = RetrieverModule(
@@ -175,8 +168,21 @@ def ag_rag():
     logger.info("\n\nAutoGluon-RAG\n\n")
     args = Arguments()
     logger.info("Initializing RAG Pipeline")
+
+    num_gpus = args.num_gpus
+    if num_gpus is None:
+        num_gpus = torch.cuda.device_count()
+        logger.info(f"Using max number of GPUs: {num_gpus}")
+    else:
+        logger.info(f"Using number of GPUs: {num_gpus}")
+    args.num_gpus = num_gpus
+
     retriever_module = initialize_rag_pipeline(args)
-    openai_api_key = read_openai_key(args.openai_key_file)
+
+    if "gpt" in args.generator_model_name:
+        openai_api_key = read_openai_key(args.openai_key_file)
+
+    logger.info(f"Using number of GPUs: {num_gpus} for GeneratorModule")
     generator_module = GeneratorModule(
         model_name=args.generator_model_name,
         hf_model_params=args.generator_hf_model_params,
@@ -185,7 +191,7 @@ def ag_rag():
         hf_generate_params=args.generator_hf_generate_params,
         gpt_generate_params=args.gpt_generate_params,
         vllm_sampling_params=args.vllm_sampling_params,
-        num_gpus=args.generator_num_gpus,
+        num_gpus=num_gpus,
         use_vllm=args.use_vllm,
         openai_api_key=openai_api_key,
         bedrock_generate_params=args.bedrock_generate_params,
