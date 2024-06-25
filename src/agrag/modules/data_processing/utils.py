@@ -73,7 +73,7 @@ def get_all_file_paths(dir_path: str, file_exts: List[str]) -> List[str]:
             file_path = os.path.join(root, file)
             if not file_path.endswith(tuple(file_exts)):
                 logger.warning(
-                    f"\nWARNING: Skipping File {file_path}. Provided file extensions to use: {file_exts}.\n Only file types {SUPPORTED_FILE_EXTENSIONS} are supported in this version.\n"
+                    f"\nWARNING: Skipping File {file_path}. Provided file extensions to use: {file_exts}.\nOnly file types {SUPPORTED_FILE_EXTENSIONS} are supported in this version.\n"
                 )
                 continue
             file_paths.append(file_path)
@@ -81,6 +81,25 @@ def get_all_file_paths(dir_path: str, file_exts: List[str]) -> List[str]:
 
 
 def process_pdf(file_path: str, chunk_size: int, chunk_overlap: int, doc_id: int) -> pd.DataFrame:
+    """
+    Processes a PDF file, extracting and chunking the text.
+
+    Parameters:
+    ----------
+    file_path : str
+        The path to the PDF file to be processed.
+    chunk_size : int
+        The size of each chunk of text.
+    chunk_overlap : int
+        The overlap between consecutive chunks of text.
+    doc_id : int
+        The document ID.
+
+    Returns:
+    -------
+    pd.DataFrame
+        A DataFrame containing processed text chunks and metadata from the given PDF file.
+    """
     processed_data = []
     pdf_loader = PyPDFLoader(file_path)
     text_splitter = RecursiveCharacterTextSplitter(
@@ -98,6 +117,23 @@ def process_pdf(file_path: str, chunk_size: int, chunk_overlap: int, doc_id: int
 
 
 def process_txt_md_py(file_path: str, chunk_data, doc_id: int) -> pd.DataFrame:
+    """
+    Processes a text-based file (TXT, MD, PY), extracting and chunking the text.
+
+    Parameters:
+    ----------
+    file_path : str
+        The path to the text-based file to be processed.
+    chunk_data : function
+        The function used to chunk the text.
+    doc_id : int
+        The document ID.
+
+    Returns:
+    -------
+    pd.DataFrame
+        A DataFrame containing processed text chunks and metadata from the given text-based file.
+    """
     processed_data = []
     with open(file_path, "r", encoding="utf-8") as f:
         text = f.read()
@@ -107,6 +143,23 @@ def process_txt_md_py(file_path: str, chunk_data, doc_id: int) -> pd.DataFrame:
 
 
 def process_docx_doc(file_path: str, chunk_data, doc_id: int) -> pd.DataFrame:
+    """
+    Processes a DOCX or DOC file, extracting and chunking the text.
+
+    Parameters:
+    ----------
+    file_path : str
+        The path to the DOCX or DOC file to be processed.
+    chunk_data : function
+        The function used to chunk the text.
+    doc_id : int
+        The document ID.
+
+    Returns:
+    -------
+    pd.DataFrame
+        A DataFrame containing processed text chunks and metadata from the given DOCX or DOC file.
+    """
     processed_data = []
     doc = Document(file_path)
     text = "\n".join(paragraph.text for paragraph in doc.paragraphs)
@@ -116,6 +169,23 @@ def process_docx_doc(file_path: str, chunk_data, doc_id: int) -> pd.DataFrame:
 
 
 def process_rtf(file_path: str, chunk_data, doc_id: int) -> pd.DataFrame:
+    """
+    Processes an RTF file, extracting and chunking the text.
+
+    Parameters:
+    ----------
+    file_path : str
+        The path to the RTF file to be processed.
+    chunk_data : function
+        The function used to chunk the text.
+    doc_id : int
+        The document ID.
+
+    Returns:
+    -------
+    pd.DataFrame
+        A DataFrame containing processed text chunks and metadata from the given RTF file.
+    """
     processed_data = []
     with open(file_path, "r") as f:
         text = f.read()
@@ -125,6 +195,23 @@ def process_rtf(file_path: str, chunk_data, doc_id: int) -> pd.DataFrame:
 
 
 def process_csv(file_path: str, chunk_data, doc_id: int) -> pd.DataFrame:
+    """
+    Processes a CSV file, extracting and chunking the text.
+
+    Parameters:
+    ----------
+    file_path : str
+        The path to the CSV file to be processed.
+    chunk_data : function
+        The function used to chunk the text.
+    doc_id : int
+        The document ID.
+
+    Returns:
+    -------
+    pd.DataFrame
+        A DataFrame containing processed text chunks and metadata from the given CSV file.
+    """
     processed_data = []
     df = pd.read_csv(file_path)
     text = df.to_string(index=False)
