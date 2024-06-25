@@ -8,7 +8,7 @@ from docx import Document
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from agrag.constants import CHUNK_ID_KEY, DOC_ID_KEY, DOC_TEXT_KEY
+from agrag.constants import CHUNK_ID_KEY, DOC_ID_KEY, DOC_TEXT_KEY, SUPPORTED_FILE_EXTENSIONS
 
 logger = logging.getLogger("rag-logger")
 
@@ -73,7 +73,7 @@ def get_all_file_paths(dir_path: str, file_exts: List[str]) -> List[str]:
             file_path = os.path.join(root, file)
             if not file_path.endswith(tuple(file_exts)):
                 logger.warning(
-                    f"\nWARNING: Skipping File {file_path}. Only file types {file_exts} are supported in this version.\n"
+                    f"\nWARNING: Skipping File {file_path}. Only file types {SUPPORTED_FILE_EXTENSIONS} are supported in this version.\n"
                 )
                 continue
             file_paths.append(file_path)
