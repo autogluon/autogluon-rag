@@ -48,7 +48,6 @@ dependencies = [
     "scikit-learn",
     "numpy",
     "python-docx",
-    "textract",
     "pandas",
     "openai",
 ]
