@@ -150,7 +150,7 @@ class TestDataProcessingModule(unittest.TestCase):
             data_processing_module = DataProcessingModule(
                 data_dir=tmp_dir, chunk_size=10, chunk_overlap=5, s3_bucket=None, file_exts=[".pdf"]
             )
-            file_paths = data_processing_module.process_data()
+            file_paths = get_all_file_paths(data_processing_module.data_dir, data_processing_module.file_exts)
 
             self.assertEqual(len(file_paths), 0)
 
