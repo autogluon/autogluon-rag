@@ -73,7 +73,7 @@ def get_all_file_paths(dir_path: str, file_exts: List[str]) -> List[str]:
             file_path = os.path.join(root, file)
             if not file_path.endswith(tuple(file_exts)):
                 logger.warning(
-                    f"\nWARNING: Skipping File {file_path}. Only file types {SUPPORTED_FILE_EXTENSIONS} are supported in this version.\n"
+                    f"\nWARNING: Skipping File {file_path}. Provided file extensions to use: {file_exts}.\n Only file types {SUPPORTED_FILE_EXTENSIONS} are supported in this version.\n"
                 )
                 continue
             file_paths.append(file_path)
