@@ -1,7 +1,6 @@
-import json
 import os
 import unittest
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import MagicMock, patch
 
 import boto3
 import faiss
@@ -21,6 +20,8 @@ from agrag.modules.vector_db.utils import (
     save_metadata,
 )
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
+
+torch.manual_seed(0)
 
 
 class TestVectorDatabaseModule(unittest.TestCase):
