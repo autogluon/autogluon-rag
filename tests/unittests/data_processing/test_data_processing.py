@@ -147,10 +147,7 @@ class TestDataProcessingModule(unittest.TestCase):
             with open(file_path, "w") as f:
                 f.write("This is a test file with an unsupported file extension.")
 
-            data_processing_module = DataProcessingModule(
-                data_dir=tmp_dir, chunk_size=10, chunk_overlap=5, s3_bucket=None, file_exts=[".pdf"]
-            )
-            file_paths = get_all_file_paths(data_processing_module.data_dir, data_processing_module.file_exts)
+            file_paths = get_all_file_paths(tmp_dir, file_exts=[".pdf"])
 
             self.assertEqual(len(file_paths), 0)
 
