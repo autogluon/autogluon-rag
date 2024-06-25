@@ -1,0 +1,4 @@
+TOP_K: 20
+RERANKER_MODEL: BAAI/bge-reranker-large
+RERANKER_BATCH_SIZE: 64
+USE_RERANKER: false

@@ -1,0 +1,3 @@
+GENERATOR_MODEL: meta.llama2-13b-chat-v1
+USE_VLLM: false
+USE_BEDROCK: true

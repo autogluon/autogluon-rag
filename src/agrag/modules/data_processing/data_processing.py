@@ -14,6 +14,12 @@ from agrag.modules.data_processing.utils import (
     download_directory_from_s3,
     get_all_file_paths,
 )
+import pandas as pd
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+from agrag.constants import CHUNK_ID_KEY, DOC_ID_KEY, DOC_TEXT_KEY
+from agrag.modules.data_processing.utils import download_directory_from_s3, get_all_file_paths
 
 logger = logging.getLogger("rag-logger")
 
@@ -96,7 +102,7 @@ class DataProcessingModule:
             start += self.chunk_size - self.chunk_overlap
         return chunks
 
-    def process_file(self, file_path: str) -> List[str]:
+    def process_file(self, file_path: str, doc_id: int) -> pd.DataFrame:
         """
         Processes a single file, extracting and chunking the text.
 
@@ -104,11 +110,13 @@ class DataProcessingModule:
         ----------
         file_path : str
             The path to the file to be processed.
+        doc_id : int
+            The document ID.
 
         Returns:
         -------
-        List[str]
-            A list of processed text chunks from the given file.
+        pd.DataFrame
+            A table containing processed text chunks and metadata from the given file.
         """
         logger.info(f"Processing File: {file_path}")
         processed_data = []
@@ -162,8 +170,8 @@ class DataProcessingModule:
         file_paths = get_all_file_paths(self.data_dir, self.file_exts)
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            # Process each file in parallel
-            results = executor.map(self.process_file, file_paths)
+            results = executor.map(self.process_file, file_paths, range(len(file_paths)))
             for result in results:
-                processed_data.extend(result)
-        return processed_data
+                processed_data.append(result)
+
+        return pd.concat(processed_data).reset_index(drop=True)

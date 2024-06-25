@@ -40,6 +40,8 @@ class Arguments:
         self.data_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/data_processing/default.yaml"))
         self.embedding_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/embedding/default.yaml"))
         self.vector_db_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/vector_db/default.yaml"))
+        self.retriever_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/retriever/default.yaml"))
+        self.generator_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/generator/default.yaml"))
 
     def _parse_args(self) -> argparse.Namespace:
         parser = argparse.ArgumentParser(description="AutoGluon-RAG - Retrieval-Augmented Generation Pipeline")
@@ -93,10 +95,6 @@ class Arguments:
         return self.config.get("data", {}).get("chunk_overlap", self.data_defaults.get("CHUNK_OVERLAP"))
 
     @property
-    def data_s3_bucket(self):
-        return self.config.get("data", {}).get("s3_bucket", None)
-
-    @property
     def data_file_extns(self):
         return self.config.get("data", {}).get("file_extns", [])
 
@@ -143,6 +141,10 @@ class Arguments:
         return self.config.get("embedding", {}).get("query_instruction_for_retrieval", "")
 
     @property
+    def embedding_batch_size(self):
+        return self.config.get("embedding", {}).get("embedding_batch_size", "")
+
+    @property
     def vector_db_type(self):
         return self.config.get("vector_db", {}).get("db_type", self.vector_db_defaults.get("DB_TYPE"))
 
@@ -171,9 +173,113 @@ class Arguments:
         )
 
     @property
-    def vector_db_s3_bucket(self):
-        return self.config.get("vector_db", {}).get("s3_bucket", None)
-
-    @property
     def vector_db_num_gpus(self):
         return self.config.get("vector_db", {}).get("num_gpus", None)
+
+    @property
+    def metadata_index_path(self):
+        return self.config.get("vector_db", {}).get(
+            "metadata_index_path", self.vector_db_defaults.get("METADATA_PATH")
+        )
+
+    @property
+    def top_k_embeddings(self):
+        return self.config.get("retriever", {}).get("top_k_embeddings", self.retriever_defaults.get("TOP_K"))
+
+    @property
+    def use_reranker(self):
+        return self.config.get("retriever", {}).get("use_reranker", self.retriever_defaults.get("USE_RERANKER"))
+
+    @property
+    def reranker_model_name(self):
+        return self.config.get("retriever", {}).get(
+            "reranker_model_name", self.retriever_defaults.get("RERANKER_MODEL")
+        )
+
+    @property
+    def reranker_batch_size(self):
+        return self.config.get("retriever", {}).get(
+            "reranker_batch_size", self.retriever_defaults.get("RERANKER_BATCH_SIZE")
+        )
+
+    @property
+    def reranker_hf_model_params(self):
+        return self.config.get("retriever", {}).get("reranker_hf_model_params", {})
+
+    @property
+    def reranker_hf_tokenizer_params(self):
+        return self.config.get("retriever", {}).get("reranker_hf_tokenizer_params", {})
+
+    @property
+    def reranker_hf_tokenizer_init_params(self):
+        return self.config.get("retriever", {}).get("reranker_hf_tokenizer_params", {})
+
+    @property
+    def reranker_hf_forward_params(self):
+        return self.config.get("retriever", {}).get("reranker_hf_forward_params", {})
+
+    @property
+    def retriever_num_gpus(self):
+        return self.config.get("retriever", {}).get("num_gpus", None)
+
+    @property
+    def generator_model_name(self):
+        return self.config.get("generator", {}).get(
+            "generator_model_name", self.generator_defaults.get("GENERATOR_MODEL")
+        )
+
+    @property
+    def generator_num_gpus(self):
+        return self.config.get("generator", {}).get("num_gpus", 0)
+
+    @property
+    def generator_hf_model_params(self):
+        return self.config.get("generator", {}).get("generator_hf_model_params", {})
+
+    @property
+    def generator_hf_tokenizer_params(self):
+        return self.config.get("generator", {}).get("generator_hf_tokenizer_params", {})
+
+    @property
+    def generator_hf_tokenizer_init_params(self):
+        return self.config.get("generator", {}).get("generator_hf_tokenizer_params", {})
+
+    @property
+    def generator_hf_forward_params(self):
+        return self.config.get("generator", {}).get("generator_hf_forward_params", {})
+
+    @property
+    def generator_hf_generate_params(self):
+        return self.config.get("generator", {}).get("generator_hf_generate_params", {})
+
+    @property
+    def generator_query_prefix(self):
+        return self.config.get("generator", {}).get("generator_query_prefix", "")
+
+    @property
+    def gpt_generate_params(self):
+        return self.config.get("generator", {}).get("gpt_generate_params", {})
+
+    @property
+    def use_vllm(self):
+        return self.config.get("generator", {}).get("use_vllm", self.generator_defaults.get("USE_VLLM"))
+
+    @property
+    def vllm_sampling_params(self):
+        return self.config.get("generator", {}).get("vllm_sampling_params", {})
+
+    @property
+    def openai_key_file(self):
+        return self.config.get("generator", {}).get("openai_key_file", "")
+
+    @property
+    def use_bedrock(self):
+        return self.config.get("generator", {}).get("use_bedrock", self.generator_defaults.get("USE_BEDROCK"))
+
+    @property
+    def bedrock_generate_params(self):
+        return self.config.get("generator", {}).get("bedrock_generate_params", {})
+
+    @property
+    def generator_local_model_path(self):
+        return self.config.get("generator", {}).get("local_model_path", None)

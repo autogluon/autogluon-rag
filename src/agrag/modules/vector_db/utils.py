@@ -1,11 +1,13 @@
 import logging
 import os
-from typing import List, Union
+from typing import List, Tuple, Union
 
 import boto3
 import faiss
 import numpy as np
+import pandas as pd
 import torch
+from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
 from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances, manhattan_distances
 from tqdm import tqdm
 
@@ -40,7 +42,7 @@ SUPPORTED_SIMILARITY_FUNCTIONS = {
 
 def remove_duplicates(
     embeddings: List[torch.Tensor], similarity_threshold: float, similarity_fn: str
-) -> List[torch.Tensor]:
+) -> Tuple[List[torch.Tensor], List[int]]:
     """
     Removes duplicate embeddings based on cosine similarity.
 
@@ -49,31 +51,33 @@ def remove_duplicates(
     embeddings : List[torch.Tensor]
         A list of embeddings to be deduplicated.
     similarity_threshold : float
-        The threshold for considering embeddings as duplicates based on cosine similarity
+        The threshold for considering embeddings as duplicates based on cosine similarity.
     similarity_fn : str
         The name of the similarity function to use. Must be one of the supported functions.
 
     Returns:
     -------
-    List[torch.Tensor]
-        A list of deduplicated embeddings.
+    Tuple[List[torch.Tensor], List[int]]
+        A list of deduplicated embeddings and their indices.
     """
     if len(embeddings) <= 1:
-        return embeddings
+        return embeddings, list(range(len(embeddings)))
 
     if similarity_fn not in SUPPORTED_SIMILARITY_FUNCTIONS:
         raise ValueError(
             f"Unsupported similarity function: {similarity_fn}. Please choose from: {list(SUPPORTED_SIMILARITY_FUNCTIONS.keys())}"
         )
 
-    embeddings_array = np.array(embeddings).reshape(len(embeddings), -1)
+    embeddings_array = np.array([emb.numpy().flatten() for emb in embeddings])
     sim_fn = SUPPORTED_SIMILARITY_FUNCTIONS[similarity_fn]
     similarity_matrix = sim_fn(embeddings_array)
 
     remove = set()
+    indices_to_keep = []
     for i in range(len(similarity_matrix)):
         if i in remove:
             continue
+        indices_to_keep.append(i)
         duplicates = np.where(similarity_matrix[i, i + 1 :] > similarity_threshold)[0] + (
             i + 1
         )  # Only consider the upper triangle of the similarity matrix.
@@ -81,7 +85,7 @@ def remove_duplicates(
 
     deduplicated_embeddings = [embedding for i, embedding in enumerate(embeddings) if i not in remove]
     logger.info(f"Removed {len(remove)} duplicate embeddings")
-    return deduplicated_embeddings
+    return deduplicated_embeddings, indices_to_keep
 
 
 def pad_embeddings(embeddings: List[torch.Tensor]) -> torch.Tensor:
@@ -102,7 +106,7 @@ def pad_embeddings(embeddings: List[torch.Tensor]) -> torch.Tensor:
     padded_embeddings = [
         torch.nn.functional.pad(embedding, (0, 0, 0, max_len - embedding.shape[1])) for embedding in embeddings
     ]
-    return torch.cat(padded_embeddings, dim=0).view(len(padded_embeddings), -1)
+    return torch.cat(padded_embeddings, dim=0)
 
 
 def save_index(
@@ -168,6 +172,11 @@ def load_index(
         S3 bucket to store the index in
     s3_client: boto3.session.Session.client
         S3 client to interface with AWS resources
+
+    Returns:
+    -------
+    Union[faiss.IndexFlatL2]
+        Vector DB Index
     """
     index = None
     if db_type == "faiss":
@@ -180,3 +189,108 @@ def load_index(
         pbar.n = pbar.total
         pbar.refresh()
     return index
+
+
+def save_metadata(
+    metadata: pd.DataFrame, metadata_path: str, s3_bucket: str = None, s3_client: boto3.session.Session.client = None
+):
+    """
+    Saves metadata to file.
+
+    Parameters:
+    ----------
+    metadata: pd.DataFrame
+        Metadata to store
+    metadata_path : str
+        The path to the metadata file.
+    s3_bucket : str
+        The S3 bucket name.
+    s3_client : boto3.session.Session.client
+        The S3 client to interface with AWS resources.
+
+    Returns:
+    -------
+    bool:
+        True, if metadata saved successfully to file
+        False, else
+    """
+    if metadata.empty:
+        raise ValueError("No metadata to save. Please construct metadata first.")
+    if not metadata_path:
+        logger.warning(f"Cannot save metadata. Invalid path {metadata_path}.")
+        return False
+    if not isinstance(metadata, pd.DataFrame):
+        raise TypeError("Metadata not a pandas DataFrame.")
+
+    metadata_dir = os.path.dirname(metadata_path)
+    if not os.path.exists(metadata_dir):
+        os.makedirs(metadata_dir)
+
+    try:
+        metadata.to_json(metadata_path, orient="records", lines=True)
+        logger.info(f"Metadata saved to {metadata_path}")
+    except (IOError, Exception) as e:
+        logger.error(f"Failed to save metadata to {metadata_path}: {e}")
+        return False
+
+    if s3_bucket:
+        try:
+            s3_client.upload_file(Filename=metadata_path, Bucket=s3_bucket, Key=metadata_path)
+            logger.info(f"Metadata saved to S3 Bucket {s3_bucket} at {metadata_path}.")
+            return True
+        except (NoCredentialsError, PartialCredentialsError):
+            logger.error("AWS credentials not found or incomplete.")
+            return False
+        except ClientError as e:
+            logger.error(f"Failed to upload metadata to S3: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"An unexpected error occurred while saving metadata to S3: {e}")
+            return False
+    return True
+
+
+def load_metadata(
+    metadata_path: str, s3_bucket: str = None, s3_client: boto3.session.Session.client = None
+) -> pd.DataFrame:
+    """
+    Loads metadata from file.
+
+    Parameters:
+    ----------
+    metadata_path : str
+        The path to the metadata file.
+    s3_bucket : str
+        The S3 bucket name.
+    s3_client : boto3.session.Session.client
+        The S3 client to interface with AWS resources.
+
+    Returns:
+    -------
+    pd.DataFrame
+        Metadata for Vector DB
+    """
+    if s3_bucket:
+        try:
+            s3_client.download_file(Filename=metadata_path, Bucket=s3_bucket, Key=metadata_path)
+            logger.info(f"Metadata loaded from S3 Bucket {s3_bucket} at {metadata_path}.")
+        except (NoCredentialsError, PartialCredentialsError):
+            logger.error("AWS credentials not found or incomplete.")
+            return pd.DataFrame()
+        except ClientError as e:
+            logger.error(f"Failed to download metadata from S3: {e}")
+            return pd.DataFrame()
+        except Exception as e:
+            logger.error(f"An unexpected error occurred while loading metadata from S3: {e}")
+            return pd.DataFrame()
+
+    try:
+        metadata = pd.read_json(metadata_path, orient="records", lines=True)
+        logger.info(f"Metadata loaded from {metadata_path}")
+    except (IOError, Exception) as e:
+        logger.error(f"Failed to load metadata from {metadata_path}: {e}")
+        return pd.DataFrame()
+
+    if not isinstance(metadata, pd.DataFrame):
+        raise TypeError("Metadata not a pandas DataFrame.")
+    return metadata

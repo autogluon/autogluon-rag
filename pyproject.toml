@@ -49,6 +49,8 @@ dependencies = [
     "numpy",
     "python-docx",
     "textract",
+    "pandas",
+    "openai",
 ]
 
 

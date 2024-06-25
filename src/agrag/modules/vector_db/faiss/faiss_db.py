@@ -39,9 +39,8 @@ def construct_faiss_index(embeddings: List[torch.Tensor], num_gpus: int = 1) -> 
         index = faiss.index_cpu_to_gpu_multiple(devices, index, config)
         logger.info(f"Using FAISS GPU index on {num_gpus} GPUs")
 
-    embeddings_array = np.array(embeddings)
-    index.add(embeddings_array)
-    logger.info(f"Stored {embeddings_array.shape[0]} embeddings in the FAISS index")
+    index.add(np.array(embeddings))
+    logger.info(f"Stored {index.ntotal} embeddings in the FAISS index, expected {len(embeddings)}")
 
     return index
 
@@ -121,7 +120,7 @@ def save_faiss_index_s3(
     Returns:
     -------
     bool:
-        True, if Vector DB Index loaded successfully from S3
+        True, if Vector DB Index saved successfully to S3
         False, else
     """
     try:
