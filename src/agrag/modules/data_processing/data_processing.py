@@ -1,14 +1,21 @@
 import concurrent.futures
 import logging
+import os
 from typing import List
 
 import boto3
 import pandas as pd
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from agrag.constants import CHUNK_ID_KEY, DOC_ID_KEY, DOC_TEXT_KEY
-from agrag.modules.data_processing.utils import download_directory_from_s3, get_all_file_paths
+from agrag.constants import SUPPORTED_FILE_EXTENSIONS
+from agrag.modules.data_processing.utils import (
+    download_directory_from_s3,
+    get_all_file_paths,
+    process_csv,
+    process_docx_doc,
+    process_pdf,
+    process_rtf,
+    process_txt_md_py,
+)
 
 logger = logging.getLogger("rag-logger")
 
@@ -27,6 +34,8 @@ class DataProcessingModule:
         The overlap between consecutive chunks of text (default is 128).
     s3_bucket : str, optional
         The name of the S3 bucket containing the data files.
+    file_exts: List[str], optional
+        List of file extensions to support
 
     Example:
     --------
@@ -35,12 +44,20 @@ class DataProcessingModule:
     )
     """
 
-    def __init__(self, data_dir: str, chunk_size: int, chunk_overlap: int, s3_bucket: str = None) -> None:
+    def __init__(
+        self,
+        data_dir: str,
+        chunk_size: int,
+        chunk_overlap: int,
+        s3_bucket: str = None,
+        file_exts: List[str] = SUPPORTED_FILE_EXTENSIONS,
+    ) -> None:
         self.data_dir = data_dir
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         self.s3_bucket = s3_bucket
         self.s3_client = boto3.client("s3") if s3_bucket else None
+        self.file_exts = file_exts
 
     def chunk_data_naive(self, text: str):
         """
@@ -61,10 +78,7 @@ class DataProcessingModule:
 
     def chunk_data(self, text: str):
         """
-        Chunks text into segments using a more sophisticated approach.
-
-        This method will provide advanced text chunking
-        that might include considerations like word boundaries or semantic coherence.
+        Chunks text into segments using a specified overlap.
 
         Parameters:
         ----------
@@ -76,7 +90,13 @@ class DataProcessingModule:
         List[str]
             A list of text chunks.
         """
-        raise NotImplementedError
+        chunks = []
+        start = 0
+        while start < len(text):
+            end = min(start + self.chunk_size, len(text))
+            chunks.append(text[start:end])
+            start += self.chunk_size - self.chunk_overlap
+        return chunks
 
     def process_file(self, file_path: str, doc_id: int) -> pd.DataFrame:
         """
@@ -95,32 +115,32 @@ class DataProcessingModule:
             A table containing processed text chunks and metadata from the given file.
         """
         logger.info(f"Processing File: {file_path}")
-        processed_data = []
-        pdf_loader = PyPDFLoader(file_path)
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=self.chunk_size,
-            chunk_overlap=self.chunk_overlap,
-            separators=[".", "\uff0e", "\n"],  # \uff0e -> Fullwidth full stop
-            length_function=len,
-            is_separator_regex=False,
-        )
-        pages = pdf_loader.load_and_split(text_splitter=text_splitter)
-        for chunk_id, page in enumerate(pages):
-            page_content = "".join(page.page_content)
-            processed_data.append({DOC_ID_KEY: doc_id, CHUNK_ID_KEY: chunk_id, DOC_TEXT_KEY: page_content})
-        df = pd.DataFrame(processed_data)
-        return df
 
-    def process_data(self) -> List[str]:
+        _, file_extension = os.path.splitext(file_path)
+
+        if file_extension.lower() == ".pdf":
+            return process_pdf(file_path, self.chunk_size, self.chunk_overlap, doc_id)
+        elif file_extension.lower() in [".txt", ".md", ".py"]:
+            return process_txt_md_py(file_path, self.chunk_data, doc_id)
+        elif file_extension.lower() in [".docx", ".doc"]:
+            return process_docx_doc(file_path, self.chunk_data, doc_id)
+        elif file_extension.lower() == ".rtf":
+            return process_rtf(file_path, self.chunk_data, doc_id)
+        elif file_extension.lower() == ".csv":
+            return process_csv(file_path, self.chunk_data, doc_id)
+
+        return pd.DataFrame()
+
+    def process_data(self) -> pd.DataFrame:
         """
         Processes all files in the data directory.
 
-        Extracts and chunks text from each file and compiles the results into a single list.
+        Extracts and chunks text from each file and compiles the results into a single DataFrame.
 
         Returns:
         -------
-        List[str]
-            A list of processed text chunks from all files in the directory.
+        pd.DataFrame
+            A DataFrame of processed text chunks from all files in the directory.
         """
         processed_data = []
         if self.s3_bucket:
@@ -128,7 +148,7 @@ class DataProcessingModule:
                 s3_bucket=self.s3_bucket, data_dir=self.data_dir, s3_client=self.s3_client
             )
 
-        file_paths = get_all_file_paths(self.data_dir)
+        file_paths = get_all_file_paths(self.data_dir, self.file_exts)
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
             results = executor.map(self.process_file, file_paths, range(len(file_paths)))

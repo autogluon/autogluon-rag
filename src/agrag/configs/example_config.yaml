@@ -2,6 +2,9 @@ data:
   chunk_size: 128
   chunk_overlap: 16
   data_dir: s3://autogluon-rag-github-dev/autogluon_docs/
+  file_extns:
+    - "pdf"
+    - "txt"
 
 embedding:
   embedding_model: BAAI/bge-large-en

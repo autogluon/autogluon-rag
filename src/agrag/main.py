@@ -91,6 +91,7 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
             chunk_size=args.chunk_size,
             chunk_overlap=args.chunk_overlap,
             s3_bucket=data_s3_bucket,
+            file_exts=args.data_file_extns,
         )
 
         with tqdm(total=100, desc="Data Preprocessing Module", unit="chunk") as pbar:

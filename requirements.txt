@@ -10,5 +10,6 @@ pypdf
 faiss-cpu
 scikit-learn
 numpy
+python-docx 
 pandas
 openai

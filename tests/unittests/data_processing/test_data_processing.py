@@ -136,10 +136,20 @@ class TestDataProcessingModule(unittest.TestCase):
             with open(file3, "w") as f:
                 f.write("Test file 3")
 
-            file_paths = get_all_file_paths(tmp_dir)
+            file_paths = get_all_file_paths(tmp_dir, [".pdf"])
 
             expected_paths = [file1, file2, file3]
             self.assertCountEqual(file_paths, expected_paths)
+
+    def test_unsupported_file_extension(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            file_path = os.path.join(tmp_dir, "unsupported_file.unsupported")
+            with open(file_path, "w") as f:
+                f.write("This is a test file with an unsupported file extension.")
+
+            file_paths = get_all_file_paths(tmp_dir, file_exts=[".pdf"])
+
+            self.assertEqual(len(file_paths), 0)
 
 
 if __name__ == "__main__":
