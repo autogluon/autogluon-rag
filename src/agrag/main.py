@@ -165,7 +165,10 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
 def ag_rag():
     logger.info("\n\nAutoGluon-RAG\n\n")
     args = Arguments()
-    logger.info("Initializing RAG Pipeline")
+    logger.info("Initializing RAG Pipeline\n")
+
+    logger.info(f"Using configuration parameters from provided config file at {args.config_file}")
+    logger.info(f"Please refer to the README file for information about custom configuration for AutoGluon-RAG\n")
 
     args.num_gpus = get_num_gpus(args.num_gpus)
 
