@@ -63,8 +63,7 @@ class TestVectorDatabaseModule(unittest.TestCase):
             ]
         )
 
-        pbar = MagicMock()
-        self.vector_db_module.construct_vector_database(embeddings, pbar=pbar)
+        self.vector_db_module.construct_vector_database(embeddings)
 
         self.assertIsNotNone(self.vector_db_module.index)
         self.assertEqual(len(self.vector_db_module.metadata), len(embeddings))
