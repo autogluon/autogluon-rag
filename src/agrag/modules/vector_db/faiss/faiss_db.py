@@ -40,7 +40,11 @@ def construct_faiss_index(embeddings: List[torch.Tensor], num_gpus: int = 1) -> 
         logger.info(f"Using FAISS GPU index on {num_gpus} GPUs")
 
     index.add(np.array(embeddings))
-    logger.info(f"Stored {index.ntotal} embeddings in the FAISS index, expected {len(embeddings)}")
+    if len(embeddings) != index.ntotal:
+        raise ValueError(
+            f"Stored {index.ntotal} embeddings in the FAISS index, expected {len(embeddings)}. Number of embeddings is {len(embeddings)}."
+        )
+    logger.info(f"Stored {index.ntotal} embeddings in the FAISS index.")
 
     return index
 

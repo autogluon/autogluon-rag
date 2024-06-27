@@ -51,16 +51,21 @@ class TestVectorDatabaseModule(unittest.TestCase):
         if os.path.exists(self.metadata_path):
             os.remove(self.metadata_path)
 
-    @patch("faiss.IndexFlatL2.add")
+    @patch("agrag.modules.vector_db.vector_database.construct_faiss_index")
     def test_construct_vector_database(self, mock_construct_faiss_index):
-        mock_construct_faiss_index.return_value = MagicMock("some index")
+        mock_faiss_index = MagicMock()
+        mock_construct_faiss_index.return_value = mock_faiss_index
+
         embeddings = pd.DataFrame(
             [
-                {EMBEDDING_KEY: torch.rand(1, 10).numpy(), DOC_ID_KEY: i, CHUNK_ID_KEY: i, DOC_TEXT_KEY: "some text"}
+                {EMBEDDING_KEY: torch.rand(10).numpy(), DOC_ID_KEY: i, CHUNK_ID_KEY: i, DOC_TEXT_KEY: "some text"}
                 for i in range(6)
             ]
         )
-        self.vector_db_module.construct_vector_database(embeddings)
+
+        pbar = MagicMock()
+        self.vector_db_module.construct_vector_database(embeddings, pbar=pbar)
+
         self.assertIsNotNone(self.vector_db_module.index)
         self.assertEqual(len(self.vector_db_module.metadata), len(embeddings))
         metadata = embeddings.drop(columns=[EMBEDDING_KEY])
