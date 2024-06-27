@@ -62,9 +62,7 @@ class TestVectorDatabaseModule(unittest.TestCase):
                 for i in range(6)
             ]
         )
-
         self.vector_db_module.construct_vector_database(embeddings)
-
         self.assertIsNotNone(self.vector_db_module.index)
         self.assertEqual(len(self.vector_db_module.metadata), len(embeddings))
         metadata = embeddings.drop(columns=[EMBEDDING_KEY])
