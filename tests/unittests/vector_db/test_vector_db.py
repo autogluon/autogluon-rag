@@ -58,7 +58,7 @@ class TestVectorDatabaseModule(unittest.TestCase):
 
         embeddings = pd.DataFrame(
             [
-                {EMBEDDING_KEY: torch.rand(10).numpy(), DOC_ID_KEY: i, CHUNK_ID_KEY: i, DOC_TEXT_KEY: "some text"}
+                {EMBEDDING_KEY: torch.rand(1, 10).numpy(), DOC_ID_KEY: i, CHUNK_ID_KEY: i, DOC_TEXT_KEY: "some text"}
                 for i in range(6)
             ]
         )
