@@ -10,12 +10,9 @@ embedding:
   embedding_model: BAAI/bge-large-en
   pooling_strategy: cls
   normalize_embeddings: false
-  hf_model_params: null
-  hf_tokenizer_init_params: null
   hf_tokenizer_params: 
     truncation: true
     padding: true
-  hf_forward_params: null
   normalization_params: {'p': 2, 'dim': 1, 'eps': 1e-12}
   embedding_batch_size: 64
 

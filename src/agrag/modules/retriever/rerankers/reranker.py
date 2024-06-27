@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List
+from typing import List
 
 import torch
 from torch.nn import DataParallel
@@ -12,7 +12,7 @@ class Reranker:
     """
     A unified reranker class that initializes and uses any model from Huggingface for reranking.
 
-    Parameters:
+    Attributes:
     ----------
     model_name : str
         The name of the Huggingface model to use for the reranker (default is "BAAI/bge-large-en").
@@ -28,37 +28,30 @@ class Reranker:
         Additional parameters to pass to the Huggingface model's `forward` method.
     num_gpus: int
         Number of GPUs to use for reranking.
+    **kwargs : dict
+        Additional parameters for `Reranker`.
 
     Methods:
     -------
-    rerank(query: str, text_chunks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    rerank(query: str, text_chunks: List[str]) -> List[str]:
         Reranks the text chunks based on their relevance to the query.
     """
 
-    def __init__(
-        self,
-        model_name: str = "BAAI/bge-large-en",
-        batch_size: int = 64,
-        hf_model_params: Dict[str, Any] = None,
-        hf_tokenizer_init_params: Dict[str, Any] = None,
-        hf_tokenizer_params: Dict[str, Any] = None,
-        hf_forward_params: Dict[str, Any] = None,
-        num_gpus: int = 0,
-    ):
-        self.model_name = model_name
-        self.batch_size = batch_size
+    def __init__(self, **kwargs):
+        self.model_name = kwargs.get("model_name", "BAAI/bge-large-en")
+        self.batch_size = kwargs.get("batch_size", 64)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        self.hf_model_params = hf_model_params or {}
-        self.hf_tokenizer_init_params = hf_tokenizer_init_params or {}
-        self.hf_tokenizer_params = hf_tokenizer_params or {}
-        self.hf_forward_params = hf_forward_params or {}
+        self.hf_model_params = kwargs.get("hf_model_params", {})
+        self.hf_tokenizer_init_params = kwargs.get("hf_tokenizer_init_params", {})
+        self.hf_tokenizer_params = kwargs.get("hf_tokenizer_params", {})
+        self.hf_forward_params = kwargs.get("hf_forward_params", {})
 
-        self.model = AutoModel.from_pretrained(model_name, **self.hf_model_params).to(self.device)
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name, **self.hf_tokenizer_init_params)
+        self.model = AutoModel.from_pretrained(self.model_name, **self.hf_model_params).to(self.device)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, **self.hf_tokenizer_init_params)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        self.num_gpus = num_gpus
+        self.num_gpus = kwargs.get("num_gpus", 0)
         if self.num_gpus > 1:
             logger.info(f"Using {self.num_gpus} GPUs")
             self.model = DataParallel(self.model, device_ids=list(range(self.num_gpus)))

@@ -1,5 +1,5 @@
 import logging
-from typing import List, Union
+from typing import Any, Dict, List, Union
 
 import boto3
 import faiss
@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 from agrag.constants import EMBEDDING_KEY
 from agrag.modules.vector_db.faiss.faiss_db import construct_faiss_index
-from agrag.modules.vector_db.utils import SUPPORTED_SIMILARITY_FUNCTIONS, pad_embeddings, remove_duplicates
+from agrag.modules.vector_db.utils import SUPPORTED_SIMILARITY_FUNCTIONS, remove_duplicates
 
 logger = logging.getLogger("rag-logger")
 
@@ -35,37 +35,32 @@ class VectorDatabaseModule:
         Number of GPUs to use when building the index
     metadata: List[dict]
         Metadata for each embedding stored in the database
+    **kwargs : dict
+        Additional parameters for `VectorDatabaseModule`.
 
     Methods:
     -------
     construct_vector_database(embeddings: List[torch.Tensor]) -> Any:
         Constructs the vector database and stores the embeddings.
+
     search_vector_database(embedding: torch.Tensor, top_k: int) -> List[torch.Tensor]:
         Searches the vector database for the top k most similar embeddings to the given embedding
     """
 
-    def __init__(
-        self,
-        db_type: str = "faiss",
-        params: dict = None,
-        similarity_threshold: float = 0.95,
-        similarity_fn: str = "cosine",
-        s3_bucket: str = None,
-        num_gpus: int = 0,
-    ) -> None:
+    def __init__(self, db_type: str = "faiss", **kwargs) -> None:
         self.db_type = db_type
-        self.params = params if params is not None else {}
-        self.similarity_threshold = similarity_threshold
-        if similarity_fn not in SUPPORTED_SIMILARITY_FUNCTIONS:
+        self.params = kwargs.get("params", {})
+        self.similarity_threshold = kwargs.get("similarity_threshold", 0.95)
+        self.similarity_fn = kwargs.get("similarity_fn", "cosine")
+        if self.similarity_fn not in SUPPORTED_SIMILARITY_FUNCTIONS:
             raise ValueError(
-                f"Unsupported similarity function: {similarity_fn}. Please choose from: {list(SUPPORTED_SIMILARITY_FUNCTIONS.keys())}"
+                f"Unsupported similarity function: {self.similarity_fn}. Please choose from: {list(SUPPORTED_SIMILARITY_FUNCTIONS.keys())}"
             )
-        self.similarity_fn = similarity_fn
-        self.index = None
-        self.s3_bucket = s3_bucket
-        self.s3_client = boto3.client("s3") if s3_bucket else None
-        self.num_gpus = num_gpus
+        self.s3_bucket = kwargs.get("s3_bucket", None)
+        self.s3_client = boto3.client("s3") if self.s3_bucket else None
+        self.num_gpus = kwargs.get("num_gpus", 0)
         self.metadata = []
+        self.index = None
 
     def construct_vector_database(
         self,
@@ -111,6 +106,7 @@ class VectorDatabaseModule:
     def search_vector_database(self, embedding: np.array, top_k: int) -> List[torch.Tensor]:
         """
         Searches the vector database for the top k most similar embeddings to the given embedding
+
         Parameters:
         ----------
         embedding : np.array
