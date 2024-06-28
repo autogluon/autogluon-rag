@@ -36,8 +36,6 @@ class DataProcessingModule:
         The name of the S3 bucket containing the data files.
     file_exts: List[str]
         List of file extensions to support.
-    **kwargs : dict
-        Additional parameters for `DataProcessingModule`.
 
     Methods:
     -------
@@ -54,13 +52,20 @@ class DataProcessingModule:
         Processes all files in the data directory, extracting and chunking text from each file, and compiles the results into a single DataFrame.
     """
 
-    def __init__(self, data_dir, **kwargs):
+    def __init__(
+        self,
+        data_dir: str,
+        chunk_size: int,
+        chunk_overlap: int,
+        file_exts: List[str] = SUPPORTED_FILE_EXTENSIONS,
+        **kwargs,
+    ):
         self.data_dir = data_dir
-        self.chunk_size = kwargs.get("chunk_size")
-        self.chunk_overlap = kwargs.get("chunk_overlap")
+        self.chunk_size = chunk_size
+        self.chunk_overlap = chunk_overlap
         self.s3_bucket = kwargs.get("s3_bucket")
         self.s3_client = boto3.client("s3") if self.s3_bucket else None
-        self.file_exts = kwargs.get("file_exts", SUPPORTED_FILE_EXTENSIONS)
+        self.file_exts = file_exts
 
     def chunk_data_naive(self, text: str) -> List[str]:
         """

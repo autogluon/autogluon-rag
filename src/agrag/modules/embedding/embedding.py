@@ -38,8 +38,6 @@ class EmbeddingModule:
         Additional parameters to pass to the PyTorch `nn.functional.normalize` method.
     query_instruction_for_retrieval: str
         Instruction for query when using embedding model.
-    **kwargs : dict
-        Additional parameters for `EmbeddingModule`.
 
     Methods:
     -------
@@ -50,10 +48,16 @@ class EmbeddingModule:
         Generates embeddings for a list of queries.
     """
 
-    def __init__(self, **kwargs):
-        self.hf_model = kwargs.get("hf_model", "BAAI/bge-large-en")
-        self.pooling_strategy = kwargs.get("pooling_strategy", None)
-        self.normalize_embeddings = kwargs.get("normalize_embeddings", False)
+    def __init__(
+        self,
+        hf_model: str = "BAAI/bge-large-en",
+        pooling_strategy: str = None,
+        normalize_embeddings: bool = False,
+        **kwargs,
+    ):
+        self.hf_model = hf_model
+        self.pooling_strategy = pooling_strategy
+        self.normalize_embeddings = normalize_embeddings
         self.hf_model_params = kwargs.get("hf_model_params", {})
         self.hf_tokenizer_init_params = kwargs.get("hf_tokenizer_init_params", {})
         self.hf_tokenizer_params = kwargs.get("hf_tokenizer_params", {})

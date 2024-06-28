@@ -23,8 +23,6 @@ class VectorDatabaseModule:
     ----------
     db_type : str
         The type of vector database to use (default is 'faiss').
-    index : Any
-        The vector database index.
     params : dict
         Additional parameters for configuring the Vector DB index.
     similarity_threshold : float
@@ -47,11 +45,13 @@ class VectorDatabaseModule:
         Searches the vector database for the top k most similar embeddings to the given embedding
     """
 
-    def __init__(self, db_type: str = "faiss", **kwargs) -> None:
+    def __init__(
+        self, db_type: str = "faiss", similarity_threshold: float = 0.95, similarity_fn: str = "cosine", **kwargs
+    ) -> None:
         self.db_type = db_type
         self.params = kwargs.get("params", {})
-        self.similarity_threshold = kwargs.get("similarity_threshold", 0.95)
-        self.similarity_fn = kwargs.get("similarity_fn", "cosine")
+        self.similarity_threshold = similarity_threshold
+        self.similarity_fn = similarity_fn
         if self.similarity_fn not in SUPPORTED_SIMILARITY_FUNCTIONS:
             raise ValueError(
                 f"Unsupported similarity function: {self.similarity_fn}. Please choose from: {list(SUPPORTED_SIMILARITY_FUNCTIONS.keys())}"

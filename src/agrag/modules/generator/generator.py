@@ -51,7 +51,7 @@ class GeneratorModule:
         else:
             self.generator = HFGenerator(
                 model_name=self.model_name,
-                local_model_path=kwargs.get("local_model_path"),
+                local_model_path=kwargs.get("hf_local_model_path", None),
                 hf_model_params=kwargs.get("hf_model_params", {}),
                 hf_tokenizer_init_params=kwargs.get("hf_tokenizer_init_params", {}),
                 hf_tokenizer_params=kwargs.get("hf_tokenizer_params", {}),

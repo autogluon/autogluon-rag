@@ -43,6 +43,7 @@ class RetrieverModule:
         vector_database_module: VectorDatabaseModule,
         embedding_module: EmbeddingModule,
         top_k: int = 20,
+        reranker: Reranker = None,
         **kwargs,
     ):
         self.embedding_module = embedding_module
@@ -57,7 +58,7 @@ class RetrieverModule:
             self.model = DataParallel(self.model)
 
         vector_database_module.num_gpus = num_gpus
-        self.reranker = kwargs.get("reranker", None)
+        self.reranker = reranker
 
     def encode_query(self, query: str) -> np.ndarray:
         """
