@@ -14,7 +14,7 @@ from agrag.modules.data_processing.utils import (
     process_docx_doc,
     process_pdf,
     process_rtf,
-    process_txt_md_py,
+    process_txt_md_py_log,
 )
 
 logger = logging.getLogger("rag-logger")
@@ -120,7 +120,7 @@ class DataProcessingModule:
 
         if file_extension.lower() == ".pdf":
             return process_pdf(file_path, self.chunk_size, self.chunk_overlap, doc_id)
-        elif file_extension.lower() in [".txt", ".md", ".py"]:
+        elif file_extension.lower() in [".txt", ".md", ".py", ".log"]:
             return process_txt_md_py(file_path, self.chunk_data, doc_id)
         elif file_extension.lower() in [".docx", ".doc"]:
             return process_docx_doc(file_path, self.chunk_data, doc_id)
