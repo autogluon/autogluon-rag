@@ -117,16 +117,16 @@ class DataProcessingModule:
         logger.info(f"Processing File: {file_path}")
 
         _, file_extension = os.path.splitext(file_path)
-
-        if file_extension.lower() == ".pdf":
+        file_extension = file_extension.lower()
+        if file_extension == ".pdf":
             return process_pdf(file_path, self.chunk_size, self.chunk_overlap, doc_id)
-        elif file_extension.lower() in [".txt", ".md", ".py", ".log"]:
+        elif file_extension in [".txt", ".md", ".py", ".log"]:
             return process_txt_md_py_log(file_path, self.chunk_data, doc_id)
-        elif file_extension.lower() in [".docx", ".doc"]:
+        elif file_extension in [".docx", ".doc"]:
             return process_docx_doc(file_path, self.chunk_data, doc_id)
-        elif file_extension.lower() == ".rtf":
+        elif file_extension == ".rtf":
             return process_rtf(file_path, self.chunk_data, doc_id)
-        elif file_extension.lower() == ".csv":
+        elif file_extension == ".csv":
             return process_csv(file_path, self.chunk_data, doc_id)
 
         return pd.DataFrame()
