@@ -30,6 +30,7 @@ class TestFaissDB(unittest.TestCase):
     def test_construct_faiss_index(self, mock_index_flat_l2):
         mock_index = MagicMock()
         mock_index_flat_l2.return_value = mock_index
+        mock_index.ntotal = len(self.embeddings)
         index = construct_faiss_index(self.embeddings, num_gpus=0)
         self.assertEqual(index, mock_index)
 
