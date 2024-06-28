@@ -116,9 +116,9 @@ def process_pdf(file_path: str, chunk_size: int, chunk_overlap: int, doc_id: int
     return pd.DataFrame(processed_data)
 
 
-def process_txt_md_py(file_path: str, chunk_data, doc_id: int) -> pd.DataFrame:
+def process_txt_md_py_log(file_path: str, chunk_data, doc_id: int) -> pd.DataFrame:
     """
-    Processes a text-based file (TXT, MD, PY), extracting and chunking the text.
+    Processes a text-based file (TXT, MD, PY, LOG), extracting and chunking the text.
 
     Parameters:
     ----------
