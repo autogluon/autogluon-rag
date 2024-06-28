@@ -121,7 +121,7 @@ class DataProcessingModule:
         if file_extension.lower() == ".pdf":
             return process_pdf(file_path, self.chunk_size, self.chunk_overlap, doc_id)
         elif file_extension.lower() in [".txt", ".md", ".py", ".log"]:
-            return process_txt_md_py(file_path, self.chunk_data, doc_id)
+            return process_txt_md_py_log(file_path, self.chunk_data, doc_id)
         elif file_extension.lower() in [".docx", ".doc"]:
             return process_docx_doc(file_path, self.chunk_data, doc_id)
         elif file_extension.lower() == ".rtf":
