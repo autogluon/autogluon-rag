@@ -12,6 +12,6 @@ data:
 
   chunk_overlap : The overlap between consecutive chunks of text (default is 128).
 
-  file_exts: List of file extensions to read. Only the following file extensions are supported: ".pdf", ".txt", ".docx", ".doc", ".rtf", ".csv", ".md", ".py"
+  file_exts: List of file extensions to read. Only the following file extensions are supported: ".pdf", ".txt", ".docx", ".doc", ".rtf", ".csv", ".md", ".py", ".log"
 
 ```
