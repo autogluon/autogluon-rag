@@ -56,8 +56,6 @@ class VectorDatabaseModule:
             raise ValueError(
                 f"Unsupported similarity function: {self.similarity_fn}. Please choose from: {list(SUPPORTED_SIMILARITY_FUNCTIONS.keys())}"
             )
-        self.s3_bucket = kwargs.get("s3_bucket", None)
-        self.s3_client = boto3.client("s3") if self.s3_bucket else None
         self.num_gpus = kwargs.get("num_gpus", 0)
         self.metadata = []
         self.index = None

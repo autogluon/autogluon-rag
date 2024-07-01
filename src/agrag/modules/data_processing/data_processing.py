@@ -16,6 +16,7 @@ from agrag.modules.data_processing.utils import (
     process_rtf,
     process_txt_md_py_log,
 )
+from agrag.utils import parse_path
 
 logger = logging.getLogger("rag-logger")
 
@@ -32,8 +33,6 @@ class DataProcessingModule:
         The size of each chunk of text.
     chunk_overlap : int
         The overlap between consecutive chunks of text.
-    s3_bucket : str
-        The name of the S3 bucket containing the data files.
     file_exts: List[str]
         List of file extensions to support.
 
@@ -60,10 +59,11 @@ class DataProcessingModule:
         file_exts: List[str] = SUPPORTED_FILE_EXTENSIONS,
         **kwargs,
     ):
+        data_s3_bucket, data_dir = parse_path(data_dir)
         self.data_dir = data_dir
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
-        self.s3_bucket = kwargs.get("s3_bucket")
+        self.s3_bucket = data_s3_bucket
         self.s3_client = boto3.client("s3") if self.s3_bucket else None
         self.file_exts = file_exts
 
