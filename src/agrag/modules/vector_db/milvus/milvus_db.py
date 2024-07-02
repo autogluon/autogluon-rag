@@ -4,15 +4,13 @@ from typing import List
 import torch
 from pymilvus import MilvusClient
 
-from agrag.constants import MILVUS_DB_COLLECTION_NAME, MILVUS_DB_NAME
-
 logger = logging.getLogger("rag-logger")
 
 
 def construct_milvus_index(
     embeddings: List[torch.Tensor],
-    collection_name: str = MILVUS_DB_COLLECTION_NAME,
-    db_name: str = MILVUS_DB_NAME,
+    collection_name: str,
+    db_name: str,
     index_params: dict = {},
     create_params: dict = {},
 ) -> MilvusClient:

@@ -7,7 +7,7 @@ import pandas as pd
 import torch
 from tqdm import tqdm
 
-from agrag.constants import EMBEDDING_KEY, MILVUS_DB_COLLECTION_NAME, MILVUS_DB_NAME
+from agrag.constants import EMBEDDING_KEY
 from agrag.modules.vector_db.faiss.faiss_db import construct_faiss_index
 from agrag.modules.vector_db.milvus.milvus_db import construct_milvus_index
 from agrag.modules.vector_db.utils import SUPPORTED_SIMILARITY_FUNCTIONS, remove_duplicates
@@ -58,8 +58,8 @@ class VectorDatabaseModule:
             )
         self.num_gpus = kwargs.get("num_gpus", 0)
         self.milvus_search_params = kwargs.get("milvus_search_params", {})
-        self.milvus_collection_name = kwargs.get("milvus_collection_name", MILVUS_DB_COLLECTION_NAME)
-        self.milvus_db_name = kwargs.get("milvus_db_name", MILVUS_DB_NAME)
+        self.milvus_collection_name = kwargs.get("milvus_collection_name")
+        self.milvus_db_name = kwargs.get("milvus_db_name")
         self.milvus_index_params = kwargs.get("milvus_index_params", {})
         self.milvus_create_params = kwargs.get("milvus_create_params", {})
         self.metadata = []
