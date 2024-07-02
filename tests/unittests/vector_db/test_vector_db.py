@@ -53,7 +53,7 @@ class TestVectorDatabaseModule(unittest.TestCase):
             os.remove(self.metadata_path)
 
     @patch("agrag.modules.vector_db.vector_database.construct_faiss_index")
-    def test_construct_vector_database(self, mock_construct_faiss_index):
+    def test_construct_vector_database_faiss(self, mock_construct_faiss_index):
         mock_faiss_index = MagicMock()
         mock_construct_faiss_index.return_value = mock_faiss_index
 
@@ -63,6 +63,25 @@ class TestVectorDatabaseModule(unittest.TestCase):
                 for i in range(6)
             ]
         )
+        self.vector_db_module.construct_vector_database(embeddings)
+        self.assertIsNotNone(self.vector_db_module.index)
+        self.assertEqual(len(self.vector_db_module.metadata), len(embeddings))
+        metadata = embeddings.drop(columns=[EMBEDDING_KEY])
+        pd.testing.assert_frame_equal(self.vector_db_module.metadata, metadata)
+
+    @patch("agrag.modules.vector_db.vector_database.construct_milvus_index")
+    def test_construct_vector_database_milvus(self, mock_construct_milvus_index):
+        mock_milvus_index = MagicMock()
+        mock_construct_milvus_index.return_value = mock_milvus_index
+
+        embeddings = pd.DataFrame(
+            [
+                {EMBEDDING_KEY: torch.rand(1, 10).numpy(), DOC_ID_KEY: i, CHUNK_ID_KEY: i, DOC_TEXT_KEY: "some text"}
+                for i in range(6)
+            ]
+        )
+        self.vector_db_module.db_type = "milvus"
+
         self.vector_db_module.construct_vector_database(embeddings)
         self.assertIsNotNone(self.vector_db_module.index)
         self.assertEqual(len(self.vector_db_module.metadata), len(embeddings))

@@ -17,6 +17,7 @@ from agrag.modules.vector_db.faiss.faiss_db import (
     save_faiss_index,
     save_faiss_index_s3,
 )
+from agrag.modules.vector_db.milvus.milvus_db import load_milvus_index, save_milvus_index
 from agrag.utils import parse_path
 
 logger = logging.getLogger("rag-logger")
@@ -149,6 +150,8 @@ def save_index(
             save_faiss_index_s3(index_path, s3_bucket, s3_client)
         else:
             logger.warning(f"Failed to save index")
+    elif db_type == "milvus":
+        save_milvus_index()
     else:
         logger.warning(f"Cannot save index. Unsupported Vector DB {db_type}.")
 
@@ -180,6 +183,8 @@ def load_index(
         if s3_bucket:
             load_faiss_index_s3(index_path, s3_bucket, s3_client)
         index = load_faiss_index(index_path)
+    elif db_type == "milvus":
+        load_milvus_index(index_path)
     else:
         raise ValueError("Cannot load index. Unsupported Vector DB {db_type}.")
     if pbar:
