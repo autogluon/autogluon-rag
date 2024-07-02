@@ -14,7 +14,7 @@ We identify and remove duplicate embeddings based on a configurable similarity t
 Here are the configurable parameters for this module:
 ```
 vector_db:
-  db_type: The type of Vector DB (Currently, only FAISS is supported).
+  db_type: The type of Vector DB (Currently, only FAISS and Milvus are supported).
 
   params: What parameters to use for the Vector DB. For example, `{gpu: False}`.
 
@@ -22,7 +22,7 @@ vector_db:
 
   similarity_fn: The similarity function used for determining similarity scores for embeddings. Options are `cosine`, `euclidean`, `manhattan` (default is `cosine`).
 
-  use_existing_vector_db: Boolean to decide whether or not to use an existing, stored Vector DB Index from disk memory.
+  use_existing_vector_db: Boolean to decide whether or not to use an existing, stored Vector DB Index from disk memory. Note that we do not support using an existing Milvus database. This flag nay only be used with FAISS.
 
   vector_db_index_path: The Path to an existing, stored Vector DB Index file in disk memory or S3.
 
@@ -30,7 +30,7 @@ vector_db:
   
   metadata: Metadata for each embedding stored in the database
 
-  metadata_index_path: The Path to an existing, stored Metadata JSON file in disk memory or S4.
+  metadata_index_path: The Path to an existing, stored Metadata JSON file in disk memory or S3. Note that we do not support using an existing Milvus database
 
   s3_bucket: If applicable, S3 bucket that contains vector DB index and metadata files 
 
