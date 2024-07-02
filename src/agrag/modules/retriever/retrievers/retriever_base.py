@@ -3,7 +3,6 @@ from typing import Any, Dict, List
 
 import numpy as np
 import pandas as pd
-import torch
 from torch.nn import DataParallel
 
 from agrag.constants import DOC_TEXT_KEY, EMBEDDING_KEY
