@@ -17,6 +17,7 @@ from agrag.modules.vector_db.faiss.faiss_db import (
     save_faiss_index,
     save_faiss_index_s3,
 )
+from agrag.utils import parse_path
 
 logger = logging.getLogger("rag-logger")
 
@@ -113,8 +114,6 @@ def save_index(
     db_type: str,
     index: Union[faiss.IndexFlatL2],
     index_path: str,
-    s3_bucket: str = None,
-    s3_client: boto3.session.Session.client = None,
 ) -> None:
     """
     Saves the Vector DB index to disk.
@@ -132,6 +131,8 @@ def save_index(
     s3_client: boto3.session.Session.client
         S3 client to interface with AWS resources
     """
+    s3_bucket, index_path = parse_path(index_path)
+    s3_client = boto3.client("s3") if s3_bucket else None
     if not index:
         raise ValueError("No index to save. Please construct the index first.")
     if not index_path:
@@ -155,8 +156,6 @@ def save_index(
 def load_index(
     db_type: str,
     index_path: str,
-    s3_bucket: str = None,
-    s3_client: boto3.session.Session.client = None,
     pbar: tqdm = None,
 ) -> Union[faiss.IndexFlatL2]:
     """
@@ -168,10 +167,6 @@ def load_index(
         The type of Vector DB being used
     index_path : str
         The path from where the index will be loaded.
-    s3_bucket: str
-        S3 bucket to store the index in
-    s3_client: boto3.session.Session.client
-        S3 client to interface with AWS resources
 
     Returns:
     -------
@@ -179,6 +174,8 @@ def load_index(
         Vector DB Index
     """
     index = None
+    s3_bucket, index_path = parse_path(index_path)
+    s3_client = boto3.client("s3") if s3_bucket else None
     if db_type == "faiss":
         if s3_bucket:
             load_faiss_index_s3(index_path, s3_bucket, s3_client)
@@ -192,7 +189,8 @@ def load_index(
 
 
 def save_metadata(
-    metadata: pd.DataFrame, metadata_path: str, s3_bucket: str = None, s3_client: boto3.session.Session.client = None
+    metadata: pd.DataFrame,
+    metadata_path: str,
 ):
     """
     Saves metadata to file.
@@ -203,10 +201,6 @@ def save_metadata(
         Metadata to store
     metadata_path : str
         The path to the metadata file.
-    s3_bucket : str
-        The S3 bucket name.
-    s3_client : boto3.session.Session.client
-        The S3 client to interface with AWS resources.
 
     Returns:
     -------
@@ -233,6 +227,9 @@ def save_metadata(
         logger.error(f"Failed to save metadata to {metadata_path}: {e}")
         return False
 
+    s3_bucket, metadata_path = parse_path(metadata_path)
+    s3_client = boto3.client("s3") if s3_bucket else None
+
     if s3_bucket:
         try:
             s3_client.upload_file(Filename=metadata_path, Bucket=s3_bucket, Key=metadata_path)
@@ -251,7 +248,7 @@ def save_metadata(
 
 
 def load_metadata(
-    metadata_path: str, s3_bucket: str = None, s3_client: boto3.session.Session.client = None
+    metadata_path: str,
 ) -> pd.DataFrame:
     """
     Loads metadata from file.
@@ -260,16 +257,14 @@ def load_metadata(
     ----------
     metadata_path : str
         The path to the metadata file.
-    s3_bucket : str
-        The S3 bucket name.
-    s3_client : boto3.session.Session.client
-        The S3 client to interface with AWS resources.
 
     Returns:
     -------
     pd.DataFrame
         Metadata for Vector DB
     """
+    s3_bucket, metadata_path = parse_path(metadata_path)
+    s3_client = boto3.client("s3") if s3_bucket else None
     if s3_bucket:
         try:
             s3_client.download_file(Filename=metadata_path, Bucket=s3_bucket, Key=metadata_path)

@@ -109,11 +109,12 @@ class TestEmbeddingModule(unittest.TestCase):
         self.embedding_module.query_instruction_for_retrieval = "Instruction: "
         queries = ["query1", "query2"]
         expected_input_texts = ["Instruction: query1", "Instruction: query2"]
+        expected_input_texts = pd.DataFrame({DOC_TEXT_KEY: expected_input_texts})
         mock_encode.return_value = np.random.rand(2, 10)
 
         embeddings = self.embedding_module.encode_queries(queries)
 
-        self.assertEqual(mock_encode.call_args[0][0], expected_input_texts)
+        pd.testing.assert_frame_equal(mock_encode.call_args[0][0], expected_input_texts)
         self.assertEqual(embeddings.shape, (2, 10))
 
     @patch.object(EmbeddingModule, "encode")
@@ -121,11 +122,12 @@ class TestEmbeddingModule(unittest.TestCase):
         self.embedding_module.query_instruction_for_retrieval = None
         queries = ["query1", "query2"]
         expected_input_texts = queries
+        expected_input_texts = pd.DataFrame({DOC_TEXT_KEY: expected_input_texts})
         mock_encode.return_value = np.random.rand(2, 10)
 
         embeddings = self.embedding_module.encode_queries(queries)
 
-        self.assertEqual(mock_encode.call_args[0][0], expected_input_texts)
+        pd.testing.assert_frame_equal(mock_encode.call_args[0][0], expected_input_texts)
         self.assertEqual(embeddings.shape, (2, 10))
 
 

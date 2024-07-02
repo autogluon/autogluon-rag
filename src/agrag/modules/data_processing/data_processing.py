@@ -16,6 +16,7 @@ from agrag.modules.data_processing.utils import (
     process_rtf,
     process_txt_md_py_log,
 )
+from agrag.utils import parse_path
 
 logger = logging.getLogger("rag-logger")
 
@@ -28,20 +29,26 @@ class DataProcessingModule:
     ----------
     data_dir : str
         The directory containing the data files to be ingested.
-    chunk_size : int, optional
-        The size of each chunk of text (default is 512).
-    chunk_overlap : int, optional
-        The overlap between consecutive chunks of text (default is 128).
-    s3_bucket : str, optional
-        The name of the S3 bucket containing the data files.
-    file_exts: List[str], optional
-        List of file extensions to support
+    chunk_size : int
+        The size of each chunk of text.
+    chunk_overlap : int
+        The overlap between consecutive chunks of text.
+    file_exts: List[str]
+        List of file extensions to support.
 
-    Example:
-    --------
-    data_processing_module = DataProcessingModule(
-        data_dir="path/to/files", chunk_size=512, chunk_overlap=128, s3_bucket=my-s3-bucket
-    )
+    Methods:
+    -------
+    chunk_data_naive(text: str) -> List[str]:
+        Naively chunks text into segments of a specified size without any overlap.
+
+    chunk_data(text: str) -> List[str]:
+        Chunks text into segments using a specified overlap.
+
+    process_file(file_path: str, doc_id: int) -> pd.DataFrame:
+        Processes a single file, extracting and chunking the text.
+
+    process_data() -> pd.DataFrame:
+        Processes all files in the data directory, extracting and chunking text from each file, and compiles the results into a single DataFrame.
     """
 
     def __init__(
@@ -49,17 +56,18 @@ class DataProcessingModule:
         data_dir: str,
         chunk_size: int,
         chunk_overlap: int,
-        s3_bucket: str = None,
         file_exts: List[str] = SUPPORTED_FILE_EXTENSIONS,
-    ) -> None:
+        **kwargs,
+    ):
+        data_s3_bucket, data_dir = parse_path(data_dir)
         self.data_dir = data_dir
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
-        self.s3_bucket = s3_bucket
-        self.s3_client = boto3.client("s3") if s3_bucket else None
+        self.s3_bucket = data_s3_bucket
+        self.s3_client = boto3.client("s3") if self.s3_bucket else None
         self.file_exts = file_exts
 
-    def chunk_data_naive(self, text: str):
+    def chunk_data_naive(self, text: str) -> List[str]:
         """
         Naively chunks text into segments of a specified size without any overlap.
 
@@ -76,7 +84,7 @@ class DataProcessingModule:
         chunks = [text[i : i + self.chunk_size] for i in range(0, len(text), self.chunk_size)]
         return chunks
 
-    def chunk_data(self, text: str):
+    def chunk_data(self, text: str) -> List[str]:
         """
         Chunks text into segments using a specified overlap.
 

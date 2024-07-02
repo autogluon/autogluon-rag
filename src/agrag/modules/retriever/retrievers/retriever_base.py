@@ -18,7 +18,7 @@ class RetrieverModule:
     """
     Initializes the RetrieverModule with the VectorDatabaseModule.
 
-    Parameters:
+    Attributes:
     ----------
     vector_database_module : VectorDatabaseModule
         The module containing the vector database and metadata.
@@ -26,10 +26,16 @@ class RetrieverModule:
         The module for generating embeddings.
     top_k: int
         The top-k documents to retrieve (default is 20).
-    reranker: Any
-        An optional reranker instance to rerank the retrieved documents.
-    num_gpus: int
-        Number of GPUs to use when building the index.
+    **kwargs : dict
+        Additional parameters for `RetrieverModule`.
+
+    Methods:
+    -------
+    encode_query(query: str) -> np.ndarray:
+        Encodes the query into an embedding.
+
+    retrieve(query: str) -> List[Dict[str, Any]]:
+        Retrieves the top_k most similar embeddings to the query.
     """
 
     def __init__(
@@ -38,13 +44,14 @@ class RetrieverModule:
         embedding_module: EmbeddingModule,
         top_k: int = 20,
         reranker: Reranker = None,
-        num_gpus: int = 0,
+        **kwargs,
     ):
         self.embedding_module = embedding_module
 
         self.vector_database_module = vector_database_module
         self.top_k = top_k
 
+        num_gpus = kwargs.get("num_gpus", 0)
         self.num_gpus = num_gpus
         if self.num_gpus > 1:
             logger.info(f"Using {self.num_gpus} GPUs")

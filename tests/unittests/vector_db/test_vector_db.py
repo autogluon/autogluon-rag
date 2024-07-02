@@ -41,6 +41,7 @@ class TestVectorDatabaseModule(unittest.TestCase):
             db_type="faiss", params={"gpu": False}, similarity_threshold=0.95, similarity_fn="cosine"
         )
         self.index_path = "test_index_path"
+        self.s3_index_path = "s3://s3_bucket/test_index_path"
         self.metadata_path = "test_metadata_path"
         self.s3_bucket = "bucket"
         self.s3_client = boto3.client("s3")
@@ -121,13 +122,13 @@ class TestVectorDatabaseModule(unittest.TestCase):
         mock_save_faiss_index.assert_called_once_with(faiss_index, index_path)
 
     @patch("agrag.modules.vector_db.utils.save_faiss_index_s3")
-    @patch("agrag.modules.vector_db.utils.save_faiss_index")
-    def test_save_index_with_s3(self, mock_save_faiss_index, mock_save_faiss_index_s3):
+    @patch("boto3.client")
+    def test_save_index_with_s3(self, mock_s3_client, mock_save_faiss_index_s3):
         faiss_index = faiss.IndexFlatL2()
+        s3_client = mock_s3_client.return_value
         index_path = self.index_path
-        save_index("faiss", faiss_index, index_path, self.s3_bucket, self.s3_client)
-        mock_save_faiss_index.assert_called_once_with(faiss_index, index_path)
-        mock_save_faiss_index_s3.assert_called_once_with(index_path, self.s3_bucket, self.s3_client)
+        save_index("faiss", faiss_index, self.s3_index_path)
+        mock_save_faiss_index_s3.assert_called_once_with(index_path, "s3_bucket", s3_client)
 
     @patch("agrag.modules.vector_db.faiss.faiss_db.save_faiss_index")
     def test_save_index_failure(self, mock_save_faiss_index):
@@ -148,13 +149,15 @@ class TestVectorDatabaseModule(unittest.TestCase):
 
     @patch("agrag.modules.vector_db.utils.load_faiss_index_s3")
     @patch("agrag.modules.vector_db.utils.load_faiss_index")
-    def test_load_index_with_s3(self, mock_load_faiss_index, mock_load_faiss_index_s3):
+    @patch("boto3.client")
+    def test_load_index_with_s3(self, mock_s3_client, mock_load_faiss_index, mock_load_faiss_index_s3):
         mock_index = MagicMock()
         mock_load_faiss_index.return_value = mock_index
+        s3_client = mock_s3_client.return_value
         index_path = self.index_path
-        index = load_index("faiss", index_path, s3_bucket=self.s3_bucket, s3_client=self.s3_client)
+        index = load_index("faiss", self.s3_index_path)
         self.assertEqual(index, mock_index)
-        mock_load_faiss_index_s3.assert_called_once_with(index_path, self.s3_bucket, self.s3_client)
+        mock_load_faiss_index_s3.assert_called_once_with(index_path, "s3_bucket", s3_client)
         mock_load_faiss_index.assert_called_once_with(index_path)
 
     @patch("agrag.modules.vector_db.faiss.faiss_db.load_faiss_index")
@@ -179,12 +182,13 @@ class TestVectorDatabaseModule(unittest.TestCase):
     @patch("boto3.client")
     def test_save_metadata_s3(self, mock_boto_client, mock_makedirs, mock_to_json):
         metadata = pd.DataFrame([{DOC_ID_KEY: 1, CHUNK_ID_KEY: 0}, {DOC_ID_KEY: 1, CHUNK_ID_KEY: 1}])
-        metadata_path = "test_metadata_path"
+        metadata_path = "metadata"
+        s3_metadata_path = "s3://s3_bucket/metadata"
         mock_s3_client = mock_boto_client.return_value
-        save_metadata(metadata, metadata_path, "s3_bucket", mock_s3_client)
+        save_metadata(metadata, s3_metadata_path)
 
-        mock_makedirs.assert_called_once_with(os.path.dirname(metadata_path))
-        mock_to_json.assert_called_once_with(metadata_path, orient="records", lines=True)
+        mock_makedirs.assert_called_once_with(os.path.dirname(s3_metadata_path))
+        mock_to_json.assert_called_once_with(s3_metadata_path, orient="records", lines=True)
         mock_s3_client.upload_file.assert_called_once_with(
             Filename=metadata_path, Bucket="s3_bucket", Key=metadata_path
         )
@@ -209,8 +213,9 @@ class TestVectorDatabaseModule(unittest.TestCase):
             [{DOC_ID_KEY: 1, CHUNK_ID_KEY: 0}, {DOC_ID_KEY: 1, CHUNK_ID_KEY: 1}]
         )
         mock_s3_client = mock_boto_client.return_value
-        metadata_path = "test_metadata_path"
-        metadata = load_metadata(metadata_path, "s3_bucket", mock_s3_client)
+        metadata_path = "metadata"
+        s3_metadata_path = "s3://s3_bucket/metadata"
+        metadata = load_metadata(s3_metadata_path)
 
         mock_s3_client.download_file.assert_called_once_with(
             Filename=metadata_path, Bucket="s3_bucket", Key=metadata_path
