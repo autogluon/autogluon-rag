@@ -6,8 +6,10 @@ Here are the configurable parameters for this module:
 
 ```
 retriever:
-  top_k_embeddings: The top-k documents to retrieve (default is 20).
-
+  retriever_top_k: The top-k documents to retrieve (default is 50).
+  
+  reranker_top_k: The top-k documents to use as context for generation (default is 10).
+  
   use_reranker: Whether or not to use a reranker
 
   reranker_model_name: The name of the Huggingface model to use for reranking the embeddings related to the query.

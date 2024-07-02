@@ -28,6 +28,8 @@ class Reranker:
         Additional parameters to pass to the Huggingface model's `forward` method.
     num_gpus: int
         Number of GPUs to use for reranking.
+    top_k: int,
+        The top-k documents to use as context for generation (default is 10).
     **kwargs : dict
         Additional parameters for `Reranker`.
 
@@ -37,8 +39,10 @@ class Reranker:
         Reranks the text chunks based on their relevance to the query.
     """
 
-    def __init__(self, **kwargs):
-        self.model_name = kwargs.get("model_name", "BAAI/bge-large-en")
+    def __init__(self, model_name: str = "BAAI/bge-large-en", top_k: int = 10, **kwargs):
+        self.model_name = model_name
+        self.top_k = top_k
+
         self.batch_size = kwargs.get("batch_size", 64)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -96,4 +100,4 @@ class Reranker:
 
         sorted_text_chunks = [chunk for chunk, score in scored_chunks]
 
-        return sorted_text_chunks
+        return sorted_text_chunks[: self.top_k]
