@@ -1,7 +1,7 @@
 data:
   chunk_size: 128
   chunk_overlap: 16
-  data_dir: docs/
+  data_dir: s3://autogluon-rag-github-dev/autogluon_docs/
   file_extns:
     - "pdf"
     - "txt"
@@ -17,7 +17,8 @@ embedding:
   embedding_batch_size: 64
 
 vector_db:
-  db_type: milvus
+  db_type: faiss
+  params: {gpu: False}
   similarity_threshold: 0.95
   similarity_fn: cosine
   use_existing_vector_db: false
