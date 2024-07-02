@@ -60,6 +60,8 @@ class VectorDatabaseModule:
         self.milvus_search_params = kwargs.get("milvus_search_params", {})
         self.milvus_collection_name = kwargs.get("milvus_collection_name", MILVUS_DB_COLLECTION_NAME)
         self.milvus_db_name = kwargs.get("milvus_db_name", MILVUS_DB_NAME)
+        self.milvus_index_params = kwargs.get("milvus_index_params", {})
+        self.milvus_create_params = kwargs.get("milvus_create_params", {})
         self.metadata = []
         self.index = None
 
@@ -101,7 +103,11 @@ class VectorDatabaseModule:
         elif self.db_type == "milvus":
             logger.info("Constructing Milvus Index")
             self.index = construct_milvus_index(
-                vectors, collection_name=self.milvus_collection_name, db_name=self.milvus_db_name
+                vectors,
+                collection_name=self.milvus_collection_name,
+                db_name=self.milvus_db_name,
+                index_params=self.milvus_index_params,
+                create_params=self.milvus_create_params,
             )
         else:
             raise ValueError(f"Unsupported database type: {self.db_type}")

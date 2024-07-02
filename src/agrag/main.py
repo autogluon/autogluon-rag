@@ -51,6 +51,11 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
         similarity_threshold=args.vector_db_sim_threshold,
         similarity_fn=args.vector_db_sim_fn,
         num_gpus=num_gpus,
+        milvus_search_params=args.milvus_search_params,
+        milvus_collection_name=args.milvus_collection_name,
+        milvus_db_name=args.milvus_db_name,
+        milvus_index_params=args.milvus_index_params,
+        milvus_create_params=args.milvus_create_params,
     )
 
     logger.info(f"Using Vector DB: {db_type}")
