@@ -38,5 +38,9 @@ vector_db:
 
   milvus_collection_name: Name of the Milvus Collection. A DB can have multiple collections but we only use one here
 
-  milvus_search_params: Additional Params to pass into the search function for Milvus database when retrieving embeddings
+  milvus_search_params: Additional Params to pass into the search function for Milvus when retrieving embeddings
+
+  milvus_index_params: Additional Params to pass into the create_collection function for Milvus when creating the index
+
+  milvus_create_params: Additional Params to pass into the create_collection function for Milvus when creating the collections
 ```
