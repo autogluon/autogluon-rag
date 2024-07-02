@@ -46,7 +46,7 @@ class VectorDatabaseModule:
     """
 
     def __init__(
-        self, db_type: str = "faiss", similarity_threshold: float = 0.95, similarity_fn: str = "cosine", **kwargs
+        self, db_type: str = "milvus", similarity_threshold: float = 0.95, similarity_fn: str = "cosine", **kwargs
     ) -> None:
         self.db_type = db_type.lower()
         self.params = kwargs.get("params", {})
