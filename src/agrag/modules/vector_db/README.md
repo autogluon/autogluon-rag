@@ -14,7 +14,7 @@ We identify and remove duplicate embeddings based on a configurable similarity t
 Here are the configurable parameters for this module:
 ```
 vector_db:
-  db_type: The type of Vector DB (Currently, only FAISS and Milvus are supported).
+  db_type: The type of Vector DB (Currently, only 'faiss' and 'milvus' are supported).
 
   params: What parameters to use for the Vector DB. For example, `{gpu: False}`.
 
