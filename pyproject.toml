@@ -83,3 +83,6 @@ profile = "black"
 testpaths = "tests"
 addopts = "--strict-markers"
 xfail_strict = true
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
