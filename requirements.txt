@@ -13,3 +13,4 @@ numpy
 python-docx 
 pandas
 openai
+pymilvus

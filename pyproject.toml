@@ -50,6 +50,7 @@ dependencies = [
     "python-docx",
     "pandas",
     "openai",
+    "pymilvus",
 ]
 
 
