@@ -213,6 +213,12 @@ class Arguments:
     @property
     def top_k_embeddings(self):
         return self.config.get("retriever", {}).get("top_k_embeddings", self.retriever_defaults.get("TOP_K"))
+    def retriever_top_k(self):
+        return self.config.get("retriever", {}).get("retriever_top_k", self.retriever_defaults.get("RETRIEVER_TOP_K"))
+
+    @property
+    def reranker_top_k(self):
+        return self.config.get("retriever", {}).get("reranker_top_k", self.retriever_defaults.get("RERANKER_TOP_K"))
 
     @property
     def use_reranker(self):
