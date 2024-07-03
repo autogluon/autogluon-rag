@@ -22,7 +22,7 @@ vector_db:
 
   similarity_fn: The similarity function used for determining similarity scores for embeddings. Options are `cosine`, `euclidean`, `manhattan` (default is `cosine`).
 
-  use_existing_vector_db: Boolean to decide whether or not to use an existing, stored Vector DB Index from disk memory. Note that we do not support using an existing Milvus database. This flag nay only be used with FAISS.
+  use_existing_vector_db: Boolean to decide whether or not to use an existing, stored Vector DB Index from disk memory. Note that we do not support using an existing Milvus database. This flag can only be used with FAISS.
 
   vector_db_index_path: The Path to an existing, stored Vector DB Index file in disk memory or S3.
 
