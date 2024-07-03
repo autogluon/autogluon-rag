@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 import yaml
 
+from agrag.args import Arguments  # Importing the Arguments class
 from agrag.modules.data_processing.data_processing import DataProcessingModule
 from agrag.modules.embedding.embedding import EmbeddingModule
 from agrag.modules.generator.generator import GeneratorModule
@@ -27,7 +28,7 @@ CONFIG_DIRECTORY = os.path.join(os.path.dirname(__file__), "configs")
 class AutoGluonRAG:
     def __init__(
         self,
-        config: Optional[str] = None,
+        config_file: Optional[str] = None,
         preset_quality: Optional[str] = None,
         model_ids: Dict = None,
         data_dir: str = "",
@@ -37,7 +38,7 @@ class AutoGluonRAG:
 
         Parameters:
         ----------
-        config : str, optional
+        config_file : str, optional
             Path to the configuration file.
         preset_quality : str, optional
             Preset quality setting (e.g., "good", "medium", "best").
@@ -47,7 +48,6 @@ class AutoGluonRAG:
         data_dir : str
             The directory containing the data files that will be used for the RAG pipeline
         """
-        self.config = config
         self.preset_quality = preset_quality
         self.model_ids = model_ids
 
@@ -56,8 +56,10 @@ class AutoGluonRAG:
         elif self.preset_quality:
             self._load_preset()
 
+        self.args = Arguments(config_file)
+
         # will short-circuit to provided data_dir if config data_dir also provided
-        self.data_dir = data_dir or self.config.get("data_dir")
+        self.data_dir = data_dir or self.args.data_dir
 
         if not self.data_dir:
             raise ValueError("data_dir argument must be provided")
@@ -69,52 +71,46 @@ class AutoGluonRAG:
         self.retriever_module = None
         self.generator_module = None
 
-    def _load_config(self):
-        """Loads the configuration from a YAML file."""
-        with open(self.config, "r") as file:
-            self.config = yaml.safe_load(file)
-        logger.info("Configuration loaded from file")
-
     def _load_preset(self):
         """Loads a preset configuration based on the preset quality setting."""
         presets = {"medium": os.path.join(CONFIG_DIRECTORY, "example_config.yaml")}
-        self.config = self._load_config(presets[self.preset_quality])
+        self.args.config = self.args._load_config(presets[self.preset_quality])
         logger.info(f"Preset '{self.preset_quality}' configuration loaded")
 
     def initialize_data_module(self):
         """Initializes the Data Processing module."""
         self.data_processing_module = DataProcessingModule(
             data_dir=self.data_dir,
-            chunk_size=self.config.get("chunk_size"),
-            chunk_overlap=self.config.get("chunk_overlap"),
-            file_exts=self.config.get("data_file_extns"),
+            chunk_size=self.args.chunk_size,
+            chunk_overlap=self.args.chunk_overlap,
+            file_exts=self.args.data_file_extns,
         )
         logger.info("Data Processing module initialized")
 
     def initialize_embeddings_module(self):
         """Initializes the Embedding module."""
         self.embedding_module = EmbeddingModule(
-            hf_model=self.config.get("hf_embedding_model"),
-            pooling_strategy=self.config.get("pooling_strategy"),
-            normalize_embeddings=self.config.get("normalize_embeddings"),
-            hf_model_params=self.config.get("hf_model_params"),
-            hf_tokenizer_init_params=self.config.get("hf_tokenizer_init_params"),
-            hf_tokenizer_params=self.config.get("hf_tokenizer_params"),
-            hf_forward_params=self.config.get("hf_forward_params"),
-            normalization_params=self.config.get("normalization_params"),
-            query_instruction_for_retrieval=self.config.get("query_instruction_for_retrieval"),
+            hf_model=self.args.hf_embedding_model,
+            pooling_strategy=self.args.pooling_strategy,
+            normalize_embeddings=self.args.normalize_embeddings,
+            hf_model_params=self.args.hf_model_params,
+            hf_tokenizer_init_params=self.args.hf_tokenizer_init_params,
+            hf_tokenizer_params=self.args.hf_tokenizer_params,
+            hf_forward_params=self.args.hf_forward_params,
+            normalization_params=self.args.normalization_params,
+            query_instruction_for_retrieval=self.args.query_instruction_for_retrieval,
         )
         logger.info("Embedding module initialized")
 
     def initialize_vectordb_module(self):
         """Initializes the Vector DB module."""
         self.vector_db_module = VectorDatabaseModule(
-            db_type=self.config.get("vector_db_type"),
-            params=self.config.get("vector_db_args"),
-            similarity_threshold=self.config.get("vector_db_sim_threshold"),
-            similarity_fn=self.config.get("vector_db_sim_fn"),
-            s3_bucket=self.config.get("vector_db_s3_bucket"),
-            num_gpus=self.config.get("vector_db_num_gpus"),
+            db_type=self.args.vector_db_type,
+            params=self.args.vector_db_args,
+            similarity_threshold=self.args.vector_db_sim_threshold,
+            similarity_fn=self.args.vector_db_sim_fn,
+            s3_bucket=self.args.vector_db_s3_bucket,
+            num_gpus=self.args.vector_db_num_gpus,
         )
         logger.info("Vector DB module initialized")
 
@@ -123,44 +119,44 @@ class AutoGluonRAG:
         self.retriever_module = RetrieverModule(
             vector_database_module=self.vector_db_module,
             embedding_module=self.embedding_module,
-            top_k=self.config.get("retriever_top_k"),
+            top_k=self.args.retriever_top_k,
             reranker=self.reranker_module,
-            num_gpus=self.config.get("retriever_num_gpus"),
+            num_gpus=self.args.retriever_num_gpus,
         )
         logger.info("Retriever module initialized")
 
     def initialize_generator_module(self):
         """Initializes the Generator module."""
-        openai_api_key = read_openai_key(self.config.get("openai_key_file"))
+        openai_api_key = read_openai_key(self.args.openai_key_file)
 
         self.generator_module = GeneratorModule(
-            model_name=self.config.get("generator_model_name"),
-            hf_model_params=self.config.get("generator_hf_model_params"),
-            hf_tokenizer_init_params=self.config.get("generator_hf_tokenizer_init_params"),
-            hf_tokenizer_params=self.config.get("generator_hf_tokenizer_params"),
-            hf_generate_params=self.config.get("generator_hf_generate_params"),
-            gpt_generate_params=self.config.get("gpt_generate_params"),
-            vllm_sampling_params=self.config.get("vllm_sampling_params"),
-            num_gpus=self.config.get("generator_num_gpus"),
-            use_vllm=self.config.get("use_vllm"),
+            model_name=self.args.generator_model_name,
+            hf_model_params=self.args.generator_hf_model_params,
+            hf_tokenizer_init_params=self.args.generator_hf_tokenizer_init_params,
+            hf_tokenizer_params=self.args.generator_hf_tokenizer_params,
+            hf_generate_params=self.args.generator_hf_generate_params,
+            gpt_generate_params=self.args.gpt_generate_params,
+            vllm_sampling_params=self.args.vllm_sampling_params,
+            num_gpus=self.args.generator_num_gpus,
+            use_vllm=self.args.use_vllm,
             openai_api_key=openai_api_key,
-            bedrock_generate_params=self.config.get("bedrock_generate_params"),
-            use_bedrock=self.config.get("use_bedrock"),
-            local_model_path=self.config.get("generator_local_model_path"),
+            bedrock_generate_params=self.args.bedrock_generate_params,
+            use_bedrock=self.args.use_bedrock,
+            local_model_path=self.args.generator_local_model_path,
         )
         logger.info("Generator module initialized")
 
     def initialize_reranker_module(self):
         """Initializes the Reranker module."""
         self.reranker_module = Reranker(
-            model_name=self.config.get("reranker_model_name"),
-            batch_size=self.config.get("reranker_batch_size"),
-            top_k=self.config.get("reranker_top_k"),
-            hf_forward_params=self.config.get("reranker_hf_forward_params"),
-            hf_tokenizer_init_params=self.config.get("reranker_hf_tokenizer_init_params"),
-            hf_tokenizer_params=self.config.get("reranker_hf_tokenizer_params"),
-            hf_model_params=self.config.get("reranker_hf_model_params"),
-            num_gpus=self.config.get("reranker_num_gpus"),
+            model_name=self.args.reranker_model_name,
+            batch_size=self.args.reranker_batch_size,
+            top_k=self.args.reranker_top_k,
+            hf_forward_params=self.args.reranker_hf_forward_params,
+            hf_tokenizer_init_params=self.args.reranker_hf_tokenizer_init_params,
+            hf_tokenizer_params=self.args.reranker_hf_tokenizer_params,
+            hf_model_params=self.args.reranker_hf_model_params,
+            num_gpus=self.args.reranker_num_gpus,
         )
         logger.info("Reranker module initialized")
 
@@ -208,7 +204,7 @@ class AutoGluonRAG:
         })
         embeddings = agrag.generate_embeddings(processed_data)
         """
-        embeddings = self.embedding_module.encode(processed_data, batch_size=self.config.get("embedding_batch_size"))
+        embeddings = self.embedding_module.encode(processed_data, batch_size=self.args.embedding_batch_size)
         return embeddings
 
     def construct_vector_db(self, embeddings: pd.DataFrame):
@@ -245,11 +241,11 @@ class AutoGluonRAG:
         agrag.initialize_vectordb_module()
         success = agrag.load_existing_vector_db()
         """
-        index_path = self.config.get("vector_db_index_load_path")
+        index_path = self.args.vector_db_index_load_path
         logger.info(f"Loading existing index from {index_path}")
-        self.vector_db_module.index = load_index(self.config.get("vector_db_type"), index_path)
+        self.vector_db_module.index = load_index(self.args.vector_db_type, index_path)
 
-        metadata_path = self.config.get("metadata_index_load_path")
+        metadata_path = self.args.metadata_index_load_path
         logger.info(f"Loading existing metadata from {metadata_path}")
         self.vector_db_module.metadata = load_metadata(metadata_path)
 
@@ -271,8 +267,8 @@ class AutoGluonRAG:
         agrag.initialize_vectordb_module()
         agrag.save_index_and_metadata()
         """
-        index_path = self.config.get("vector_db_index_save_path")
-        metadata_path = self.config.get("metadata_index_save_path")
+        index_path = self.args.vector_db_index_save_path
+        metadata_path = self.args.metadata_index_save_path
         basedir = os.path.dirname(index_path)
         if not os.path.exists(basedir):
             logger.info(f"Creating directory for Vector Index save at {basedir}")
@@ -333,7 +329,7 @@ class AutoGluonRAG:
         """
         retrieved_context = self.retrieve_context_for_query(query)
 
-        query_prefix = self.config.get("generator_query_prefix")
+        query_prefix = self.args.generator_query_prefix
         if query_prefix:
             query = f"{query_prefix}\n{query}"
         formatted_query = format_query(
@@ -367,11 +363,11 @@ class AutoGluonRAG:
         self.initialize_reranker_module()
         self.initialize_retriever_module()
         self.initialize_generator_module()
-        if self.config.get("use_existing_vector_db_index"):
+        if self.args.use_existing_vector_db_index:
             self.load_existing_vector_db()
         else:
             processed_data = self.process_data()
             embeddings = self.generate_embeddings(processed_data=processed_data)
             self.construct_vector_db(embeddings=embeddings)
-            if self.config.get("save_index"):
+            if self.args.save_index:
                 self.save_index_and_metadata()
