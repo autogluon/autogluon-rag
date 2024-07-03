@@ -1,10 +1,9 @@
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import torch
-from pymilvus import MilvusClient
 
-from agrag.modules.vector_db.milvus.milvus_db import construct_milvus_index, load_milvus_index, save_milvus_index
+from agrag.modules.vector_db.milvus.milvus_db import construct_milvus_index
 
 
 class TestMilvusInterface(unittest.TestCase):
