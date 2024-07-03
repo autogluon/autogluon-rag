@@ -34,9 +34,12 @@ class Arguments:
         Loads default values from the specified YAML file.
     """
 
-    def __init__(self):
-        self.args = self._parse_args()
-        self.config = self._load_config(self.args.config_file)
+    def __init__(self, config_file: str = None):
+        if config_file:
+            self.config = self._load_config(config_file)
+        else:
+            self.args = self._parse_args()
+            self.config = self._load_config(self.args.config_file)
         self.data_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/data_processing/default.yaml"))
         self.embedding_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/embedding/default.yaml"))
         self.vector_db_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/vector_db/default.yaml"))

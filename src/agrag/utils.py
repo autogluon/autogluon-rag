@@ -47,6 +47,8 @@ def read_openai_key(file_path: str) -> str:
     IOError
         If there is an error reading the file.
     """
+    if not file_path:
+        return None
     try:
         with open(file_path, "r") as file:
             key = file.read().strip()
