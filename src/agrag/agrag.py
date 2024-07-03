@@ -369,5 +369,5 @@ class AutoGluonRAG:
             processed_data = self.process_data()
             embeddings = self.generate_embeddings(processed_data=processed_data)
             self.construct_vector_db(embeddings=embeddings)
-            if self.args.save_index:
+            if self.args.save_vector_db_index:
                 self.save_index_and_metadata()
