@@ -128,6 +128,7 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
         logger.info(f"\nUsing reranker {args.reranker_model_name}")
         reranker = Reranker(
             model_name=args.reranker_model_name,
+            top_k=args.reranker_top_k,
             batch_size=args.reranker_batch_size,
             hf_forward_params=args.reranker_hf_forward_params,
             hf_tokenizer_init_params=args.reranker_hf_tokenizer_init_params,
@@ -146,7 +147,7 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
     retriever_module = RetrieverModule(
         vector_database_module=vector_database_module,
         embedding_module=embedding_module,
-        top_k=args.top_k_embeddings,
+        top_k=args.retriever_top_k,
         reranker=reranker,
         num_gpus=num_gpus,
     )

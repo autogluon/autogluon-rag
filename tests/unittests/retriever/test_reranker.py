@@ -40,6 +40,24 @@ class TestReranker(unittest.TestCase):
 
         self.assertEqual(sorted_text_chunks, ["test chunk 2", "test chunk 1"])
 
+    def test_rerank_top_k(self):
+        query = "Some query"
+        text_chunks = ["test chunk 1", "test chunk 2"]
+
+        self.mock_tokenizer.return_value = {
+            "input_ids": torch.tensor([[1, 2, 3], [4, 5, 6]]),
+            "attention_mask": torch.tensor([[1, 1, 1], [1, 1, 1]]),
+        }
+
+        self.reranker.top_k = 1
+
+        self.mock_model.return_value.logits = torch.tensor([[0.1], [0.2], [0.3]])
+
+        with patch.object(self.reranker, "model", return_value=[torch.tensor([[0.1], [0.2], [0.3]])]):
+            sorted_text_chunks = self.reranker.rerank(query, text_chunks)
+
+        self.assertEqual(sorted_text_chunks, ["test chunk 2"])
+
 
 if __name__ == "__main__":
     unittest.main()

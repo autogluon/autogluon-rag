@@ -3,7 +3,6 @@ from typing import Any, Dict, List
 
 import numpy as np
 import pandas as pd
-import torch
 from torch.nn import DataParallel
 
 from agrag.constants import DOC_TEXT_KEY, EMBEDDING_KEY
@@ -25,7 +24,7 @@ class RetrieverModule:
     embedding_model: EmbeddingModule,
         The module for generating embeddings.
     top_k: int
-        The top-k documents to retrieve (default is 20).
+        The top-k documents to retrieve (default is 50).
     **kwargs : dict
         Additional parameters for `RetrieverModule`.
 
@@ -42,7 +41,7 @@ class RetrieverModule:
         self,
         vector_database_module: VectorDatabaseModule,
         embedding_module: EmbeddingModule,
-        top_k: int = 20,
+        top_k: int = 50,
         reranker: Reranker = None,
         **kwargs,
     ):
