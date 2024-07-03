@@ -15,8 +15,8 @@ class TestMilvusInterface(unittest.TestCase):
         embeddings = [torch.rand(128) for _ in range(10)]
         collection_name = "test_collection"
         db_name = "test_db"
-        index_params = {"index_type": "IVF_FLAT", "metric_type": "L2", "params": {"nlist": 100}}
-        create_params = {"timeout": 30}
+        index_params = {"index_type": "IVF_FLAT", "metric_type": "L2", "params": {"param": 1}}
+        create_params = {"param": 0}
 
         mock_client.has_collection.return_value = True
         client = construct_milvus_index(
@@ -27,7 +27,7 @@ class TestMilvusInterface(unittest.TestCase):
             create_params=create_params,
         )
 
-        mock_client.create_collection.assert_called_once_with(
+        client.create_collection.assert_called_once_with(
             collection_name=collection_name,
             dimension=128,
             vector_field_name="embedding",
