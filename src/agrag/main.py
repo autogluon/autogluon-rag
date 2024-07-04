@@ -2,7 +2,7 @@ from agrag.agrag import AutoGluonRAG
 
 
 def ag_rag():
-    agrag = AutoGluonRAG(preset_quality="medium")
+    agrag = AutoGluonRAG(preset_quality="medium", data_dir="s3://autogluon-rag-github-dev/autogluon_docs/")
     agrag.initialize_rag_pipeline()
     while True:
         query_text = input(
