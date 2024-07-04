@@ -283,10 +283,6 @@ class AutoGluonRAG:
         """
         index_path = self.args.vector_db_index_save_path
         metadata_path = self.args.metadata_index_save_path
-        basedir = os.path.dirname(index_path)
-        if not os.path.exists(basedir):
-            logger.info(f"Creating directory for Vector Index save at {basedir}")
-            os.makedirs(basedir)
         save_index(
             self.vector_db_module.db_type,
             self.vector_db_module.index,
@@ -320,17 +316,12 @@ class AutoGluonRAG:
         """
         return self.retriever_module.retrieve(query)
 
-    def generate_response(self, query: str) -> str:
+    def generate_responses(self) -> str:
         """
         Generates a response to the provided query using the Generator module.
 
         This method first retrieves relevant context for the query using the Retriever module,
         formats the query and context appropriately, and then generates a response using the Generator module.
-
-        Parameters:
-        ----------
-        query : str
-            The user query for which a response is to be generated.
 
         Returns:
         -------
@@ -339,21 +330,27 @@ class AutoGluonRAG:
 
         Example:
         --------
-        response = agrag.generate_response("How do I use this package?")
+        response = agrag.generate_responses()
         """
-        retrieved_context = self.retrieve_context_for_query(query)
+        while True:
+            query = input(
+                "Please enter a query for your RAG pipeline, based on the documents you provided (type 'q' to quit): "
+            )
+            if query == "q":
+                break
 
-        query_prefix = self.args.generator_query_prefix
-        if query_prefix:
-            query = f"{query_prefix}\n{query}"
-        formatted_query = format_query(
-            model_name=self.generator_module.model_name, query=query, context=retrieved_context
-        )
+            retrieved_context = self.retrieve_context_for_query(query)
 
-        response = self.generator_module.generate_response(formatted_query)
+            query_prefix = self.args.generator_query_prefix
+            if query_prefix:
+                query = f"{query_prefix}\n{query}"
+            formatted_query = format_query(
+                model_name=self.generator_module.model_name, query=query, context=retrieved_context
+            )
 
-        logger.info(f"\nResponse: {response}\n")
-        return response
+            response = self.generator_module.generate_response(formatted_query)
+
+            logger.info(f"\nResponse: {response}\n")
 
     def initialize_rag_pipeline(self):
         """

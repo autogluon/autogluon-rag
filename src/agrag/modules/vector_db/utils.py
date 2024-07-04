@@ -138,6 +138,10 @@ def save_index(
     if not index_path:
         logger.warning(f"Cannot save index. Invalid path {index_path}.")
         return
+    basedir = os.path.dirname(index_path)
+    if not os.path.exists(basedir):
+        logger.info(f"Creating directory for Vector Index save at {basedir}")
+        os.makedirs(basedir)
     if not os.path.isfile(index_path):
         with open(index_path, "w") as fp:
             pass
@@ -216,6 +220,9 @@ def save_metadata(
     if not isinstance(metadata, pd.DataFrame):
         raise TypeError("Metadata not a pandas DataFrame.")
 
+    s3_bucket, metadata_path = parse_path(metadata_path)
+    s3_client = boto3.client("s3") if s3_bucket else None
+
     metadata_dir = os.path.dirname(metadata_path)
     if not os.path.exists(metadata_dir):
         os.makedirs(metadata_dir)
@@ -226,9 +233,6 @@ def save_metadata(
     except (IOError, Exception) as e:
         logger.error(f"Failed to save metadata to {metadata_path}: {e}")
         return False
-
-    s3_bucket, metadata_path = parse_path(metadata_path)
-    s3_client = boto3.client("s3") if s3_bucket else None
 
     if s3_bucket:
         try:
