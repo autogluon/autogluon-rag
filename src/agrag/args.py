@@ -36,8 +36,10 @@ class Arguments:
 
     def __init__(self, config_file: str = None):
         if config_file:
+            # Use through config-file
             self.config = self._load_config(config_file)
         else:
+            # Use through command-line
             self.args = self._parse_args()
             self.config = self._load_config(self.args.config_file)
         self.data_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/data_processing/default.yaml"))
