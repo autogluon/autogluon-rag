@@ -17,10 +17,11 @@ from agrag.modules.vector_db.vector_database import VectorDatabaseModule
 from agrag.utils import read_openai_key
 
 logger = logging.getLogger("rag-logger")
-logger.setLevel(logging.INFO)
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-logger.addHandler(ch)
+if not logger.hasHandlers():
+    logger.setLevel(logging.INFO)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    logger.addHandler(ch)
 
 CONFIG_DIRECTORY = os.path.join(os.path.dirname(__file__), "configs")
 
@@ -51,12 +52,14 @@ class AutoGluonRAG:
         self.preset_quality = preset_quality
         self.model_ids = model_ids
 
-        if self.config:
+        if config_file:
             self._load_config()
         elif self.preset_quality:
             self._load_preset()
 
-        self.args = Arguments(config_file)
+        self.config = config_file or self._load_preset()
+
+        self.args = Arguments(self.config)
 
         # will short-circuit to provided data_dir if config data_dir also provided
         self.data_dir = data_dir or self.args.data_dir
@@ -71,11 +74,23 @@ class AutoGluonRAG:
         self.retriever_module = None
         self.generator_module = None
 
+    def _load_config(self, config_file: str):
+        """Load configuration data from a user-defined config file."""
+        try:
+            with open(config_file, "r") as f:
+                self.config = yaml.safe_load(f)
+        except FileNotFoundError:
+            logger.error(f"Error: File not found - {config_file}")
+        except yaml.YAMLError as exc:
+            logger.error(f"Error parsing YAML file - {config_file}: {exc}")
+        except Exception as exc:
+            logger.error(f"Unexpected error occurred while loading {config_file}: {exc}")
+
     def _load_preset(self):
         """Loads a preset configuration based on the preset quality setting."""
         presets = {"medium": os.path.join(CONFIG_DIRECTORY, "example_config.yaml")}
-        self.args.config = self.args._load_config(presets[self.preset_quality])
-        logger.info(f"Preset '{self.preset_quality}' configuration loaded")
+        logger.info(f"Loading Preset '{self.preset_quality}' configuration")
+        return presets[self.preset_quality]
 
     def initialize_data_module(self):
         """Initializes the Data Processing module."""
@@ -109,7 +124,6 @@ class AutoGluonRAG:
             params=self.args.vector_db_args,
             similarity_threshold=self.args.vector_db_sim_threshold,
             similarity_fn=self.args.vector_db_sim_fn,
-            s3_bucket=self.args.vector_db_s3_bucket,
             num_gpus=self.args.vector_db_num_gpus,
         )
         logger.info("Vector DB module initialized")
@@ -156,7 +170,7 @@ class AutoGluonRAG:
             hf_tokenizer_init_params=self.args.reranker_hf_tokenizer_init_params,
             hf_tokenizer_params=self.args.reranker_hf_tokenizer_params,
             hf_model_params=self.args.reranker_hf_model_params,
-            num_gpus=self.args.reranker_num_gpus,
+            num_gpus=self.args.retriever_num_gpus,
         )
         logger.info("Reranker module initialized")
 
