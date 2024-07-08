@@ -49,6 +49,8 @@ class AutoGluonRAG:
         data_dir : str
             The directory containing the data files that will be used for the RAG pipeline
         """
+        logger.info("\n\nAutoGluon-RAG\n\n")
+
         self.preset_quality = preset_quality
         self.model_ids = model_ids
 
@@ -170,11 +172,14 @@ class AutoGluonRAG:
 
     def initialize_reranker_module(self):
         """Initializes the Reranker module."""
+        reranker_model = self.args.reranker_model_name
+        logger.info(f"\nUsing reranker {reranker_model}")
+
         num_gpus = get_num_gpus(self.args.retriever_num_gpus)
         logger.info(f"Using number of GPUs: {num_gpus} for Reranker Module")
 
         self.reranker_module = Reranker(
-            model_name=self.args.reranker_model_name,
+            model_name=reranker_model,
             batch_size=self.args.reranker_batch_size,
             top_k=self.args.reranker_top_k,
             hf_forward_params=self.args.reranker_hf_forward_params,
