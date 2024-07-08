@@ -140,14 +140,14 @@ class TestVectorDatabaseModule(unittest.TestCase):
         save_index("faiss", faiss_index, index_path)
         mock_save_faiss_index.assert_called_once_with(faiss_index, index_path)
 
-    @patch("agrag.modules.vector_db.utils.save_faiss_index_s3")
+    @patch("agrag.modules.vector_db.utils.save_index_s3")
     @patch("boto3.client")
-    def test_save_index_with_s3(self, mock_s3_client, mock_save_faiss_index_s3):
+    def test_save_index_with_s3(self, mock_s3_client, mock_save_index_s3):
         faiss_index = faiss.IndexFlatL2()
         s3_client = mock_s3_client.return_value
         index_path = self.index_path
         save_index("faiss", faiss_index, self.s3_index_path)
-        mock_save_faiss_index_s3.assert_called_once_with(index_path, "s3_bucket", s3_client)
+        mock_save_index_s3.assert_called_once_with(index_path, "s3_bucket", s3_client)
 
     @patch("agrag.modules.vector_db.faiss.faiss_db.save_faiss_index")
     def test_save_index_failure(self, mock_save_faiss_index):
@@ -166,17 +166,17 @@ class TestVectorDatabaseModule(unittest.TestCase):
         self.assertEqual(index, mock_index)
         mock_load_faiss_index.assert_called_once_with(index_path)
 
-    @patch("agrag.modules.vector_db.utils.load_faiss_index_s3")
+    @patch("agrag.modules.vector_db.utils.load_index_s3")
     @patch("agrag.modules.vector_db.utils.load_faiss_index")
     @patch("boto3.client")
-    def test_load_index_with_s3(self, mock_s3_client, mock_load_faiss_index, mock_load_faiss_index_s3):
+    def test_load_index_with_s3(self, mock_s3_client, mock_load_faiss_index, mock_load_index_s3):
         mock_index = MagicMock()
         mock_load_faiss_index.return_value = mock_index
         s3_client = mock_s3_client.return_value
         index_path = self.index_path
         index = load_index("faiss", self.s3_index_path)
         self.assertEqual(index, mock_index)
-        mock_load_faiss_index_s3.assert_called_once_with(index_path, "s3_bucket", s3_client)
+        mock_load_index_s3.assert_called_once_with(index_path, "s3_bucket", s3_client)
         mock_load_faiss_index.assert_called_once_with(index_path)
 
     @patch("agrag.modules.vector_db.faiss.faiss_db.load_faiss_index")

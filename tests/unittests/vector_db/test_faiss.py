@@ -6,13 +6,7 @@ import boto3
 import torch
 from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
 
-from agrag.modules.vector_db.faiss.faiss_db import (
-    construct_faiss_index,
-    load_faiss_index,
-    load_faiss_index_s3,
-    save_faiss_index,
-    save_faiss_index_s3,
-)
+from agrag.modules.vector_db.faiss.faiss_db import construct_faiss_index, load_faiss_index, save_faiss_index
 
 
 class TestFaissDB(unittest.TestCase):
@@ -65,54 +59,6 @@ class TestFaissDB(unittest.TestCase):
         index_path = self.index_path
         index = load_faiss_index(index_path)
         self.assertIsNone(index)
-
-    def test_save_faiss_index_s3(self):
-        result = save_faiss_index_s3(self.index_path, self.s3_bucket, self.s3_client)
-        self.s3_client.upload_file.assert_called_once_with(
-            Filename=self.index_path, Bucket=self.s3_bucket, Key=self.index_path
-        )
-        self.assertTrue(result)
-
-    def test_save_faiss_index_s3_no_credentials(self):
-        self.s3_client.upload_file.side_effect = NoCredentialsError()
-        result = save_faiss_index_s3(self.index_path, self.s3_bucket, self.s3_client)
-        self.assertFalse(result)
-
-    def test_save_faiss_index_s3_partial_credentials(self):
-        self.s3_client.upload_file.side_effect = PartialCredentialsError(provider="test", cred_var="test")
-        result = save_faiss_index_s3(self.index_path, self.s3_bucket, self.s3_client)
-        self.assertFalse(result)
-
-    def test_save_faiss_index_s3_client_error(self):
-        self.s3_client.upload_file.side_effect = ClientError(
-            {"Error": {"Code": "500", "Message": "Test Error"}}, "UploadFile"
-        )
-        result = save_faiss_index_s3(self.index_path, self.s3_bucket, self.s3_client)
-        self.assertFalse(result)
-
-    def test_load_faiss_index_s3(self):
-        result = load_faiss_index_s3(self.index_path, self.s3_bucket, self.s3_client)
-        self.s3_client.download_file.assert_called_once_with(
-            Filename=self.index_path, Bucket=self.s3_bucket, Key=self.index_path
-        )
-        self.assertTrue(result)
-
-    def test_load_faiss_index_s3_no_credentials(self):
-        self.s3_client.download_file.side_effect = NoCredentialsError()
-        result = load_faiss_index_s3(self.index_path, self.s3_bucket, self.s3_client)
-        self.assertFalse(result)
-
-    def test_load_faiss_index_s3_partial_credentials(self):
-        self.s3_client.download_file.side_effect = PartialCredentialsError(provider="test", cred_var="test")
-        result = load_faiss_index_s3(self.index_path, self.s3_bucket, self.s3_client)
-        self.assertFalse(result)
-
-    def test_load_faiss_index_s3_client_error(self):
-        self.s3_client.download_file.side_effect = ClientError(
-            {"Error": {"Code": "500", "Message": "Test Error"}}, "DownloadFile"
-        )
-        result = load_faiss_index_s3(self.index_path, self.s3_bucket, self.s3_client)
-        self.assertFalse(result)
 
 
 if __name__ == "__main__":

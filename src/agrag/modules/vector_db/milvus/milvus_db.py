@@ -58,11 +58,12 @@ def construct_milvus_index(
     return client
 
 
-def load_milvus_index():
-    raise NotImplementedError(
-        "Milvus does not support loading the index directly."
-        + "Milvus handles the persistence of data and indexes internally."
-    )
+def load_milvus_index(index_path):
+    if not index_path.endswith(".db"):
+        logger.warning("\n\nWARNING: Incorrect Index Path. Milvus index must be a file of type '.db'\n\n")
+        return None
+    client = MilvusClient(index_path)
+    return client
 
 
 def save_milvus_index():
