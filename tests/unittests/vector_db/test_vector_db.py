@@ -40,9 +40,10 @@ class TestVectorDatabaseModule(unittest.TestCase):
         self.vector_db_module = VectorDatabaseModule(
             db_type="faiss", params={"gpu": False}, similarity_threshold=0.95, similarity_fn="cosine"
         )
-        self.index_path = "test_index_path"
-        self.s3_index_path = "s3://s3_bucket/test_index_path"
-        self.metadata_path = "test_metadata_path"
+        self.index_path = "test_index_path/test_index"
+        self.s3_index_path = "s3://s3_bucket/test_index_path/test_index"
+        self.s3_metadata_path = "s3://s3_bucket/test_metadata_path/test_metadata"
+        self.metadata_path = "test_metadata_path/test_metadata"
         self.s3_bucket = "bucket"
         self.s3_client = boto3.client("s3")
 
@@ -51,6 +52,10 @@ class TestVectorDatabaseModule(unittest.TestCase):
             os.remove(self.index_path)
         if os.path.exists(self.metadata_path):
             os.remove(self.metadata_path)
+        if os.path.exists(self.s3_index_path):
+            os.remove(self.s3_index_path)
+        if os.path.exists(self.s3_metadata_path):
+            os.remove(self.s3_metadata_path)
 
     @patch("agrag.modules.vector_db.vector_database.construct_faiss_index")
     def test_construct_vector_database(self, mock_construct_faiss_index):
@@ -168,27 +173,23 @@ class TestVectorDatabaseModule(unittest.TestCase):
         self.assertIsNone(index)
 
     @patch("pandas.DataFrame.to_json")
-    @patch("os.makedirs")
-    def test_save_metadata(self, mock_makedirs, mock_to_json):
+    def test_save_metadata(self, mock_to_json):
         metadata = pd.DataFrame([{DOC_ID_KEY: 1, CHUNK_ID_KEY: 0}, {DOC_ID_KEY: 1, CHUNK_ID_KEY: 1}])
-        metadata_path = "test_metadata_path"
+        metadata_path = self.metadata_path
         save_metadata(metadata, metadata_path)
 
-        mock_makedirs.assert_called_once_with(os.path.dirname(metadata_path))
         mock_to_json.assert_called_once_with(metadata_path, orient="records", lines=True)
 
     @patch("pandas.DataFrame.to_json")
-    @patch("os.makedirs")
     @patch("boto3.client")
-    def test_save_metadata_s3(self, mock_boto_client, mock_makedirs, mock_to_json):
+    def test_save_metadata_s3(self, mock_boto_client, mock_to_json):
         metadata = pd.DataFrame([{DOC_ID_KEY: 1, CHUNK_ID_KEY: 0}, {DOC_ID_KEY: 1, CHUNK_ID_KEY: 1}])
-        metadata_path = "metadata"
-        s3_metadata_path = "s3://s3_bucket/metadata"
+        metadata_path = self.metadata_path
+        s3_metadata_path = self.s3_metadata_path
         mock_s3_client = mock_boto_client.return_value
         save_metadata(metadata, s3_metadata_path)
 
-        mock_makedirs.assert_called_once_with(os.path.dirname(s3_metadata_path))
-        mock_to_json.assert_called_once_with(s3_metadata_path, orient="records", lines=True)
+        mock_to_json.assert_called_once_with(metadata_path, orient="records", lines=True)
         mock_s3_client.upload_file.assert_called_once_with(
             Filename=metadata_path, Bucket="s3_bucket", Key=metadata_path
         )
@@ -198,7 +199,7 @@ class TestVectorDatabaseModule(unittest.TestCase):
         mock_read_json.return_value = pd.DataFrame(
             [{DOC_ID_KEY: 1, CHUNK_ID_KEY: 0}, {DOC_ID_KEY: 1, CHUNK_ID_KEY: 1}]
         )
-        metadata_path = "test_metadata_path"
+        metadata_path = self.metadata_path
         metadata = load_metadata(metadata_path)
 
         mock_read_json.assert_called_once_with(metadata_path, orient="records", lines=True)
@@ -213,8 +214,8 @@ class TestVectorDatabaseModule(unittest.TestCase):
             [{DOC_ID_KEY: 1, CHUNK_ID_KEY: 0}, {DOC_ID_KEY: 1, CHUNK_ID_KEY: 1}]
         )
         mock_s3_client = mock_boto_client.return_value
-        metadata_path = "metadata"
-        s3_metadata_path = "s3://s3_bucket/metadata"
+        metadata_path = self.metadata_path
+        s3_metadata_path = self.s3_metadata_path
         metadata = load_metadata(s3_metadata_path)
 
         mock_s3_client.download_file.assert_called_once_with(

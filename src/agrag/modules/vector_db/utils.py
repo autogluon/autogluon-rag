@@ -179,6 +179,10 @@ def load_index(
     """
     index = None
     s3_bucket, index_path = parse_path(index_path)
+    basedir = os.path.dirname(index_path)
+    if not os.path.exists(basedir):
+        logger.info(f"Creating directory for Vector Index load at {basedir}")
+        os.makedirs(basedir)
     s3_client = boto3.client("s3") if s3_bucket else None
     if db_type == "faiss":
         if s3_bucket:
@@ -269,6 +273,10 @@ def load_metadata(
     """
     s3_bucket, metadata_path = parse_path(metadata_path)
     s3_client = boto3.client("s3") if s3_bucket else None
+    basedir = os.path.dirname(metadata_path)
+    if not os.path.exists(basedir):
+        logger.info(f"Creating directory for Metadata load at {basedir}")
+        os.makedirs(basedir)
     if s3_bucket:
         try:
             s3_client.download_file(Filename=metadata_path, Bucket=s3_bucket, Key=metadata_path)
