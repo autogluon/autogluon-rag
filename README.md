@@ -42,7 +42,7 @@ options:
   --config_file        Path to the configuration file 
 ```
 
-### Use AutoGluon-RAG is through code:
+### Use AutoGluon-RAG through code:
 ```
 from agrag.agrag import AutoGluonRAG
 
