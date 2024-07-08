@@ -24,7 +24,6 @@ logger.addHandler(ch)
 
 
 def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
-
     db_type = args.vector_db_type
 
     index_path = args.vector_db_index_path
@@ -86,7 +85,6 @@ def initialize_rag_pipeline(args: Arguments) -> RetrieverModule:
             pbar.refresh()
 
         with tqdm(total=len(processed_data), desc="\nEmbedding Module", unit="step") as pbar:
-
             embedding_module = EmbeddingModule(
                 hf_model=args.hf_embedding_model,
                 pooling_strategy=args.pooling_strategy,

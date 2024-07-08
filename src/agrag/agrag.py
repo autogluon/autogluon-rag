@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 import yaml
 
-from agrag.args import Arguments  # Importing the Arguments class
+from agrag.args import Arguments
 from agrag.modules.data_processing.data_processing import DataProcessingModule
 from agrag.modules.embedding.embedding import EmbeddingModule
 from agrag.modules.generator.generator import GeneratorModule
@@ -14,7 +14,7 @@ from agrag.modules.retriever.rerankers.reranker import Reranker
 from agrag.modules.retriever.retrievers.retriever_base import RetrieverModule
 from agrag.modules.vector_db.utils import load_index, load_metadata, save_index, save_metadata
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
-from agrag.utils import read_openai_key
+from agrag.utils import get_num_gpus, read_openai_key
 
 logger = logging.getLogger("rag-logger")
 if not logger.hasHandlers():
@@ -119,29 +119,37 @@ class AutoGluonRAG:
 
     def initialize_vectordb_module(self):
         """Initializes the Vector DB module."""
+        db_type = self.args.vector_db_type
+        logger.info(f"Using Vector DB: {db_type}")
+        num_gpus = get_num_gpus(self.args.vector_db_num_gpus)
+        logger.info(f"Using number of GPUs: {num_gpus} for Vector DB Module")
         self.vector_db_module = VectorDatabaseModule(
-            db_type=self.args.vector_db_type,
+            db_type=db_type,
             params=self.args.vector_db_args,
             similarity_threshold=self.args.vector_db_sim_threshold,
             similarity_fn=self.args.vector_db_sim_fn,
-            num_gpus=self.args.vector_db_num_gpus,
+            num_gpus=num_gpus,
         )
         logger.info("Vector DB module initialized")
 
     def initialize_retriever_module(self):
         """Initializes the Retriever module."""
+        num_gpus = get_num_gpus(self.args.retriever_num_gpus)
+        logger.info(f"Using number of GPUs: {num_gpus} for Retriever Module")
         self.retriever_module = RetrieverModule(
             vector_database_module=self.vector_db_module,
             embedding_module=self.embedding_module,
             top_k=self.args.retriever_top_k,
             reranker=self.reranker_module,
-            num_gpus=self.args.retriever_num_gpus,
+            num_gpus=num_gpus,
         )
         logger.info("Retriever module initialized")
 
     def initialize_generator_module(self):
         """Initializes the Generator module."""
         openai_api_key = read_openai_key(self.args.openai_key_file)
+        num_gpus = get_num_gpus(self.args.generator_num_gpus)
+        logger.info(f"Using number of GPUs: {num_gpus} for Generator Module")
 
         self.generator_module = GeneratorModule(
             model_name=self.args.generator_model_name,
@@ -151,7 +159,7 @@ class AutoGluonRAG:
             hf_generate_params=self.args.generator_hf_generate_params,
             gpt_generate_params=self.args.gpt_generate_params,
             vllm_sampling_params=self.args.vllm_sampling_params,
-            num_gpus=self.args.generator_num_gpus,
+            num_gpus=num_gpus,
             use_vllm=self.args.use_vllm,
             openai_api_key=openai_api_key,
             bedrock_generate_params=self.args.bedrock_generate_params,
@@ -162,6 +170,9 @@ class AutoGluonRAG:
 
     def initialize_reranker_module(self):
         """Initializes the Reranker module."""
+        num_gpus = get_num_gpus(self.args.retriever_num_gpus)
+        logger.info(f"Using number of GPUs: {num_gpus} for Reranker Module")
+
         self.reranker_module = Reranker(
             model_name=self.args.reranker_model_name,
             batch_size=self.args.reranker_batch_size,
@@ -170,7 +181,7 @@ class AutoGluonRAG:
             hf_tokenizer_init_params=self.args.reranker_hf_tokenizer_init_params,
             hf_tokenizer_params=self.args.reranker_hf_tokenizer_params,
             hf_model_params=self.args.reranker_hf_model_params,
-            num_gpus=self.args.retriever_num_gpus,
+            num_gpus=num_gpus,
         )
         logger.info("Reranker module initialized")
 
@@ -192,6 +203,7 @@ class AutoGluonRAG:
         agrag.initialize_data_module()
         processed_data = agrag.process_data()
         """
+        logger.info(f"Retrieving Data from {self.data_processing_module.data_dir}")
         processed_data = self.data_processing_module.process_data()
         return processed_data
 
@@ -238,6 +250,7 @@ class AutoGluonRAG:
         embeddings = agrag.generate_embeddings(processed_data)
         agrag.construct_vector_db(embeddings)
         """
+        logger.info(f"\nConstructing Vector DB index")
         self.vector_db_module.construct_vector_database(embeddings)
 
     def load_existing_vector_db(self, index_path: str, metadata_path: str):
@@ -291,11 +304,13 @@ class AutoGluonRAG:
         agrag.initialize_vectordb_module()
         agrag.save_index_and_metadata()
         """
+        logger.info(f"\nSaving Vector DB at {index_path}")
         save_index(
             self.vector_db_module.db_type,
             self.vector_db_module.index,
             index_path,
         )
+        logger.info(f"\nSaving Metadata at {metadata_path}")
         save_metadata(
             self.vector_db_module.metadata,
             metadata_path,
