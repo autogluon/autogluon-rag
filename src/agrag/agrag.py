@@ -316,12 +316,17 @@ class AutoGluonRAG:
         """
         return self.retriever_module.retrieve(query)
 
-    def generate_responses(self) -> str:
+    def generate_response(self, query: str) -> str:
         """
         Generates a response to the provided query using the Generator module.
 
         This method first retrieves relevant context for the query using the Retriever module,
         formats the query and context appropriately, and then generates a response using the Generator module.
+
+        Parameters:
+        ----------
+        query : str
+            The user query for which a response is to be generated.
 
         Returns:
         -------
@@ -330,27 +335,21 @@ class AutoGluonRAG:
 
         Example:
         --------
-        response = agrag.generate_responses()
+        response = agrag.generate_response("What is AutoGluon?")
         """
-        while True:
-            query = input(
-                "Please enter a query for your RAG pipeline, based on the documents you provided (type 'q' to quit): "
-            )
-            if query == "q":
-                break
 
-            retrieved_context = self.retrieve_context_for_query(query)
+        retrieved_context = self.retrieve_context_for_query(query)
 
-            query_prefix = self.args.generator_query_prefix
-            if query_prefix:
-                query = f"{query_prefix}\n{query}"
-            formatted_query = format_query(
-                model_name=self.generator_module.model_name, query=query, context=retrieved_context
-            )
+        query_prefix = self.args.generator_query_prefix
+        if query_prefix:
+            query = f"{query_prefix}\n{query}"
+        formatted_query = format_query(
+            model_name=self.generator_module.model_name, query=query, context=retrieved_context
+        )
 
-            response = self.generator_module.generate_response(formatted_query)
+        response = self.generator_module.generate_response(formatted_query)
 
-            logger.info(f"\nResponse: {response}\n")
+        logger.info(f"\nResponse: {response}\n")
 
     def initialize_rag_pipeline(self):
         """
