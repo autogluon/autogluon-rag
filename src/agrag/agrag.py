@@ -240,9 +240,15 @@ class AutoGluonRAG:
         """
         self.vector_db_module.construct_vector_database(embeddings)
 
-    def load_existing_vector_db(self):
+    def load_existing_vector_db(self, index_path: str, metadata_path: str):
         """
         Loads an existing Vector Database from the specified paths in the configuration.
+
+        Parameters:
+        index_path : str
+            The path from where the index will be loaded
+        metadata_path : str
+            The path to the metadata file.
 
         Returns:
         -------
@@ -253,13 +259,11 @@ class AutoGluonRAG:
         --------
         agrag = AutoGluonRAG(config_file="path/to/config")
         agrag.initialize_vectordb_module()
-        success = agrag.load_existing_vector_db()
+        success = agrag.load_existing_vector_db("path/to/index", "path/to/metadata")
         """
-        index_path = self.args.vector_db_index_load_path
         logger.info(f"Loading existing index from {index_path}")
         self.vector_db_module.index = load_index(self.args.vector_db_type, index_path)
 
-        metadata_path = self.args.metadata_index_load_path
         logger.info(f"Loading existing metadata from {metadata_path}")
         self.vector_db_module.metadata = load_metadata(metadata_path)
 
@@ -374,7 +378,7 @@ class AutoGluonRAG:
         self.initialize_retriever_module()
         self.initialize_generator_module()
         if self.args.use_existing_vector_db_index:
-            self.load_existing_vector_db()
+            self.load_existing_vector_db(self.args.vector_db_index_load_path, self.args.metadata_index_load_path)
         else:
             processed_data = self.process_data()
             embeddings = self.generate_embeddings(processed_data=processed_data)
