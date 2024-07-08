@@ -272,12 +272,18 @@ class AutoGluonRAG:
         )
         return load_index_successful
 
-    def save_index_and_metadata(self):
+    def save_index_and_metadata(self, index_path, metadata_path):
         """
         Saves the vector database index and metadata to the specified paths in the configuration.
 
         This method ensures the directories for saving the index and metadata exist, then saves the
         vector database index and metadata to their respective paths.
+
+        Parameters:
+        index_path : str
+            The path where the index will be saved.
+        metadata_path : str
+            The path where the metadata will be saved.
 
         Example:
         --------
@@ -285,8 +291,6 @@ class AutoGluonRAG:
         agrag.initialize_vectordb_module()
         agrag.save_index_and_metadata()
         """
-        index_path = self.args.vector_db_index_save_path
-        metadata_path = self.args.metadata_index_save_path
         save_index(
             self.vector_db_module.db_type,
             self.vector_db_module.index,
@@ -384,4 +388,4 @@ class AutoGluonRAG:
             embeddings = self.generate_embeddings(processed_data=processed_data)
             self.construct_vector_db(embeddings=embeddings)
             if self.args.save_vector_db_index:
-                self.save_index_and_metadata()
+                self.save_index_and_metadata(self.args.vector_db_index_save_path, self.args.metadata_index_save_path)
