@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import torch
 
-from agrag.modules.vector_db.milvus.milvus_db import construct_milvus_index
+from agrag.modules.vector_db.milvus.milvus_db import construct_milvus_index, load_milvus_index
 
 
 class TestMilvusInterface(unittest.TestCase):
@@ -36,6 +36,25 @@ class TestMilvusInterface(unittest.TestCase):
         )
         self.assertEqual(mock_client.insert.call_count, 1)
         self.assertEqual(len(mock_client.insert.call_args[1]["data"]), 10)
+
+    @patch("agrag.modules.vector_db.milvus.milvus_db.MilvusClient")
+    def test_load_milvus_index(self, MockMilvusClient):
+        mock_client_instance = MockMilvusClient.return_value
+        index_path = "valid_path.db"
+
+        client = load_milvus_index(index_path)
+
+        MockMilvusClient.assert_called_once_with(index_path)
+        self.assertEqual(client, mock_client_instance)
+
+    @patch("agrag.modules.vector_db.milvus.milvus_db.MilvusClient", side_effect=Exception("Error loading index"))
+    def test_load_milvus_index_exception(self, MockMilvusClient):
+        index_path = "invalid_path.db"
+
+        client = load_milvus_index(index_path)
+
+        MockMilvusClient.assert_called_once_with(index_path)
+        self.assertIsNone(client)
 
 
 if __name__ == "__main__":
