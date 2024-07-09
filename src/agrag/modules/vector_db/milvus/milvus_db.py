@@ -44,7 +44,7 @@ def construct_milvus_index(
 
     client = MilvusClient(db_name)
     if client.has_collection(collection_name):
-        logger.info(f"Remove existing index {collection_name}")
+        logger.info(f"Removing existing index {collection_name}")
         client.drop_collection(collection_name)
     logger.info(f"Creating new index {collection_name} and adding to the database {db_name}")
     client.create_collection(
@@ -72,6 +72,8 @@ def load_milvus_index(index_path):
         client = MilvusClient(index_path)
     except Exception as e:
         logger.error(f"An unexpected error occurred while loading Milvus index from {index_path}: {e}")
+
+    logger.info("Milvus index loaded from {index_path}")
     return client
 
 
