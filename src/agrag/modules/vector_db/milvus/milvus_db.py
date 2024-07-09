@@ -61,10 +61,13 @@ def construct_milvus_index(
 
 
 def load_milvus_index(index_path):
+    client = None
     if not index_path.endswith(".db"):
         logger.warning("\n\nWARNING: Incorrect Index Path. Milvus index must be a file of type '.db'\n\n")
-        return None
-    client = MilvusClient(index_path)
+    try:
+        client = MilvusClient(index_path)
+    except Exception as e:
+        logger.error(f"An unexpected error occurred while loading Milvus index from {index_path}: {e}")
     return client
 
 
