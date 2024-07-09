@@ -27,9 +27,6 @@ vector_db:
   metadata_index_save_path: s3://autogluon-rag-github-dev/vectorDB_metadata_save/faiss/metadata.json
   vector_db_index_load_path: s3://autogluon-rag-github-dev/vectorDB_index_save/faiss/index.idx
   metadata_index_load_path: s3://autogluon-rag-github-dev/vectorDB_metadata_save/faiss/metadata.json
-  vector_db_index_save_path: s3://autogluon-rag-github-dev/vectorDB_index_save/faiss/index.idx
-  metadata_index_save_path: s3://autogluon-rag-github-dev/vectorDB_metadata_save/faiss/metadata.json
-
 
 retriever:
   retriever_top_k: 20

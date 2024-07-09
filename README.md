@@ -42,7 +42,7 @@ options:
   --config_file        Path to the configuration file 
 ```
 
-### Use AutoGluon-RAG is through code:
+### Use AutoGluon-RAG through code:
 ```
 from agrag.agrag import AutoGluonRAG
 
@@ -62,12 +62,12 @@ These are the parameters that can be passed into the `AutoGluonRAG` class:
 config_file : str, optional
     Path to the configuration file.
 preset_quality : str, optional
-    Preset quality setting (e.g., "good", "medium", "best").
+    Preset quality setting (e.g., "good_quality", "medium_quality", "best_quality"). Note that if both config_file and preset_quality are provided, config_file will be prioritized.  
 model_ids : dict, optional
     Dictionary of model IDs to use for specific modules.
     Example: {"generator_model_id": "mistral.mistral-7b-instruct-v0:2", "retriever_model_id": "BAAI/bge-large-en", "reranker_model_id": "nv_embed"}
 data_dir : str
-    The directory containing the data files that will be used for the RAG pipeline
+    The directory containing the data files that will be used for the RAG pipeline. If this value is not provided when initializing the object, it must be provided in the config file.
 ```
 
 The configuration file contains the specific parameters to use for each module in the RAG pipeline. For an example of a config file, please refer to `example_config.yaml` in `src/agrag/configs/`. For specific details about the parameters in each individual module, refer to the `README` files in each module in `src/agrag/modules/`.
