@@ -90,7 +90,7 @@ class AutoGluonRAG:
 
     def _load_preset(self):
         """Loads a preset configuration based on the preset quality setting."""
-        presets = {"medium": os.path.join(PRESETS_CONFIG_DIRECTORY, "medium_quality_config.yaml")}
+        presets = {"medium_quality": os.path.join(PRESETS_CONFIG_DIRECTORY, "medium_quality_config.yaml")}
         logger.info(f"Loading Preset '{self.preset_quality}' configuration")
         return presets[self.preset_quality]
 
