@@ -34,9 +34,14 @@ class Arguments:
         Loads default values from the specified YAML file.
     """
 
-    def __init__(self):
-        self.args = self._parse_args()
-        self.config = self._load_config(self.args.config_file)
+    def __init__(self, config_file: str = None):
+        if config_file:
+            # Use through config-file
+            self.config = self._load_config(config_file)
+        else:
+            # Use through command-line
+            self.args = self._parse_args()
+            self.config = self._load_config(self.args.config_file)
         self.data_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/data_processing/default.yaml"))
         self.embedding_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/embedding/default.yaml"))
         self.vector_db_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/vector_db/default.yaml"))
@@ -163,23 +168,41 @@ class Arguments:
         return self.config.get("vector_db", {}).get("similarity_fn", self.vector_db_defaults.get("SIMILARITY_FN"))
 
     @property
-    def vector_db_index_path(self):
-        return self.config.get("vector_db", {}).get("vector_db_index_path", self.vector_db_defaults.get("INDEX_PATH"))
-
-    @property
     def use_existing_vector_db_index(self):
         return self.config.get("vector_db", {}).get(
             "use_existing_vector_db", self.vector_db_defaults.get("USE_EXISTING_INDEX")
         )
 
     @property
+    def save_vector_db_index(self):
+        return self.config.get("vector_db", {}).get("save_index", self.vector_db_defaults.get("SAVE_INDEX"))
+
+    @property
     def vector_db_num_gpus(self):
         return self.config.get("vector_db", {}).get("num_gpus", None)
 
     @property
-    def metadata_index_path(self):
+    def vector_db_index_save_path(self):
         return self.config.get("vector_db", {}).get(
-            "metadata_index_path", self.vector_db_defaults.get("METADATA_PATH")
+            "vector_db_index_save_path", self.vector_db_defaults.get("INDEX_PATH")
+        )
+
+    @property
+    def metadata_index_save_path(self):
+        return self.config.get("vector_db", {}).get(
+            "metadata_index_save_path", self.vector_db_defaults.get("METADATA_PATH")
+        )
+
+    @property
+    def vector_db_index_load_path(self):
+        return self.config.get("vector_db", {}).get(
+            "vector_db_index_load_path", self.vector_db_defaults.get("INDEX_PATH")
+        )
+
+    @property
+    def metadata_index_load_path(self):
+        return self.config.get("vector_db", {}).get(
+            "metadata_index_load_path", self.vector_db_defaults.get("METADATA_PATH")
         )
 
     @property
