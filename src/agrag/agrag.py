@@ -404,7 +404,12 @@ class AutoGluonRAG:
         load_index = self.args.use_existing_vector_db_index
         load_index_successful = False
         if load_index:
-            self.load_existing_vector_db(self.args.vector_db_index_load_path, self.args.metadata_index_load_path)
+            index_path = (
+                self.args.milvus_db_name
+                if self.args.vector_db_type == "milvus"
+                else self.args.vector_db_index_load_path
+            )
+            self.load_existing_vector_db(index_path, self.args.metadata_index_load_path)
             load_index_successful = (
                 True if self.vector_db_module.index and self.vector_db_module.metadata is not None else False
             )
