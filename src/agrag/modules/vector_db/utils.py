@@ -177,6 +177,9 @@ def load_index(
     Union[faiss.IndexFlatL2]
         Vector DB Index
     """
+    if not index_path:
+        logger.warning(f"Cannot load index. Invalid path {index_path}.")
+        return False
     index = None
     s3_bucket, index_path = parse_path(index_path)
     basedir = os.path.dirname(index_path)
@@ -216,8 +219,10 @@ def save_metadata(
         True, if metadata saved successfully to file
         False, else
     """
-    if metadata.empty:
-        raise ValueError("No metadata to save. Please construct metadata first.")
+    if metadata is None or metadata.empty:
+        raise ValueError(
+            "No metadata to save. Please construct metadata first using the Data Processing and Embedding Module."
+        )
     if not metadata_path:
         logger.warning(f"Cannot save metadata. Invalid path {metadata_path}.")
         return False
@@ -229,7 +234,11 @@ def save_metadata(
 
     metadata_dir = os.path.dirname(metadata_path)
     if not os.path.exists(metadata_dir):
+        logger.info(f"Creating directory for metadata save at {metadata_dir}")
         os.makedirs(metadata_dir)
+    if not os.path.isfile(metadata_path):
+        with open(metadata_path, "w") as fp:
+            pass
 
     try:
         metadata.to_json(metadata_path, orient="records", lines=True)
@@ -271,11 +280,14 @@ def load_metadata(
     pd.DataFrame
         Metadata for Vector DB
     """
+    if not metadata_path:
+        logger.warning(f"Cannot load metadata. Invalid path {metadata_path}.")
+        return None
     s3_bucket, metadata_path = parse_path(metadata_path)
     s3_client = boto3.client("s3") if s3_bucket else None
     basedir = os.path.dirname(metadata_path)
     if not os.path.exists(basedir):
-        logger.info(f"Creating directory for Metadata load at {basedir}")
+        logger.info(f"Creating directory for metadata load at {basedir}")
         os.makedirs(basedir)
     if s3_bucket:
         try:
