@@ -73,6 +73,6 @@ def load_milvus_index(index_path):
 
 def save_milvus_index():
     logger.warning(
-        "Milvus does not support saving the index directly."
-        + "Milvus handles the persistence of data and indexes internally."
+        "Milvus does not support saving the index explicitly."
+        + "Milvus handles the persistence of data and indexes internally and automatically saves the database to the directory."
     )
