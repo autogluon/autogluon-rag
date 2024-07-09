@@ -206,6 +206,34 @@ class Arguments:
         )
 
     @property
+    def milvus_search_params(self):
+        return self.config.get("vector_db", {}).get(
+            "milvus_search_params", self.vector_db_defaults.get("MILVUS_INDEX_PARAMS")
+        )
+
+    @property
+    def milvus_collection_name(self):
+        return self.config.get("vector_db", {}).get(
+            "milvus_collection_name", self.vector_db_defaults.get("MILVUS_DB_COLLECTION_NAME")
+        )
+
+    @property
+    def milvus_db_name(self):
+        return self.config.get("vector_db", {}).get("milvus_db_name", self.vector_db_defaults.get("MILVUS_DB_NAME"))
+
+    @property
+    def milvus_index_params(self):
+        return self.config.get("vector_db", {}).get(
+            "milvus_index_params", self.vector_db_defaults.get("MILVUS_INDEX_PARAMS")
+        )
+
+    @property
+    def milvus_create_params(self):
+        return self.config.get("vector_db", {}).get(
+            "milvus_create_params", self.vector_db_defaults.get("MILVUS_CREATE_PARAMS")
+        )
+
+    @property
     def retriever_top_k(self):
         return self.config.get("retriever", {}).get("retriever_top_k", self.retriever_defaults.get("RETRIEVER_TOP_K"))
 

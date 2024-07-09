@@ -14,7 +14,7 @@ We identify and remove duplicate embeddings based on a configurable similarity t
 Here are the configurable parameters for this module:
 ```
 vector_db:
-  db_type: The type of Vector DB (Currently, only FAISS is supported).
+  db_type: The type of Vector DB (Currently, only 'faiss' and 'milvus' are supported). Default is 'milvus'. 
 
   params: What parameters to use for the Vector DB. For example, `{gpu: False}`.
 
@@ -22,16 +22,32 @@ vector_db:
 
   similarity_fn: The similarity function used for determining similarity scores for embeddings. Options are `cosine`, `euclidean`, `manhattan` (default is `cosine`).
 
-  use_existing_vector_db: Boolean to decide whether or not to use an existing, stored Vector DB Index from disk memory.
+  use_existing_vector_db: Boolean to decide whether or not to use an existing, stored Vector DB Index from disk memory. 
 
-  vector_db_index_path: The Path to an existing, stored Vector DB Index file in disk memory or S3.
+  vector_db_index_save_path: The path to store the vector DB index. This can be a local path or an S3 path.
+  Note that if it is a Milvus DB, the milvus package automatically saves the index at the path specified in milvus_db_name. 
+  
+  metadata_index_save_path: The path to store the Metadata. This can be a local path or an S3 path.
+  
+  vector_db_index_load_path: The path to an existing, stored Vector DB Index file. This can be a local path or an S3 path. 
+  Note that if it is a Milvus DB, this value must be the same as milvus_db_name since that is where the milvus package automatically stores the database.
+  
+  metadata_index_load_path:  The path to an existing, stored Metadata JSON file. This can be a local path or an S3 path.
+  Note that we do not support using an existing Milvus database
 
   num_gpus: Number of GPUs to use when building the index
   
   metadata: Metadata for each embedding stored in the database
 
-  metadata_index_path: The Path to an existing, stored Metadata JSON file in disk memory or S4.
-
   s3_bucket: If applicable, S3 bucket that contains vector DB index and metadata files 
 
+  milvus_db_name: Name of the Milvus DB Client
+
+  milvus_collection_name: Name of the Milvus Collection. A DB can have multiple collections but we only use one here
+
+  milvus_search_params: Additional Params to pass into the search function for Milvus when retrieving embeddings
+
+  milvus_index_params: Additional Params to pass into the create_collection function for Milvus when creating the index
+
+  milvus_create_params: Additional Params to pass into the create_collection function for Milvus when creating the collections
 ```

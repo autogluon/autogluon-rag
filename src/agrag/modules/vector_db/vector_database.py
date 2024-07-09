@@ -1,15 +1,15 @@
 import logging
-from typing import Any, Dict, List, Union
+from typing import List, Union
 
-import boto3
 import faiss
 import numpy as np
 import pandas as pd
 import torch
 from tqdm import tqdm
 
-from agrag.constants import EMBEDDING_KEY
+from agrag.constants import EMBEDDING_HIDDEN_DIM_KEY, EMBEDDING_KEY
 from agrag.modules.vector_db.faiss.faiss_db import construct_faiss_index
+from agrag.modules.vector_db.milvus.milvus_db import construct_milvus_index
 from agrag.modules.vector_db.utils import SUPPORTED_SIMILARITY_FUNCTIONS, remove_duplicates
 
 logger = logging.getLogger("rag-logger")
@@ -46,9 +46,9 @@ class VectorDatabaseModule:
     """
 
     def __init__(
-        self, db_type: str = "faiss", similarity_threshold: float = 0.95, similarity_fn: str = "cosine", **kwargs
+        self, db_type: str = "milvus", similarity_threshold: float = 0.95, similarity_fn: str = "cosine", **kwargs
     ) -> None:
-        self.db_type = db_type
+        self.db_type = db_type.lower()
         self.params = kwargs.get("params", {})
         self.similarity_threshold = similarity_threshold
         self.similarity_fn = similarity_fn
@@ -57,6 +57,11 @@ class VectorDatabaseModule:
                 f"Unsupported similarity function: {self.similarity_fn}. Please choose from: {list(SUPPORTED_SIMILARITY_FUNCTIONS.keys())}"
             )
         self.num_gpus = kwargs.get("num_gpus", 0)
+        self.milvus_search_params = kwargs.get("milvus_search_params", {})
+        self.milvus_collection_name = kwargs.get("milvus_collection_name")
+        self.milvus_db_name = kwargs.get("milvus_db_name")
+        self.milvus_index_params = kwargs.get("milvus_index_params", {})
+        self.milvus_create_params = kwargs.get("milvus_create_params", {})
         self.metadata = []
         self.index = None
 
@@ -80,7 +85,8 @@ class VectorDatabaseModule:
         """
         logger.info("Initializing Vector DB Construction")
 
-        self.metadata = embeddings.drop(columns=[EMBEDDING_KEY])
+        embeddings_hidden_dim = embeddings.iloc[0][EMBEDDING_HIDDEN_DIM_KEY]
+        self.metadata = embeddings.drop(columns=[EMBEDDING_KEY, EMBEDDING_HIDDEN_DIM_KEY])
         if pbar:
             pbar.update(1)
 
@@ -92,9 +98,20 @@ class VectorDatabaseModule:
         if pbar:
             pbar.update(1)
 
-        logger.info("Constructing FAISS Index")
         if self.db_type == "faiss":
-            self.index = construct_faiss_index(vectors, self.num_gpus)
+            logger.info("Constructing FAISS Index")
+            self.index = construct_faiss_index(
+                embeddings=vectors, num_gpus=self.num_gpus, hidden_size=embeddings_hidden_dim
+            )
+        elif self.db_type == "milvus":
+            logger.info("Constructing Milvus Index")
+            self.index = construct_milvus_index(
+                vectors,
+                collection_name=self.milvus_collection_name,
+                db_name=self.milvus_db_name,
+                index_params=self.milvus_index_params,
+                create_params=self.milvus_create_params,
+            )
         else:
             raise ValueError(f"Unsupported database type: {self.db_type}")
 
@@ -122,5 +139,16 @@ class VectorDatabaseModule:
         if self.db_type == "faiss":
             _, indices = self.index.search(x=embedding, k=top_k)
             return indices[0].tolist()
+        elif self.db_type == "milvus":
+            search_results = self.index.search(
+                collection_name=self.milvus_collection_name,
+                data=embedding.tolist(),
+                anns_field="embedding",
+                search_params=self.milvus_search_params,
+                limit=top_k,
+                output_fields=["id"],
+            )
+            search_results_data = search_results[0]
+            return [result["id"] for result in search_results_data]
         else:
             raise ValueError(f"Unsupported database type: {self.db_type}")

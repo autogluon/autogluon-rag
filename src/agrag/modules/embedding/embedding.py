@@ -8,7 +8,7 @@ from torch.nn import DataParallel
 from tqdm import tqdm
 from transformers import AutoModel, AutoTokenizer
 
-from agrag.constants import DOC_TEXT_KEY, EMBEDDING_KEY
+from agrag.constants import DOC_TEXT_KEY, EMBEDDING_HIDDEN_DIM_KEY, EMBEDDING_KEY
 from agrag.modules.embedding.utils import normalize_embedding, pool
 
 logger = logging.getLogger("rag-logger")
@@ -101,6 +101,7 @@ class EmbeddingModule:
 
         texts = data[DOC_TEXT_KEY].tolist()
         all_embeddings = []
+        all_embeddings_hidden_dim = []
 
         logger.info(f"Using batch size {batch_size}")
 
@@ -128,7 +129,9 @@ class EmbeddingModule:
             if self.normalize_embeddings:
                 batch_embeddings = normalize_embedding(batch_embeddings, **self.normalization_params)
 
-            all_embeddings.extend(batch_embeddings.cpu().numpy())
+            batch_embeddings = batch_embeddings.cpu().numpy()
+            all_embeddings.extend(batch_embeddings)
+            all_embeddings_hidden_dim.extend([batch_embeddings.shape[-1]] * batch_embeddings.shape[0])
 
             if pbar is not None:
                 pbar.update(len(batch_texts))
@@ -139,6 +142,7 @@ class EmbeddingModule:
             pbar.close()
 
         data[EMBEDDING_KEY] = all_embeddings
+        data[EMBEDDING_HIDDEN_DIM_KEY] = all_embeddings_hidden_dim
 
         return data
 

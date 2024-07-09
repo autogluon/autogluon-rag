@@ -1,16 +1,14 @@
 import logging
 from typing import List
 
-import boto3
 import faiss
 import numpy as np
 import torch
-from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
 
 logger = logging.getLogger("rag-logger")
 
 
-def construct_faiss_index(embeddings: List[torch.Tensor], num_gpus: int = 1) -> faiss.IndexFlatL2:
+def construct_faiss_index(embeddings: List[torch.Tensor], embedding_dim: int, num_gpus: int = 1) -> faiss.IndexFlatL2:
     """
     Constructs a FAISS index and stores the embeddings.
 
@@ -18,6 +16,8 @@ def construct_faiss_index(embeddings: List[torch.Tensor], num_gpus: int = 1) -> 
     ----------
     embeddings : List[torch.Tensor]
         A list of embeddings to be stored in the FAISS index.
+    embedding_dim: int
+        Dimension of embeddings to be used to create index of appropriate dimension
     num_gpus: int
         Number of GPUs to use when building the index
 
@@ -26,7 +26,8 @@ def construct_faiss_index(embeddings: List[torch.Tensor], num_gpus: int = 1) -> 
     Union[faiss.IndexFlatL2, faiss.GpuIndexFlatL2]
         The constructed FAISS index.
     """
-    d = embeddings[0].shape[-1]  # dimension of the vectors
+    d = embeddings[0].shape[-1]
+    assert d == embedding_dim, f"Dimension of embeddings is incorrect {embedding_dim}"
     logger.info(f"Constructing FAISS index with dimension: {d}")
 
     index = faiss.IndexFlatL2(d)  # Flat (CPU) index, L2 distance
@@ -102,83 +103,3 @@ def load_faiss_index(index_path: str) -> faiss.IndexFlatL2:
     except Exception as e:
         logger.error(f"An unexpected error occurred while loading FAISS index from {index_path}: {e}")
         return None
-
-
-def save_faiss_index_s3(
-    index_path: str,
-    s3_bucket: str,
-    s3_client: boto3.session.Session.client,
-):
-    """
-    Saves the FAISS index to S3.
-
-    Parameters:
-    ----------
-    index_path : str
-        The path where the FAISS index will be saved.
-    s3_bucket: str
-        S3 bucket to store the index in
-    s3_client: boto3.session.Session.client
-        S3 client to interface with AWS resources
-
-    Returns:
-    -------
-    bool:
-        True, if Vector DB Index saved successfully to S3
-        False, else
-    """
-    try:
-        s3_client.upload_file(Filename=index_path, Bucket=s3_bucket, Key=index_path)
-        logger.info(f"FAISS index saved to S3 Bucket {s3_bucket} at {index_path}")
-        return True
-    except (NoCredentialsError, PartialCredentialsError):
-        logger.error("AWS credentials not found or incomplete.")
-        return False
-    except ClientError as e:
-        logger.error(f"Failed to upload FAISS index to S3: {e}")
-        return False
-    except Exception as e:
-        logger.error(f"An unexpected error occurred while saving FAISS index to S3: {e}")
-        return False
-    finally:
-        s3_client.close()
-
-
-def load_faiss_index_s3(
-    index_path: str,
-    s3_bucket: str,
-    s3_client: boto3.session.Session.client,
-):
-    """
-    Loads the FAISS index from S3.
-
-    Parameters:
-    ----------
-    index_path : str
-        The path from where the FAISS index will be loaded.
-    s3_bucket: str
-        S3 bucket to store the index in
-    s3_client: boto3.session.Session.client
-        S3 client to interface with AWS resources
-
-    Returns:
-    -------
-    bool:
-        True, if Vector DB Index loaded successfully from S3
-        False, else
-    """
-    try:
-        s3_client.download_file(Filename=index_path, Bucket=s3_bucket, Key=index_path)
-        logger.info(f"FAISS index loaded from S3 Bucket {s3_bucket} and stored at {index_path}")
-        return True
-    except (NoCredentialsError, PartialCredentialsError):
-        logger.error("AWS credentials not found or incomplete.")
-        return False
-    except ClientError as e:
-        logger.error(f"Failed to download FAISS index from S3: {e}")
-        return False
-    except Exception as e:
-        logger.error(f"An unexpected error occurred while loading FAISS index from S3: {e}")
-        return False
-    finally:
-        s3_client.close()

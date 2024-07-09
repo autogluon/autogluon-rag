@@ -7,7 +7,7 @@ import faiss
 import pandas as pd
 import torch
 
-from agrag.constants import CHUNK_ID_KEY, DOC_ID_KEY, DOC_TEXT_KEY, EMBEDDING_KEY
+from agrag.constants import CHUNK_ID_KEY, DOC_ID_KEY, DOC_TEXT_KEY, EMBEDDING_HIDDEN_DIM_KEY, EMBEDDING_KEY
 from agrag.modules.vector_db.utils import (
     cosine_similarity_fn,
     euclidean_similarity_fn,
@@ -58,20 +58,51 @@ class TestVectorDatabaseModule(unittest.TestCase):
             os.remove(self.s3_metadata_path)
 
     @patch("agrag.modules.vector_db.vector_database.construct_faiss_index")
-    def test_construct_vector_database(self, mock_construct_faiss_index):
+    def test_construct_vector_database_faiss(self, mock_construct_faiss_index):
         mock_faiss_index = MagicMock()
         mock_construct_faiss_index.return_value = mock_faiss_index
 
         embeddings = pd.DataFrame(
             [
-                {EMBEDDING_KEY: torch.rand(1, 10).numpy(), DOC_ID_KEY: i, CHUNK_ID_KEY: i, DOC_TEXT_KEY: "some text"}
+                {
+                    EMBEDDING_KEY: torch.rand(1, 10).numpy(),
+                    DOC_ID_KEY: i,
+                    CHUNK_ID_KEY: i,
+                    DOC_TEXT_KEY: "some text",
+                    EMBEDDING_HIDDEN_DIM_KEY: 10,
+                }
                 for i in range(6)
             ]
         )
         self.vector_db_module.construct_vector_database(embeddings)
         self.assertIsNotNone(self.vector_db_module.index)
         self.assertEqual(len(self.vector_db_module.metadata), len(embeddings))
-        metadata = embeddings.drop(columns=[EMBEDDING_KEY])
+        metadata = embeddings.drop(columns=[EMBEDDING_KEY, EMBEDDING_HIDDEN_DIM_KEY])
+        pd.testing.assert_frame_equal(self.vector_db_module.metadata, metadata)
+
+    @patch("agrag.modules.vector_db.vector_database.construct_milvus_index")
+    def test_construct_vector_database_milvus(self, mock_construct_milvus_index):
+        mock_milvus_index = MagicMock()
+        mock_construct_milvus_index.return_value = mock_milvus_index
+
+        embeddings = pd.DataFrame(
+            [
+                {
+                    EMBEDDING_KEY: torch.rand(1, 10).numpy(),
+                    DOC_ID_KEY: i,
+                    CHUNK_ID_KEY: i,
+                    DOC_TEXT_KEY: "some text",
+                    EMBEDDING_HIDDEN_DIM_KEY: 10,
+                }
+                for i in range(6)
+            ]
+        )
+        self.vector_db_module.db_type = "milvus"
+
+        self.vector_db_module.construct_vector_database(embeddings)
+        self.assertIsNotNone(self.vector_db_module.index)
+        self.assertEqual(len(self.vector_db_module.metadata), len(embeddings))
+        metadata = embeddings.drop(columns=[EMBEDDING_KEY, EMBEDDING_HIDDEN_DIM_KEY])
         pd.testing.assert_frame_equal(self.vector_db_module.metadata, metadata)
 
     def test_cosine_similarity_fn(self):
@@ -126,14 +157,14 @@ class TestVectorDatabaseModule(unittest.TestCase):
         save_index("faiss", faiss_index, index_path)
         mock_save_faiss_index.assert_called_once_with(faiss_index, index_path)
 
-    @patch("agrag.modules.vector_db.utils.save_faiss_index_s3")
+    @patch("agrag.modules.vector_db.utils.save_index_s3")
     @patch("boto3.client")
-    def test_save_index_with_s3(self, mock_s3_client, mock_save_faiss_index_s3):
+    def test_save_index_with_s3(self, mock_s3_client, mock_save_index_s3):
         faiss_index = faiss.IndexFlatL2()
         s3_client = mock_s3_client.return_value
         index_path = self.index_path
         save_index("faiss", faiss_index, self.s3_index_path)
-        mock_save_faiss_index_s3.assert_called_once_with(index_path, "s3_bucket", s3_client)
+        mock_save_index_s3.assert_called_once_with(index_path, "s3_bucket", s3_client)
 
     @patch("agrag.modules.vector_db.faiss.faiss_db.save_faiss_index")
     def test_save_index_failure(self, mock_save_faiss_index):
@@ -152,17 +183,17 @@ class TestVectorDatabaseModule(unittest.TestCase):
         self.assertEqual(index, mock_index)
         mock_load_faiss_index.assert_called_once_with(index_path)
 
-    @patch("agrag.modules.vector_db.utils.load_faiss_index_s3")
+    @patch("agrag.modules.vector_db.utils.load_index_s3")
     @patch("agrag.modules.vector_db.utils.load_faiss_index")
     @patch("boto3.client")
-    def test_load_index_with_s3(self, mock_s3_client, mock_load_faiss_index, mock_load_faiss_index_s3):
+    def test_load_index_with_s3(self, mock_s3_client, mock_load_faiss_index, mock_load_index_s3):
         mock_index = MagicMock()
         mock_load_faiss_index.return_value = mock_index
         s3_client = mock_s3_client.return_value
         index_path = self.index_path
         index = load_index("faiss", self.s3_index_path)
         self.assertEqual(index, mock_index)
-        mock_load_faiss_index_s3.assert_called_once_with(index_path, "s3_bucket", s3_client)
+        mock_load_index_s3.assert_called_once_with(index_path, "s3_bucket", s3_client)
         mock_load_faiss_index.assert_called_once_with(index_path)
 
     @patch("agrag.modules.vector_db.faiss.faiss_db.load_faiss_index")

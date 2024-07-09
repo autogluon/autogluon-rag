@@ -11,12 +11,8 @@ from botocore.exceptions import ClientError, NoCredentialsError, PartialCredenti
 from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances, manhattan_distances
 from tqdm import tqdm
 
-from agrag.modules.vector_db.faiss.faiss_db import (
-    load_faiss_index,
-    load_faiss_index_s3,
-    save_faiss_index,
-    save_faiss_index_s3,
-)
+from agrag.modules.vector_db.faiss.faiss_db import load_faiss_index, save_faiss_index
+from agrag.modules.vector_db.milvus.milvus_db import load_milvus_index, save_milvus_index
 from agrag.utils import parse_path
 
 logger = logging.getLogger("rag-logger")
@@ -150,9 +146,11 @@ def save_index(
             raise TypeError("Index for FAISS incorrectly created. Not of type IndexFlatL2.")
         success = save_faiss_index(index, index_path)
         if s3_bucket and success:
-            save_faiss_index_s3(index_path, s3_bucket, s3_client)
+            save_index_s3(index_path, s3_bucket, s3_client)
         else:
             logger.warning(f"Failed to save index")
+    elif db_type == "milvus":
+        save_milvus_index()
     else:
         logger.warning(f"Cannot save index. Unsupported Vector DB {db_type}.")
 
@@ -189,8 +187,10 @@ def load_index(
     s3_client = boto3.client("s3") if s3_bucket else None
     if db_type == "faiss":
         if s3_bucket:
-            load_faiss_index_s3(index_path, s3_bucket, s3_client)
+            load_index_s3(index_path, s3_bucket, s3_client)
         index = load_faiss_index(index_path)
+    elif db_type == "milvus":
+        index = load_milvus_index(index_path)
     else:
         raise ValueError("Cannot load index. Unsupported Vector DB {db_type}.")
     if pbar:
@@ -313,3 +313,83 @@ def load_metadata(
     if not isinstance(metadata, pd.DataFrame):
         raise TypeError("Metadata not a pandas DataFrame.")
     return metadata
+
+
+def save_index_s3(
+    index_path: str,
+    s3_bucket: str,
+    s3_client: boto3.session.Session.client,
+):
+    """
+    Saves the index to S3.
+
+    Parameters:
+    ----------
+    index_path : str
+        The path where the index will be saved.
+    s3_bucket: str
+        S3 bucket to store the index in
+    s3_client: boto3.session.Session.client
+        S3 client to interface with AWS resources
+
+    Returns:
+    -------
+    bool:
+        True, if Vector DB Index saved successfully to S3
+        False, else
+    """
+    try:
+        s3_client.upload_file(Filename=index_path, Bucket=s3_bucket, Key=index_path)
+        logger.info(f"Index saved to S3 Bucket {s3_bucket} at {index_path}")
+        return True
+    except (NoCredentialsError, PartialCredentialsError):
+        logger.error("AWS credentials not found or incomplete.")
+        return False
+    except ClientError as e:
+        logger.error(f"Failed to upload the index to S3: {e}")
+        return False
+    except Exception as e:
+        logger.error(f"An unexpected error occurred while saving the index to S3: {e}")
+        return False
+    finally:
+        s3_client.close()
+
+
+def load_index_s3(
+    index_path: str,
+    s3_bucket: str,
+    s3_client: boto3.session.Session.client,
+):
+    """
+    Loads the index from S3.
+
+    Parameters:
+    ----------
+    index_path : str
+        The path from where the index will be loaded.
+    s3_bucket: str
+        S3 bucket to store the index in
+    s3_client: boto3.session.Session.client
+        S3 client to interface with AWS resources
+
+    Returns:
+    -------
+    bool:
+        True, if Vector DB Index loaded successfully from S3
+        False, else
+    """
+    try:
+        s3_client.download_file(Filename=index_path, Bucket=s3_bucket, Key=index_path)
+        logger.info(f"Index loaded from S3 Bucket {s3_bucket} and stored at {index_path}")
+        return True
+    except (NoCredentialsError, PartialCredentialsError):
+        logger.error("AWS credentials not found or incomplete.")
+        return False
+    except ClientError as e:
+        logger.error(f"Failed to download the index from S3: {e}")
+        return False
+    except Exception as e:
+        logger.error(f"An unexpected error occurred while loading the index from S3: {e}")
+        return False
+    finally:
+        s3_client.close()
