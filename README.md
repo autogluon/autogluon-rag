@@ -50,7 +50,7 @@ from agrag.agrag import AutoGluonRAG
 def ag_rag():
     agrag = AutoGluonRAG(config_file="path/to/config")
     agrag.initialize_rag_pipeline()
-    agrag.generate_responses()
+    agrag.generate_response("What is AutoGluon?")
 
 
 if __name__ == "__main__":
