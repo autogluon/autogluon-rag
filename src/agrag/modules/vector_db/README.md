@@ -24,13 +24,20 @@ vector_db:
 
   use_existing_vector_db: Boolean to decide whether or not to use an existing, stored Vector DB Index from disk memory. 
 
-  vector_db_index_path: The Path to an existing, stored Vector DB Index file in disk memory or S3.
+  vector_db_index_save_path: The path to store the vector DB index. This can be a local path or an S3 path.
+  Note that if it is a Milvus DB, the milvus package automatically saves the index at the path specified in milvus_db_name. 
+  
+  metadata_index_save_path: The path to store the Metadata. This can be a local path or an S3 path.
+  
+  vector_db_index_load_path: The path to an existing, stored Vector DB Index file. This can be a local path or an S3 path. 
+  Note that if it is a Milvus DB, this value must be the same as milvus_db_name since that is where the milvus package automatically stores the database.
+  
+  metadata_index_load_path:  The path to an existing, stored Metadata JSON file. This can be a local path or an S3 path.
+  Note that we do not support using an existing Milvus database
 
   num_gpus: Number of GPUs to use when building the index
   
   metadata: Metadata for each embedding stored in the database
-
-  metadata_index_path: The Path to an existing, stored Metadata JSON file in disk memory or S3. Note that we do not support using an existing Milvus database
 
   s3_bucket: If applicable, S3 bucket that contains vector DB index and metadata files 
 
