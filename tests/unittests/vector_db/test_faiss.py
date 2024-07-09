@@ -25,7 +25,7 @@ class TestFaissDB(unittest.TestCase):
         mock_index = MagicMock()
         mock_index_flat_l2.return_value = mock_index
         mock_index.ntotal = len(self.embeddings)
-        index = construct_faiss_index(self.embeddings, num_gpus=0)
+        index = construct_faiss_index(self.embeddings, embedding_dim=self.embeddings[0].shape[-1], num_gpus=0)
         self.assertEqual(index, mock_index)
 
     @patch("faiss.write_index")

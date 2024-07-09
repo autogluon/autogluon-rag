@@ -1,16 +1,14 @@
 import logging
 from typing import List
 
-import boto3
 import faiss
 import numpy as np
 import torch
-from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
 
 logger = logging.getLogger("rag-logger")
 
 
-def construct_faiss_index(embeddings: List[torch.Tensor], num_gpus: int = 1) -> faiss.IndexFlatL2:
+def construct_faiss_index(embeddings: List[torch.Tensor], embedding_dim: int, num_gpus: int = 1) -> faiss.IndexFlatL2:
     """
     Constructs a FAISS index and stores the embeddings.
 
@@ -18,6 +16,8 @@ def construct_faiss_index(embeddings: List[torch.Tensor], num_gpus: int = 1) -> 
     ----------
     embeddings : List[torch.Tensor]
         A list of embeddings to be stored in the FAISS index.
+    embedding_dim: int
+        Dimension of embeddings to be used to create index of appropriate dimension
     num_gpus: int
         Number of GPUs to use when building the index
 
@@ -26,7 +26,8 @@ def construct_faiss_index(embeddings: List[torch.Tensor], num_gpus: int = 1) -> 
     Union[faiss.IndexFlatL2, faiss.GpuIndexFlatL2]
         The constructed FAISS index.
     """
-    d = embeddings[0].shape[-1]  # dimension of the vectors
+    d = embeddings[0].shape[-1]
+    assert d == embedding_dim, f"Dimension of embeddings is incorrect {embedding_dim}"
     logger.info(f"Constructing FAISS index with dimension: {d}")
 
     index = faiss.IndexFlatL2(d)  # Flat (CPU) index, L2 distance

@@ -7,7 +7,7 @@ import faiss
 import pandas as pd
 import torch
 
-from agrag.constants import CHUNK_ID_KEY, DOC_ID_KEY, DOC_TEXT_KEY, EMBEDDING_KEY
+from agrag.constants import CHUNK_ID_KEY, DOC_ID_KEY, DOC_TEXT_KEY, EMBEDDING_HIDDEN_DIM_KEY, EMBEDDING_KEY
 from agrag.modules.vector_db.utils import (
     cosine_similarity_fn,
     euclidean_similarity_fn,
@@ -64,14 +64,20 @@ class TestVectorDatabaseModule(unittest.TestCase):
 
         embeddings = pd.DataFrame(
             [
-                {EMBEDDING_KEY: torch.rand(1, 10).numpy(), DOC_ID_KEY: i, CHUNK_ID_KEY: i, DOC_TEXT_KEY: "some text"}
+                {
+                    EMBEDDING_KEY: torch.rand(1, 10).numpy(),
+                    DOC_ID_KEY: i,
+                    CHUNK_ID_KEY: i,
+                    DOC_TEXT_KEY: "some text",
+                    EMBEDDING_HIDDEN_DIM_KEY: 10,
+                }
                 for i in range(6)
             ]
         )
         self.vector_db_module.construct_vector_database(embeddings)
         self.assertIsNotNone(self.vector_db_module.index)
         self.assertEqual(len(self.vector_db_module.metadata), len(embeddings))
-        metadata = embeddings.drop(columns=[EMBEDDING_KEY])
+        metadata = embeddings.drop(columns=[EMBEDDING_KEY, EMBEDDING_HIDDEN_DIM_KEY])
         pd.testing.assert_frame_equal(self.vector_db_module.metadata, metadata)
 
     @patch("agrag.modules.vector_db.vector_database.construct_milvus_index")
@@ -81,7 +87,13 @@ class TestVectorDatabaseModule(unittest.TestCase):
 
         embeddings = pd.DataFrame(
             [
-                {EMBEDDING_KEY: torch.rand(1, 10).numpy(), DOC_ID_KEY: i, CHUNK_ID_KEY: i, DOC_TEXT_KEY: "some text"}
+                {
+                    EMBEDDING_KEY: torch.rand(1, 10).numpy(),
+                    DOC_ID_KEY: i,
+                    CHUNK_ID_KEY: i,
+                    DOC_TEXT_KEY: "some text",
+                    EMBEDDING_HIDDEN_DIM_KEY: 10,
+                }
                 for i in range(6)
             ]
         )
@@ -90,7 +102,7 @@ class TestVectorDatabaseModule(unittest.TestCase):
         self.vector_db_module.construct_vector_database(embeddings)
         self.assertIsNotNone(self.vector_db_module.index)
         self.assertEqual(len(self.vector_db_module.metadata), len(embeddings))
-        metadata = embeddings.drop(columns=[EMBEDDING_KEY])
+        metadata = embeddings.drop(columns=[EMBEDDING_KEY, EMBEDDING_HIDDEN_DIM_KEY])
         pd.testing.assert_frame_equal(self.vector_db_module.metadata, metadata)
 
     def test_cosine_similarity_fn(self):

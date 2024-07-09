@@ -24,6 +24,7 @@ class TestMilvusInterface(unittest.TestCase):
             db_name=db_name,
             index_params=index_params,
             create_params=create_params,
+            embedding_dim=embeddings[0].shape[-1],
         )
 
         client.create_collection.assert_called_once_with(

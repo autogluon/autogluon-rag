@@ -11,6 +11,7 @@ def construct_milvus_index(
     embeddings: List[torch.Tensor],
     collection_name: str,
     db_name: str,
+    embedding_dim: int,
     index_params: dict = {},
     create_params: dict = {},
 ) -> MilvusClient:
@@ -25,6 +26,8 @@ def construct_milvus_index(
         The name of the collection in Milvus.
     db_name: str
         The name of the client in Milvus. This will also be the path at which the Milvus index is stored.
+    embedding_dim: int
+        Dimension of embeddings to be used to create index of appropriate dimension
     index_params: dict
         Additional params to pass into the Milvus index
     create_params: dict
@@ -37,6 +40,7 @@ def construct_milvus_index(
     """
 
     d = embeddings[0].shape[-1]
+    assert d == embedding_dim, f"Dimension of embeddings is incorrect {embedding_dim}"
 
     client = MilvusClient(db_name)
     if client.has_collection(collection_name):

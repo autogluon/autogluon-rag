@@ -7,7 +7,7 @@ import pandas as pd
 import torch
 from tqdm import tqdm
 
-from agrag.constants import EMBEDDING_KEY
+from agrag.constants import EMBEDDING_HIDDEN_DIM_KEY, EMBEDDING_KEY
 from agrag.modules.vector_db.faiss.faiss_db import construct_faiss_index
 from agrag.modules.vector_db.milvus.milvus_db import construct_milvus_index
 from agrag.modules.vector_db.utils import SUPPORTED_SIMILARITY_FUNCTIONS, remove_duplicates
@@ -85,7 +85,8 @@ class VectorDatabaseModule:
         """
         logger.info("Initializing Vector DB Construction")
 
-        self.metadata = embeddings.drop(columns=[EMBEDDING_KEY])
+        embeddings_hidden_dim = embeddings.iloc[0][EMBEDDING_HIDDEN_DIM_KEY]
+        self.metadata = embeddings.drop(columns=[EMBEDDING_KEY, EMBEDDING_HIDDEN_DIM_KEY])
         if pbar:
             pbar.update(1)
 
@@ -99,7 +100,9 @@ class VectorDatabaseModule:
 
         if self.db_type == "faiss":
             logger.info("Constructing FAISS Index")
-            self.index = construct_faiss_index(vectors, self.num_gpus)
+            self.index = construct_faiss_index(
+                embeddings=vectors, num_gpus=self.num_gpus, hidden_size=embeddings_hidden_dim
+            )
         elif self.db_type == "milvus":
             logger.info("Constructing Milvus Index")
             self.index = construct_milvus_index(
