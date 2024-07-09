@@ -24,7 +24,7 @@ def construct_milvus_index(
     collection_name : str
         The name of the collection in Milvus.
     db_name: str
-        The name of the client in Milvus
+        The name of the client in Milvus. This will also be the path at which the Milvus index is stored.
     index_params: dict
         Additional params to pass into the Milvus index
     create_params: dict
