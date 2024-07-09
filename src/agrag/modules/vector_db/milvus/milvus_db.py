@@ -40,7 +40,9 @@ def construct_milvus_index(
 
     client = MilvusClient(db_name)
     if client.has_collection(collection_name):
+        logger.info(f"Remove existing index {collection_name}")
         client.drop_collection(collection_name)
+    logger.info(f"Creating new index {collection_name} and adding to the database {db_name}")
     client.create_collection(
         collection_name=collection_name,
         dimension=d,
