@@ -402,13 +402,14 @@ class AutoGluonRAG:
         self.initialize_retriever_module()
         self.initialize_generator_module()
         load_index = self.args.use_existing_vector_db_index
+        load_index_successful = False
         if load_index:
             self.load_existing_vector_db(self.args.vector_db_index_load_path, self.args.metadata_index_load_path)
             load_index_successful = (
                 True if self.vector_db_module.index and self.vector_db_module.metadata is not None else False
             )
 
-        if not load_index_successful or not load_index:
+        if not load_index or not load_index_successful:
             processed_data = self.process_data()
             embeddings = self.generate_embeddings(processed_data=processed_data)
             self.construct_vector_db(embeddings=embeddings)
