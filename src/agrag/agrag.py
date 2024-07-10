@@ -392,6 +392,7 @@ class AutoGluonRAG:
         """
         This method handles the entire process for each batch sequentially: processing documents,
         generating embeddings, and storing them in the vector database before moving on to the next batch.
+        The memory is cleared after processed data and generated embeddings are stored in the vector database.
         """
         if self.data_processing_module.s3_bucket:
             self.data_processing_module.data_dir = download_directory_from_s3(
