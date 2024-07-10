@@ -1,12 +1,15 @@
+import concurrent.futures
 import logging
 import os
 from typing import Any, Dict, List, Optional
 
+import numpy as np
 import pandas as pd
 import yaml
 
 from agrag.args import Arguments
 from agrag.modules.data_processing.data_processing import DataProcessingModule
+from agrag.modules.data_processing.utils import download_directory_from_s3, get_all_file_paths
 from agrag.modules.embedding.embedding import EmbeddingModule
 from agrag.modules.generator.generator import GeneratorModule
 from agrag.modules.generator.utils import format_query
@@ -53,6 +56,7 @@ class AutoGluonRAG:
 
         self.preset_quality = preset_quality
         self.model_ids = model_ids
+        self.batch_size = 2
 
         if config_file:
             self._load_config()
@@ -379,6 +383,50 @@ class AutoGluonRAG:
 
         logger.info(f"\nResponse: {response}\n")
 
+    def process_and_store_in_batches(self):
+        """
+        Processes data, generates embeddings, and stores them in the vector database in batches.
+
+        This method handles the entire process for each batch sequentially: processing documents,
+        generating embeddings, and storing them in the vector database before moving on to the next batch.
+        """
+        if self.data_processing_module.s3_bucket:
+            self.data_processing_module.data_dir = download_directory_from_s3(
+                s3_bucket=self.data_processing_module.s3_bucket,
+                data_dir=self.data_processing_module.data_dir,
+                s3_client=self.data_processing_module.s3_client,
+            )
+
+        file_paths = get_all_file_paths(self.data_processing_module.data_dir, self.data_processing_module.file_exts)
+
+        for i in range(0, len(file_paths), self.batch_size):
+            print(f"Batch {i}")
+            batch_file_paths = file_paths[i : i + self.batch_size]
+
+            processed_data = []
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                results = executor.map(
+                    self.data_processing_module.process_file, batch_file_paths, range(len(batch_file_paths))
+                )
+                for result in results:
+                    processed_data.append(result)
+
+            processed_data = pd.concat(processed_data).reset_index(drop=True)
+            embeddings = self.generate_embeddings(processed_data)
+
+            print(embeddings.shape)
+            print(embeddings[0].shape)
+
+            # Store the embeddings in the vector database
+            if i == 0:
+                self.construct_vector_db(embeddings)
+            else:
+                self.vector_db_module.index.add(np.array(embeddings))
+
+            # Clear memory
+            del processed_data
+            del embeddings
+
     def initialize_rag_pipeline(self):
         """
         Initializes the entire RAG pipeline by setting up all necessary modules.
@@ -410,8 +458,9 @@ class AutoGluonRAG:
             )
 
         if not load_index or not load_index_successful:
-            processed_data = self.process_data()
-            embeddings = self.generate_embeddings(processed_data=processed_data)
-            self.construct_vector_db(embeddings=embeddings)
+            # processed_data = self.process_data()
+            # embeddings = self.generate_embeddings(processed_data=processed_data)
+            # self.construct_vector_db(embeddings=embeddings)
+            self.process_and_store_in_batches()
             if self.args.save_vector_db_index:
                 self.save_index_and_metadata(self.args.vector_db_index_save_path, self.args.metadata_index_save_path)

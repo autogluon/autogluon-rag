@@ -101,7 +101,7 @@ class VectorDatabaseModule:
         if self.db_type == "faiss":
             logger.info("Constructing FAISS Index")
             self.index = construct_faiss_index(
-                embeddings=vectors, num_gpus=self.num_gpus, hidden_size=embeddings_hidden_dim
+                embeddings=vectors, num_gpus=self.num_gpus, embedding_dim=embeddings_hidden_dim
             )
         elif self.db_type == "milvus":
             logger.info("Constructing Milvus Index")
@@ -111,6 +111,7 @@ class VectorDatabaseModule:
                 db_name=self.milvus_db_name,
                 index_params=self.milvus_index_params,
                 create_params=self.milvus_create_params,
+                embedding_dim=embeddings_hidden_dim,
             )
         else:
             raise ValueError(f"Unsupported database type: {self.db_type}")
