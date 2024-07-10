@@ -5,9 +5,11 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 import pandas as pd
+import torch
 import yaml
 
 from agrag.args import Arguments
+from agrag.constants import EMBEDDING_KEY
 from agrag.modules.data_processing.data_processing import DataProcessingModule
 from agrag.modules.data_processing.utils import download_directory_from_s3, get_all_file_paths
 from agrag.modules.embedding.embedding import EmbeddingModule
@@ -15,7 +17,7 @@ from agrag.modules.generator.generator import GeneratorModule
 from agrag.modules.generator.utils import format_query
 from agrag.modules.retriever.rerankers.reranker import Reranker
 from agrag.modules.retriever.retrievers.retriever_base import RetrieverModule
-from agrag.modules.vector_db.utils import load_index, load_metadata, save_index, save_metadata
+from agrag.modules.vector_db.utils import load_index, load_metadata, remove_duplicates, save_index, save_metadata
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
 from agrag.utils import get_num_gpus, read_openai_key
 
@@ -398,9 +400,9 @@ class AutoGluonRAG:
             )
 
         file_paths = get_all_file_paths(self.data_processing_module.data_dir, self.data_processing_module.file_exts)
-
+        batch_num = 1
         for i in range(0, len(file_paths), self.batch_size):
-            print(f"Batch {i}")
+            logger.info(f"Batch {batch_num}")
             batch_file_paths = file_paths[i : i + self.batch_size]
 
             processed_data = []
@@ -414,18 +416,13 @@ class AutoGluonRAG:
             processed_data = pd.concat(processed_data).reset_index(drop=True)
             embeddings = self.generate_embeddings(processed_data)
 
-            print(embeddings.shape)
-            print(embeddings[0].shape)
-
-            # Store the embeddings in the vector database
-            if i == 0:
-                self.construct_vector_db(embeddings)
-            else:
-                self.vector_db_module.index.add(np.array(embeddings))
+            self.construct_vector_db(embeddings)
 
             # Clear memory
             del processed_data
             del embeddings
+
+            batch_num += 1
 
     def initialize_rag_pipeline(self):
         """
