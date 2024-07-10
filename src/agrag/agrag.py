@@ -3,13 +3,10 @@ import logging
 import os
 from typing import Any, Dict, List, Optional
 
-import numpy as np
 import pandas as pd
-import torch
 import yaml
 
 from agrag.args import Arguments
-from agrag.constants import EMBEDDING_KEY
 from agrag.modules.data_processing.data_processing import DataProcessingModule
 from agrag.modules.data_processing.utils import download_directory_from_s3, get_all_file_paths
 from agrag.modules.embedding.embedding import EmbeddingModule
@@ -17,7 +14,7 @@ from agrag.modules.generator.generator import GeneratorModule
 from agrag.modules.generator.utils import format_query
 from agrag.modules.retriever.rerankers.reranker import Reranker
 from agrag.modules.retriever.retrievers.retriever_base import RetrieverModule
-from agrag.modules.vector_db.utils import load_index, load_metadata, remove_duplicates, save_index, save_metadata
+from agrag.modules.vector_db.utils import load_index, load_metadata, save_index, save_metadata
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
 from agrag.utils import get_num_gpus, read_openai_key
 
@@ -58,7 +55,6 @@ class AutoGluonRAG:
 
         self.preset_quality = preset_quality
         self.model_ids = model_ids
-        self.batch_size = 2
 
         if config_file:
             self._load_config()
@@ -81,6 +77,8 @@ class AutoGluonRAG:
         self.reranker_module = None
         self.retriever_module = None
         self.generator_module = None
+
+        self.batch_size = self.args.pipeline_batch_size
 
     def _load_config(self, config_file: str):
         """Load configuration data from a user-defined config file."""
@@ -137,6 +135,11 @@ class AutoGluonRAG:
             similarity_threshold=self.args.vector_db_sim_threshold,
             similarity_fn=self.args.vector_db_sim_fn,
             num_gpus=num_gpus,
+            milvus_db_name=self.args.milvus_db_name,
+            milvus_search_params=self.args.milvus_search_params,
+            milvus_collection_name=self.args.milvus_collection_name,
+            milvus_index_params=self.args.milvus_index_params,
+            milvus_create_params=self.args.milvus_create_params,
         )
         logger.info("Vector DB module initialized")
 
@@ -385,7 +388,7 @@ class AutoGluonRAG:
 
         logger.info(f"\nResponse: {response}\n")
 
-    def process_and_store_in_batches(self):
+    def batched_processing(self):
         """
         Processes data, generates embeddings, and stores them in the vector database in batches.
 
@@ -455,9 +458,11 @@ class AutoGluonRAG:
             )
 
         if not load_index or not load_index_successful:
-            # processed_data = self.process_data()
-            # embeddings = self.generate_embeddings(processed_data=processed_data)
-            # self.construct_vector_db(embeddings=embeddings)
-            self.process_and_store_in_batches()
+            if self.batch_size:
+                self.batched_processing()
+            else:
+                processed_data = self.process_data()
+                embeddings = self.generate_embeddings(processed_data=processed_data)
+                self.construct_vector_db(embeddings=embeddings)
             if self.args.save_vector_db_index:
                 self.save_index_and_metadata(self.args.vector_db_index_save_path, self.args.metadata_index_save_path)

@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import List
 
 import torch
@@ -42,6 +43,11 @@ def construct_milvus_index(
     d = embeddings[0].shape[-1]
     assert d == embedding_dim, f"Dimension of embeddings is incorrect {embedding_dim}"
 
+    basedir = os.path.dirname(db_name)
+    if basedir and not os.path.exists(basedir):
+        logger.info(f"Creating directory for Milvus Vector Index save at {basedir}")
+        os.makedirs(basedir)
+
     client = MilvusClient(db_name)
     if client.has_collection(collection_name):
         logger.info(f"Removing existing index {collection_name}")
@@ -73,7 +79,7 @@ def load_milvus_index(index_path):
     except Exception as e:
         logger.error(f"An unexpected error occurred while loading Milvus index from {index_path}: {e}")
 
-    logger.info("Milvus index loaded from {index_path}")
+    logger.info(f"Milvus index loaded from {index_path}")
     return client
 
 

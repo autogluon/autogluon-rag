@@ -88,6 +88,10 @@ class Arguments:
         return {}
 
     @property
+    def pipeline_batch_size(self):
+        return self.config.get("misc", {}).get("pipeline_batch_size", 0)
+
+    @property
     def data_dir(self):
         return self.config.get("data", {}).get("data_dir", None)
 

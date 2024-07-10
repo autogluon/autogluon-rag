@@ -6,7 +6,7 @@ INDEX_PATH: vectorDB_index_save/
 SIMILARITY_FN: cosine
 METADATA_PATH: vectorDB_metadata_save/
 SAVE_INDEX: false
-MILVUS_DB_NAME: rag_milvus_db.db
+MILVUS_DB_NAME: milvus/rag_milvus_db.db
 MILVUS_DB_COLLECTION_NAME: AutoGluonRAG_Milvus_DB_Collection
 MILVUS_INDEX_PARAMS:
   metric_type: L2

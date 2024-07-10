@@ -109,14 +109,21 @@ class VectorDatabaseModule:
                 )
         elif self.db_type == "milvus":
             logger.info("Constructing Milvus Index")
-            self.index = construct_milvus_index(
-                vectors,
-                collection_name=self.milvus_collection_name,
-                db_name=self.milvus_db_name,
-                index_params=self.milvus_index_params,
-                create_params=self.milvus_create_params,
-                embedding_dim=embeddings_hidden_dim,
-            )
+            if self.index:
+                vectors = [embedding.numpy() for embedding in vectors]
+                start_index = len(self.metadata) - len(vectors)
+                data = [{"id": i + start_index, "embedding": vectors[i]} for i in range(len(vectors))]
+
+                _ = self.index.insert(collection_name=self.milvus_collection_name, data=data)
+            else:
+                self.index = construct_milvus_index(
+                    embeddings=vectors,
+                    collection_name=self.milvus_collection_name,
+                    db_name=self.milvus_db_name,
+                    index_params=self.milvus_index_params,
+                    create_params=self.milvus_create_params,
+                    embedding_dim=embeddings_hidden_dim,
+                )
         else:
             raise ValueError(f"Unsupported database type: {self.db_type}")
 
