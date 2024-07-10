@@ -390,8 +390,6 @@ class AutoGluonRAG:
 
     def batched_processing(self):
         """
-        Processes data, generates embeddings, and stores them in the vector database in batches.
-
         This method handles the entire process for each batch sequentially: processing documents,
         generating embeddings, and storing them in the vector database before moving on to the next batch.
         """
