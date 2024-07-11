@@ -31,8 +31,6 @@ class VectorDatabaseModule:
         The similarity function used for determining similarity scores for embeddings. Options are 'cosine', 'euclidean', 'manhattan' (default is 'cosine').
     num_gpus: int
         Number of GPUs to use when building the index
-    metadata: List[dict]
-        Metadata for each embedding stored in the database
     **kwargs : dict
         Additional parameters for `VectorDatabaseModule`.
 
@@ -57,6 +55,14 @@ class VectorDatabaseModule:
                 f"Unsupported similarity function: {self.similarity_fn}. Please choose from: {list(SUPPORTED_SIMILARITY_FUNCTIONS.keys())}"
             )
         self.num_gpus = kwargs.get("num_gpus", 0)
+
+        # FAISS params
+        self.faiss_index_type = kwargs.get("faiss_index_type")
+        self.faiss_quantized_index_params = kwargs.get("faiss_quantized_index_params", {})
+        self.faiss_clustered_index_params = kwargs.get("faiss_clustered_index_params", {})
+        self.faiss_index_nprobe = kwargs.get("faiss_index_nprobe")
+
+        # Milvus params
         self.milvus_search_params = kwargs.get("milvus_search_params", {})
         self.milvus_collection_name = kwargs.get("milvus_collection_name")
         self.milvus_db_name = kwargs.get("milvus_db_name")
@@ -101,7 +107,13 @@ class VectorDatabaseModule:
         if self.db_type == "faiss":
             logger.info("Constructing FAISS Index")
             self.index = construct_faiss_index(
-                embeddings=vectors, num_gpus=self.num_gpus, embedding_dim=embeddings_hidden_dim
+                index_type=self.faiss_index_type,
+                embeddings=vectors,
+                num_gpus=self.num_gpus,
+                embedding_dim=embeddings_hidden_dim,
+                faiss_quantized_index_params=self.faiss_quantized_index_params,
+                faiss_clustered_index_params=self.faiss_clustered_index_params,
+                faiss_index_nprobe=self.faiss_index_nprobe,
             )
         elif self.db_type == "milvus":
             logger.info("Constructing Milvus Index")

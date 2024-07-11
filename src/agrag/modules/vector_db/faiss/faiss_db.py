@@ -2,18 +2,23 @@ import logging
 from typing import List
 
 import faiss
+import faiss.gpu_wrappers
 import numpy as np
 import torch
 
 logger = logging.getLogger("rag-logger")
 
 
-def construct_faiss_index(embeddings: List[torch.Tensor], embedding_dim: int, num_gpus: int = 1) -> faiss.IndexFlatL2:
+def construct_faiss_index(
+    embeddings: List[torch.Tensor], embedding_dim: int, num_gpus: int = 1, index_type: str = "IndexFlatL2", **kwargs
+) -> faiss.IndexFlatL2:
     """
     Constructs a FAISS index and stores the embeddings.
 
     Parameters:
     ----------
+    index_type: str
+        Type of FAISS Index to use (IndexFlatL2, IndexIVFFlat, IndexIVFPQ)
     embeddings : List[torch.Tensor]
         A list of embeddings to be stored in the FAISS index.
     embedding_dim: int
@@ -30,17 +35,39 @@ def construct_faiss_index(embeddings: List[torch.Tensor], embedding_dim: int, nu
     assert d == embedding_dim, f"Dimension of embeddings is incorrect {embedding_dim}"
     logger.info(f"Constructing FAISS index with dimension: {d}")
 
-    index = faiss.IndexFlatL2(d)  # Flat (CPU) index, L2 distance
+    faiss_quantized_index_params = kwargs.get("faiss_quantized_index_params", {})
+    faiss_clustered_index_params = kwargs.get("faiss_clustered_index_params", {})
+    faiss_index_nprobe = kwargs.get("faiss_index_nprobe")
+
+    index = None
+    if index_type == "IndexFlatL2":
+        index = faiss.IndexFlatL2(d)  # Flat (CPU) index, L2 distance
+        index.add(np.array(embeddings))
+    elif index_type == "IndexIVFPQ":
+        quantizer = faiss.IndexFlatL2(d)
+        index = faiss.IndexIVFPQ(quantizer, d, **faiss_quantized_index_params)
+        index.train(np.array(embeddings))
+        assert (
+            index.is_trained
+        ), f"Index {index_type} not trained. Make sure index.train(embeddings) is being called correctly."
+        index.add(np.array(embeddings))
+        if faiss_index_nprobe:
+            index.nprobe = faiss_index_nprobe
+    elif index_type == "IndexIVFFlat":
+        quantizer = faiss.IndexFlatL2(d)
+        index = faiss.IndexIVFFlat(quantizer, d, **faiss_clustered_index_params)
+        index.train(np.array(embeddings))
+        assert (
+            index.is_trained
+        ), f"Index {index_type} not trained. Make sure index.train(embeddings) is being called correctly."
+        index.add(np.array(embeddings))
+        if faiss_index_nprobe:
+            index.nprobe = faiss_index_nprobe
 
     if num_gpus >= 1:
-        devices = [faiss.StandardGpuResources() for _ in range(num_gpus)]
-        config = [faiss.GpuIndexFlatConfig() for _ in range(num_gpus)]
-        for i in range(num_gpus):
-            config[i].device = i
-        index = faiss.index_cpu_to_gpu_multiple(devices, index, config)
+        index = faiss.index_cpu_to_gpus_list(index=index, ngpu=num_gpus)
         logger.info(f"Using FAISS GPU index on {num_gpus} GPUs")
 
-    index.add(np.array(embeddings))
     if len(embeddings) != index.ntotal:
         raise ValueError(
             f"Stored {index.ntotal} embeddings in the FAISS index, expected {len(embeddings)}. Number of embeddings is {len(embeddings)}."
