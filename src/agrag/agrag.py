@@ -220,7 +220,7 @@ class AutoGluonRAG:
         agrag.initialize_data_module()
         processed_data = agrag.process_data()
         """
-        logger.info(f"Retrieving Data from {self.data_processing_module.data_dir}")
+        logger.info(f"Retrieving and Processing Data from {self.data_processing_module.data_dir}")
         processed_data = self.data_processing_module.process_data()
         return processed_data
 
@@ -397,28 +397,15 @@ class AutoGluonRAG:
         generating embeddings, and storing them in the vector database before moving on to the next batch.
         The memory is cleared after processed data and generated embeddings are stored in the vector database.
         """
-        if self.data_processing_module.s3_bucket:
-            self.data_processing_module.data_dir = download_directory_from_s3(
-                s3_bucket=self.data_processing_module.s3_bucket,
-                data_dir=self.data_processing_module.data_dir,
-                s3_client=self.data_processing_module.s3_client,
-            )
 
+        logger.info(f"Retrieving and Processing Data from {self.data_processing_module.data_dir}")
         file_paths = get_all_file_paths(self.data_processing_module.data_dir, self.data_processing_module.file_exts)
         batch_num = 1
         for i in range(0, len(file_paths), self.batch_size):
             logger.info(f"Batch {batch_num}")
             batch_file_paths = file_paths[i : i + self.batch_size]
+            processed_data = self.data_processing_module.process_files(batch_file_paths)
 
-            processed_data = []
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                results = executor.map(
-                    self.data_processing_module.process_file, batch_file_paths, range(len(batch_file_paths))
-                )
-                for result in results:
-                    processed_data.append(result)
-
-            processed_data = pd.concat(processed_data).reset_index(drop=True)
             embeddings = self.generate_embeddings(processed_data)
 
             self.construct_vector_db(embeddings)
