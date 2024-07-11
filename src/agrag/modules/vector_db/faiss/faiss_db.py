@@ -40,14 +40,13 @@ def construct_faiss_index(
     faiss_index_nprobe = kwargs.get("faiss_index_nprobe")
 
     index = None
-    if index_type == "IndexFlatL2":
-        index = faiss.IndexFlatL2(d)  # Flat (CPU) index, L2 distance
-    elif index_type == "IndexIVFPQ":
-        quantizer = faiss.IndexFlatL2(d)
+    quantizer = faiss.IndexFlatL2(d)  # Flat (CPU) index, L2 distance
+    if index_type == "IndexIVFPQ":
         index = faiss.IndexIVFPQ(quantizer, d, **faiss_quantized_index_params)
     elif index_type == "IndexIVFFlat":
-        quantizer = faiss.IndexFlatL2(d)
         index = faiss.IndexIVFFlat(quantizer, d, **faiss_clustered_index_params)
+    elif index_type == "IndexFlatL2":
+        index = quantizer
     else:
         raise ValueError(f"Unsupported FAISS index type {index_type}")
 
@@ -57,15 +56,7 @@ def construct_faiss_index(
 
     if index_type == "IndexFlatL2":
         index.add(np.array(embeddings))
-    elif index_type == "IndexIVFPQ":
-        index.train(np.array(embeddings))
-        assert (
-            index.is_trained
-        ), f"Index {index_type} not trained. Make sure index.train(embeddings) is being called correctly."
-        index.add(np.array(embeddings))
-        if faiss_index_nprobe:
-            index.nprobe = faiss_index_nprobe
-    elif index_type == "IndexIVFFlat":
+    elif index_type in ("IndexIVFPQ", "IndexIVFFlat"):
         index.train(np.array(embeddings))
         assert (
             index.is_trained
