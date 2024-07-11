@@ -1,4 +1,4 @@
-misc:
+shared:
   pipeline_batch_size: 10
 
 data:

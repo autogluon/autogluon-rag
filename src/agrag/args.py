@@ -89,7 +89,7 @@ class Arguments:
 
     @property
     def pipeline_batch_size(self):
-        return self.config.get("misc", {}).get("pipeline_batch_size", 0)
+        return self.config.get("shared", {}).get("pipeline_batch_size", 0)
 
     @property
     def data_dir(self):
