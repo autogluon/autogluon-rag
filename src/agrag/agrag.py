@@ -1,4 +1,3 @@
-import concurrent.futures
 import logging
 import os
 from typing import Any, Dict, List, Optional
@@ -8,7 +7,7 @@ import yaml
 
 from agrag.args import Arguments
 from agrag.modules.data_processing.data_processing import DataProcessingModule
-from agrag.modules.data_processing.utils import download_directory_from_s3, get_all_file_paths
+from agrag.modules.data_processing.utils import get_all_file_paths
 from agrag.modules.embedding.embedding import EmbeddingModule
 from agrag.modules.generator.generator import GeneratorModule
 from agrag.modules.generator.utils import format_query
