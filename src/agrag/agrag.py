@@ -396,12 +396,11 @@ class AutoGluonRAG:
         Processes documents, generates embeddings, and stores them in the vector database in batches.
         Each batch is processed sequentially.
 
-        1. Retrieves all file paths from the data directory.
-        2. Processes first batch of documents.
-        3. Generates embeddings for this batch of processed documents.
-        4. Stores the generated embeddings for current batch in the vector database.
-        5. Clears memory (processed data and generated embeddings for the batch) to prevent memory overload.
-        6. Repeats the above process for all batches.
+        - All file paths from the provided data directory are retrieved.
+        - The first batch of documents is processed.
+        - Embeddings for this batch of processed documents are generated.
+        - The embeddings for the current batch are stored in the vector database.
+        - Memory is cleared (processed data and generated embeddings for the batch) to prevent memory overload.
 
         """
 
