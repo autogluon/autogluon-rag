@@ -35,6 +35,7 @@ class AutoGluonRAG:
         preset_quality: Optional[str] = None,
         model_ids: Dict = None,
         data_dir: str = "",
+        pipeline_batch_size: int = 0,
     ):
         """
         Initializes the AutoGluonRAG class with either a configuration file or a preset quality setting.
@@ -50,6 +51,8 @@ class AutoGluonRAG:
             Example: {"generator_model_id": "mistral.mistral-7b-instruct-v0:2", "retriever_model_id": "BAAI/bge-large-en", "reranker_model_id": "nv_embed"}
         data_dir : str
             The directory containing the data files that will be used for the RAG pipeline
+        pipeline_batch_size: int
+            Optional batch size to use for pre-processing stage (Data Processing, Embedding, Vector DB Module)
         """
         logger.info("\n\nAutoGluon-RAG\n\n")
 
@@ -78,7 +81,7 @@ class AutoGluonRAG:
         self.retriever_module = None
         self.generator_module = None
 
-        self.batch_size = self.args.pipeline_batch_size
+        self.batch_size = pipeline_batch_size or self.args.pipeline_batch_size
 
     def _load_config(self, config_file: str):
         """Load configuration data from a user-defined config file."""

@@ -68,6 +68,13 @@ model_ids : dict, optional
     Example: {"generator_model_id": "mistral.mistral-7b-instruct-v0:2", "retriever_model_id": "BAAI/bge-large-en", "reranker_model_id": "nv_embed"}
 data_dir : str
     The directory containing the data files that will be used for the RAG pipeline. If this value is not provided when initializing the object, it must be provided in the config file.
+pipeline_batch_size: int
+    Optional batch size to use for pre-processing stage (Data Processing, Embedding, Vector DB Module)
 ```
 
 The configuration file contains the specific parameters to use for each module in the RAG pipeline. For an example of a config file, please refer to `example_config.yaml` in `src/agrag/configs/`. For specific details about the parameters in each individual module, refer to the `README` files in each module in `src/agrag/modules/`.
+
+There is also a `misc` section in the config file for parameters that do not refer to a specific module. Currently, the parameters in `misc` are: 
+```
+pipeline_batch_size: Optional batch size to use for pre-processing stage (Data Processing, Embedding, Vector DB Module)
+```
