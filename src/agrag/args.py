@@ -151,7 +151,9 @@ class Arguments:
 
     @property
     def embedding_batch_size(self):
-        return self.config.get("embedding", {}).get("embedding_batch_size", "")
+        return self.config.get("embedding", {}).get(
+            "embedding_batch_size", self.embedding_defaults.get("EMBEDDING_BATCH_SIZE")
+        )
 
     @property
     def vector_db_type(self):
