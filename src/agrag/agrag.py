@@ -393,9 +393,16 @@ class AutoGluonRAG:
 
     def batched_processing(self):
         """
-        This method handles the entire process for each batch sequentially: processing documents,
-        generating embeddings, and storing them in the vector database before moving on to the next batch.
-        The memory is cleared after processed data and generated embeddings are stored in the vector database.
+        Processes documents, generates embeddings, and stores them in the vector database in batches.
+        Each batch is processed sequentially.
+
+        1. Retrieves all file paths from the data directory.
+        2. Processes first batch of documents.
+        3. Generates embeddings for this batch of processed documents.
+        4. Stores the generated embeddings for current batch in the vector database.
+        5. Clears memory (processed data and generated embeddings for the batch) to prevent memory overload.
+        6. Repeats the above process for all batches.
+
         """
 
         logger.info(f"Retrieving and Processing Data from {self.data_processing_module.data_dir}")
