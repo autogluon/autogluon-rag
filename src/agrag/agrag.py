@@ -131,6 +131,10 @@ class AutoGluonRAG:
             similarity_threshold=self.args.vector_db_sim_threshold,
             similarity_fn=self.args.vector_db_sim_fn,
             num_gpus=num_gpus,
+            faiss_index_type=self.args.faiss_index_type,
+            faiss_quantized_index_params=self.args.faiss_quantized_index_params,
+            faiss_clustered_index_params=self.args.faiss_clustered_index_params,
+            faiss_index_nprobe=self.args.faiss_index_nprobe,
         )
         logger.info("Vector DB module initialized")
 

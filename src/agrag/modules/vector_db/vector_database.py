@@ -57,7 +57,7 @@ class VectorDatabaseModule:
         self.num_gpus = kwargs.get("num_gpus", 0)
 
         # FAISS params
-        self.faiss_index_type = kwargs.get("faiss_index_type")
+        self.faiss_index_type = kwargs.get("faiss_index_type", "IndexFlatL2")
         self.faiss_quantized_index_params = kwargs.get("faiss_quantized_index_params", {})
         self.faiss_clustered_index_params = kwargs.get("faiss_clustered_index_params", {})
         self.faiss_index_nprobe = kwargs.get("faiss_index_nprobe")
