@@ -52,6 +52,53 @@ class AutoGluonRAG:
             The directory containing the data files that will be used for the RAG pipeline
         pipeline_batch_size: int
             Optional batch size to use for pre-processing stage (Data Processing, Embedding, Vector DB Module)
+
+        Methods:
+        -------
+        initialize_data_module()
+            Initializes the Data Processing module.
+
+        initialize_embeddings_module()
+            Initializes the Embedding module.
+
+        initialize_vectordb_module()
+            Initializes the Vector DB module.
+
+        initialize_retriever_module()
+            Initializes the Retriever module.
+
+        initialize_generator_module()
+            Initializes the Generator module.
+
+        initialize_reranker_module()
+            Initializes the Reranker module.
+
+        process_data() -> pd.DataFrame
+            Processes the data in the provided data directory using the initialized Data Processing module.
+
+        generate_embeddings(processed_data: pd.DataFrame) -> pd.DataFrame
+            Generates embeddings from the processed data using the initialized Embedding module.
+
+        construct_vector_db(embeddings: pd.DataFrame)
+            Constructs the vector database using the provided embeddings.
+
+        load_existing_vector_db(index_path: str, metadata_path: str) -> bool
+            Loads an existing Vector Database from the specified paths in the configuration.
+
+        save_index_and_metadata(index_path: str, metadata_path: str)
+            Saves the vector database index and metadata to the specified paths in the configuration.
+
+        retrieve_context_for_query(query: str) -> List[Dict[str, Any]]
+            Retrieves relevant context for the provided query using the Retriever module.
+
+        generate_response(query: str) -> str
+            Generates a response to the provided query using the Generator module.
+
+        batched_processing()
+            Processes documents, generates embeddings, and stores them in the vector database in batches.
+
+        initialize_rag_pipeline()
+            Initializes the entire RAG pipeline by setting up all necessary modules.
         """
         logger.info("\n\nAutoGluon-RAG\n\n")
 
