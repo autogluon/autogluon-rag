@@ -454,8 +454,14 @@ class AutoGluonRAG:
 
         if not load_index or not load_index_successful:
             if self.batch_size:
+                logger.info(
+                    f"Using batch size of {self.batch_size}. You can change this value by setting pipeline_batch_size in the config file or when initializing AutoGluon RAG."
+                )
                 self.batched_processing()
             else:
+                logger.info(
+                    f"Not using batching since batch size of {self.batch_size} was provided. You can change this value by setting pipeline_batch_size in the config file or when initializing AutoGluon RAG."
+                )
                 processed_data = self.process_data()
                 embeddings = self.generate_embeddings(processed_data=processed_data)
                 self.construct_vector_db(embeddings=embeddings)
