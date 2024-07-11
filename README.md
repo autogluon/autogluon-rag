@@ -60,9 +60,10 @@ if __name__ == "__main__":
 These are the parameters that can be passed into the `AutoGluonRAG` class:
 ```
 config_file : str, optional
-    Path to the configuration file.
+    Path to a configuration file that will be used to set specific parameters in the RAG pipeline.
 preset_quality : str, optional
-    Preset quality setting (e.g., "good_quality", "medium_quality", "best_quality"). Note that if both config_file and preset_quality are provided, config_file will be prioritized.  
+    If you do not wish to use your own configuration file, you can use a preset configuration file which contains pre-defined arguments.
+    You must provide the preset quality setting ("good_quality", "medium_quality", or, "best_quality"). Note that if both config_file and preset_quality are provided, config_file will be prioritized.  
 model_ids : dict, optional
     Dictionary of model IDs to use for specific modules.
     Example: {"generator_model_id": "mistral.mistral-7b-instruct-v0:2", "retriever_model_id": "BAAI/bge-large-en", "reranker_model_id": "nv_embed"}
