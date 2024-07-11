@@ -68,7 +68,7 @@ model_ids : dict, optional
     Dictionary of model IDs to use for specific modules.
     Example: {"generator_model_id": "mistral.mistral-7b-instruct-v0:2", "retriever_model_id": "BAAI/bge-large-en", "reranker_model_id": "nv_embed"}
 data_dir : str
-    The directory containing the data files that will be used for the RAG pipeline. If this value is not provided when initializing the object, it must be provided in the config file.
+    The directory containing the data files that will be used for the RAG pipeline. If this value is not provided when initializing the object, it must be provided in the config file. If both are provided, the value in the class instantiation will be prioritized. 
 pipeline_batch_size: int
     Optional batch size to use for pre-processing stage (Data Processing, Embedding, Vector DB Module)
 ```
