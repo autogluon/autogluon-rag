@@ -42,10 +42,22 @@ def construct_faiss_index(
     index = None
     if index_type == "IndexFlatL2":
         index = faiss.IndexFlatL2(d)  # Flat (CPU) index, L2 distance
-        index.add(np.array(embeddings))
     elif index_type == "IndexIVFPQ":
         quantizer = faiss.IndexFlatL2(d)
         index = faiss.IndexIVFPQ(quantizer, d, **faiss_quantized_index_params)
+    elif index_type == "IndexIVFFlat":
+        quantizer = faiss.IndexFlatL2(d)
+        index = faiss.IndexIVFFlat(quantizer, d, **faiss_clustered_index_params)
+    else:
+        raise ValueError(f"Unsupported FAISS index type {index_type}")
+
+    if num_gpus >= 1:
+        index = faiss.index_cpu_to_gpus_list(index=index, ngpu=num_gpus)
+        logger.info(f"Using FAISS GPU index on {num_gpus} GPUs")
+
+    if index_type == "IndexFlatL2":
+        index.add(np.array(embeddings))
+    elif index_type == "IndexIVFPQ":
         index.train(np.array(embeddings))
         assert (
             index.is_trained
@@ -54,8 +66,6 @@ def construct_faiss_index(
         if faiss_index_nprobe:
             index.nprobe = faiss_index_nprobe
     elif index_type == "IndexIVFFlat":
-        quantizer = faiss.IndexFlatL2(d)
-        index = faiss.IndexIVFFlat(quantizer, d, **faiss_clustered_index_params)
         index.train(np.array(embeddings))
         assert (
             index.is_trained
@@ -63,10 +73,6 @@ def construct_faiss_index(
         index.add(np.array(embeddings))
         if faiss_index_nprobe:
             index.nprobe = faiss_index_nprobe
-
-    if num_gpus >= 1:
-        index = faiss.index_cpu_to_gpus_list(index=index, ngpu=num_gpus)
-        logger.info(f"Using FAISS GPU index on {num_gpus} GPUs")
 
     if len(embeddings) != index.ntotal:
         raise ValueError(
