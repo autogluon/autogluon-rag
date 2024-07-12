@@ -83,4 +83,8 @@ The configuration file contains the specific parameters to use for each module i
 There is also a `shared` section in the config file for parameters that do not refer to a specific module. Currently, the parameters in `shared` are: 
 ```
 pipeline_batch_size: Optional batch size to use for pre-processing stage (Data Processing, Embedding, Vector DB Module)
+
+safety_factor: A factor to account for memory overhead and ensure safe memory usage (default is 0.5). Increasing the safety factor will increase the calculated batch size 
+
+max_files_per_batch: The maximum number of files to include in a batch (default is 100). This is to ensure that an extremely large batch size is not used when calculating the optimal batch size.
 ```
