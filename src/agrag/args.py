@@ -47,6 +47,7 @@ class Arguments:
         self.vector_db_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/vector_db/default.yaml"))
         self.retriever_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/retriever/default.yaml"))
         self.generator_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/generator/default.yaml"))
+        self.shared_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/shared/default.yaml"))
 
     def _parse_args(self) -> argparse.Namespace:
         parser = argparse.ArgumentParser(description="AutoGluon-RAG - Retrieval-Augmented Generation Pipeline")
@@ -89,7 +90,13 @@ class Arguments:
 
     @property
     def pipeline_batch_size(self):
-        return self.config.get("shared", {}).get("pipeline_batch_size", 0)
+        return self.config.get("shared", {}).get("pipeline_batch_size", None)
+
+    @property
+    def batch_size_calculation_safety_factor(self):
+        return self.config.get("shared", {}).get(
+            "batch_size_calculation_safety_factor", self.shared_defaults.get("BATCH_SIZE_SAFETY_FACTOR")
+        )
 
     @property
     def data_dir(self):

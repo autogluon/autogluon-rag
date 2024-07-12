@@ -15,7 +15,7 @@ from agrag.modules.retriever.rerankers.reranker import Reranker
 from agrag.modules.retriever.retrievers.retriever_base import RetrieverModule
 from agrag.modules.vector_db.utils import load_index, load_metadata, save_index, save_metadata
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
-from agrag.utils import get_num_gpus, read_openai_key
+from agrag.utils import determine_batch_size, get_num_gpus, read_openai_key
 
 logger = logging.getLogger("rag-logger")
 if not logger.hasHandlers():
@@ -499,17 +499,27 @@ class AutoGluonRAG:
             )
 
         if not load_index or not load_index_successful:
-            if self.batch_size:
-                logger.info(
-                    f"Using batch size of {self.batch_size}. You can change this value by setting pipeline_batch_size in the config file or when initializing AutoGluon RAG."
-                )
-                self.batched_processing()
-            else:
+            if self.batch_size == 0:
                 logger.info(
                     f"Not using batching since batch size of {self.batch_size} was provided. You can change this value by setting pipeline_batch_size in the config file or when initializing AutoGluon RAG."
                 )
                 processed_data = self.process_data()
                 embeddings = self.generate_embeddings(processed_data=processed_data)
                 self.construct_vector_db(embeddings=embeddings)
+            else:
+                if not self.batch_size:
+                    logger.info(
+                        f"Batch size was not provided so calculating batch size based on number of files in data directory and total size of files. You can alternatively set this value by setting pipeline_batch_size in the config file or when initializing AutoGluon RAG."
+                    )
+                    self.batch_size = determine_batch_size(
+                        directory_path=self.data_processing_module.data_dir,
+                        safety_factor=self.args.batch_size_calculation_safety_factor,
+                    )
+                else:
+                    logger.info(
+                        f"Using batch size of {self.batch_size}. You can change this value by setting pipeline_batch_size in the config file or when initializing AutoGluon RAG."
+                    )
+                self.batched_processing()
+
             if self.args.save_vector_db_index:
                 self.save_index_and_metadata(self.args.vector_db_index_save_path, self.args.metadata_index_save_path)

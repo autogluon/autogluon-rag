@@ -1,6 +1,8 @@
 import logging
+import os
 from typing import Optional, Tuple
 
+import psutil
 import torch
 
 logger = logging.getLogger("rag-logger")
@@ -83,3 +85,83 @@ def get_num_gpus(num_gpus):
     elif num_gpus > 0:
         num_gpus = min(num_gpus, max_gpus)
     return num_gpus
+
+
+def get_directory_info(directory_path: str):
+    """
+    Given a path to a directory, returns the number of files and the total size of all the files.
+
+    Parameters:
+    ----------
+    directory_path : str
+        The path to the directory.
+
+    Returns:
+    -------
+    int
+        The number of files in the directory.
+    int
+        The total size of all the files in bytes.
+    """
+    total_size = 0
+    file_count = 0
+
+    for root, _, files in os.walk(directory_path):
+        for file in files:
+            file_path = os.path.join(root, file)
+            total_size += os.path.getsize(file_path)
+            file_count += 1
+
+    return file_count, total_size
+
+
+def get_available_memory() -> int:
+    """
+    Returns the available system memory in bytes.
+
+    Returns:
+    -------
+    int
+        The available system memory in bytes.
+    """
+    mem = psutil.virtual_memory()
+    return mem.available
+
+
+def determine_batch_size(directory: str, safety_factor: float = 0.5) -> int:
+    """
+    Determines the batch size based on the file count, total size, and available system memory.
+
+    This function calculates the average file size and then estimates the maximum batch size
+    by considering the available system memory and a safety factor to avoid using all available memory.
+    The safety factor accounts for memory overhead and ensures safe memory usage during processing.
+    Increasing the safety factor will increase the calculated batch size because more memory is considered available for use.
+
+    Parameters:
+    ----------
+    directory : str
+        The path to the directory.
+    safety_factor : float
+        A factor to account for memory overhead and ensure safe memory usage (default is 0.5).
+
+    Returns:
+    -------
+    int
+        The calculated batch size.
+    """
+    file_count, total_size = get_directory_info(directory)
+    available_memory = get_available_memory()
+
+    logger.info(f"Total files: {file_count}, Total size: {total_size} bytes")
+    logger.info(f"Available memory: {available_memory} bytes")
+
+    if file_count == 0:
+        raise ValueError("No files found in the directory.")
+
+    average_file_size = total_size / file_count
+    max_batch_size_by_memory = int((available_memory * safety_factor) / average_file_size)
+
+    logger.info(f"Average file size: {average_file_size} bytes")
+    logger.info(f"Calculated max batch size by available memory: {max_batch_size_by_memory}")
+
+    return max_batch_size_by_memory
