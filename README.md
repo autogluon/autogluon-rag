@@ -70,7 +70,8 @@ model_ids : dict
 data_dir : str
     The directory containing the data files that will be used for the RAG pipeline. If this value is not provided when initializing the object, it must be provided in the config file. If both are provided, the value in the class instantiation will be prioritized. 
 pipeline_batch_size: int
-    Batch size to use for pre-processing stage (Data Processing, Embedding, Vector DB Module). If this value is not provided, we will calculate the optimal batch size to use based on the number of files, average file size, and available memory.
+    Batch size to use for pre-processing stage (Data Processing, Embedding, Vector DB Module). This value represents the number of files in each batch.
+    If this value is not provided, we will calculate the optimal batch size to use based on the number of files, average file size, and available memory.
 safety_factor : float
     A factor to account for memory overhead and ensure safe memory usage (default is 0.5). Increasing the safety factor will increase the calculated batch size 
 max_files_per_batch : int
