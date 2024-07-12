@@ -128,7 +128,7 @@ def get_available_memory() -> int:
     return mem.available
 
 
-def determine_batch_size(directory: str, safety_factor: float = 0.5) -> int:
+def determine_batch_size(directory: str, safety_factor: float = 0.5, max_files_per_batch: int = 100) -> int:
     """
     Determines the batch size based on the file count, total size, and available system memory.
 
@@ -143,6 +143,8 @@ def determine_batch_size(directory: str, safety_factor: float = 0.5) -> int:
         The path to the directory.
     safety_factor : float
         A factor to account for memory overhead and ensure safe memory usage (default is 0.5).
+    max_files_per_batch : int
+        The maximum number of files to include in a batch (default is 100).
 
     Returns:
     -------
@@ -159,9 +161,12 @@ def determine_batch_size(directory: str, safety_factor: float = 0.5) -> int:
         raise ValueError("No files found in the directory.")
 
     average_file_size = total_size / file_count
-    max_batch_size_by_memory = int((available_memory * safety_factor) / average_file_size)
+    batch_size_by_memory = int((available_memory * safety_factor) / average_file_size)
 
     logger.info(f"Average file size: {average_file_size} bytes")
-    logger.info(f"Calculated max batch size by available memory: {max_batch_size_by_memory}")
+    logger.info(f"Calculated batch size by available memory: {batch_size_by_memory}")
 
-    return max_batch_size_by_memory
+    batch_size = min(batch_size_by_memory, max_files_per_batch, file_count)
+    logger.info(f"Final batch size: {batch_size}")
+
+    return batch_size

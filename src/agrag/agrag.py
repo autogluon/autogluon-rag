@@ -512,8 +512,9 @@ class AutoGluonRAG:
                         f"Batch size was not provided so calculating batch size based on number of files in data directory and total size of files. You can alternatively set this value by setting pipeline_batch_size in the config file or when initializing AutoGluon RAG."
                     )
                     self.batch_size = determine_batch_size(
-                        directory_path=self.data_processing_module.data_dir,
+                        directory=self.data_processing_module.data_dir,
                         safety_factor=self.args.batch_size_calculation_safety_factor,
+                        max_files_per_batch=self.args.max_files_per_batch,
                     )
                 else:
                     logger.info(

@@ -1,5 +1,5 @@
 shared:
-  pipeline_batch_size: 10
+  batch_size_calculation_safety_factor: 0.5
 
 data:
   chunk_size: 128

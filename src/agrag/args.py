@@ -99,6 +99,12 @@ class Arguments:
         )
 
     @property
+    def max_files_per_batch(self):
+        return self.config.get("shared", {}).get(
+            "max_files_per_batch", self.shared_defaults.get("MAX_FILES_PER_BATCH")
+        )
+
+    @property
     def data_dir(self):
         return self.config.get("data", {}).get("data_dir", None)
 
