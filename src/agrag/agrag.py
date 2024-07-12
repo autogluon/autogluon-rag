@@ -35,6 +35,7 @@ class AutoGluonRAG:
         model_ids: Dict = None,
         data_dir: str = "",
         pipeline_batch_size: int = 0,
+        **kwargs,
     ):
         """
         Initializes the AutoGluonRAG class with either a configuration file or a preset quality setting.
@@ -128,6 +129,10 @@ class AutoGluonRAG:
         self.generator_module = None
 
         self.batch_size = pipeline_batch_size or self.args.pipeline_batch_size
+        self.batch_size_calculation_safety_factor = kwargs.get(
+            "batch_size_calculation_safety_factor", self.args.batch_size_calculation_safety_factor
+        )
+        self.max_files_per_batch = kwargs.get("max_files_per_batch", self.args.max_files_per_batch)
 
     def _load_config(self, config_file: str):
         """Load configuration data from a user-defined config file."""
@@ -513,8 +518,8 @@ class AutoGluonRAG:
                     )
                     self.batch_size = determine_batch_size(
                         directory=self.data_processing_module.data_dir,
-                        safety_factor=self.args.batch_size_calculation_safety_factor,
-                        max_files_per_batch=self.args.max_files_per_batch,
+                        safety_factor=self.batch_size_calculation_safety_factor,
+                        max_files_per_batch=self.max_files_per_batch,
                     )
                 else:
                     logger.info(

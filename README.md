@@ -57,20 +57,24 @@ if __name__ == "__main__":
     ag_rag()
 ```
 
-These are the parameters that can be passed into the `AutoGluonRAG` class:
+These are the <b>optional</b> parameters that can be passed into the `AutoGluonRAG` class:
 ```
-config_file : str, optional
+config_file : str
     Path to a configuration file that will be used to set specific parameters in the RAG pipeline.
-preset_quality : str, optional
+preset_quality : str
     If you do not wish to use your own configuration file, you can use a preset configuration file which contains pre-defined arguments.
     You must provide the preset quality setting ("good_quality", "medium_quality", or, "best_quality"). Note that if both config_file and preset_quality are provided, config_file will be prioritized.  
-model_ids : dict, optional
+model_ids : dict
     Dictionary of model IDs to use for specific modules.
     Example: {"generator_model_id": "mistral.mistral-7b-instruct-v0:2", "retriever_model_id": "BAAI/bge-large-en", "reranker_model_id": "nv_embed"}
 data_dir : str
     The directory containing the data files that will be used for the RAG pipeline. If this value is not provided when initializing the object, it must be provided in the config file. If both are provided, the value in the class instantiation will be prioritized. 
 pipeline_batch_size: int
-    Optional batch size to use for pre-processing stage (Data Processing, Embedding, Vector DB Module)
+    Batch size to use for pre-processing stage (Data Processing, Embedding, Vector DB Module). If this value is not provided, we will calculate the optimal batch size to use based on the number of files, average file size, and available memory.
+safety_factor : float
+    A factor to account for memory overhead and ensure safe memory usage (default is 0.5). Increasing the safety factor will increase the calculated batch size 
+max_files_per_batch : int
+    The maximum number of files to include in a batch (default is 100). This is to ensure that an extremely large batch size is not used.
 ```
 
 The configuration file contains the specific parameters to use for each module in the RAG pipeline. For an example of a config file, please refer to `example_config.yaml` in `src/agrag/configs/`. For specific details about the parameters in each individual module, refer to the `README` files in each module in `src/agrag/modules/`.
