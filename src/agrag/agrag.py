@@ -506,7 +506,7 @@ class AutoGluonRAG:
         if not load_index or not load_index_successful:
             if self.batch_size == 0:
                 logger.info(
-                    f"Not using batching since batch size of {self.batch_size} was provided. You can change this value by setting pipeline_batch_size in the config file or when initializing AutoGluon RAG."
+                    f"\nNot using batching since batch size of {self.batch_size} was provided. You can change this value by setting pipeline_batch_size in the config file or when initializing AutoGluon RAG."
                 )
                 processed_data = self.process_data()
                 embeddings = self.generate_embeddings(processed_data=processed_data)
@@ -514,7 +514,7 @@ class AutoGluonRAG:
             else:
                 if not self.batch_size:
                     logger.info(
-                        f"Batch size was not provided so calculating batch size based on number of files in data directory and total size of files. You can alternatively set this value by setting pipeline_batch_size in the config file or when initializing AutoGluon RAG."
+                        f"\nBatch size was not provided so calculating batch size based on number of files in data directory and total size of files. You can alternatively set this value by setting pipeline_batch_size in the config file or when initializing AutoGluon RAG."
                     )
                     self.batch_size = determine_batch_size(
                         directory=self.data_processing_module.data_dir,
@@ -523,7 +523,7 @@ class AutoGluonRAG:
                     )
                 else:
                     logger.info(
-                        f"Using batch size of {self.batch_size}. You can change this value by setting pipeline_batch_size in the config file or when initializing AutoGluon RAG."
+                        f"\nUsing batch size of {self.batch_size}. You can change this value by setting pipeline_batch_size in the config file or when initializing AutoGluon RAG."
                     )
                 self.batched_processing()
 
