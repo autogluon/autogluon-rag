@@ -41,6 +41,7 @@ def construct_faiss_index(
 
     index = None
     quantizer = faiss.IndexFlatL2(d)  # Flat (CPU) index, L2 distance
+    logger.info(f"Using FAISS Index {index_type}")
     if index_type == "IndexIVFPQ":
         index = faiss.IndexIVFPQ(quantizer, d, **faiss_quantized_index_params)
     elif index_type == "IndexIVFFlat":
