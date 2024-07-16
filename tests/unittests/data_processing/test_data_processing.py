@@ -24,7 +24,7 @@ class TestDataProcessingModule(unittest.TestCase):
             data_dir=TEST_DIR, chunk_size=10, chunk_overlap=5, s3_bucket=None
         )
 
-        result = data_processing_module.process_file(os.path.join(TEST_DIR, "Chatbot.pdf"), doc_id=1)
+        result = data_processing_module.process_file(os.path.join(TEST_DIR, "test_file.pdf"), doc_id=1)
 
         expected_result = pd.DataFrame([{DOC_ID_KEY: 1, CHUNK_ID_KEY: 0, DOC_TEXT_KEY: "This is a test page."}])
         pd.testing.assert_frame_equal(result, expected_result)
@@ -81,7 +81,7 @@ class TestDataProcessingModule(unittest.TestCase):
             data_dir="test_docs/", s3_bucket="autogluon-rag-github-dev", chunk_size=10, chunk_overlap=5
         )
 
-        mock_s3_key = "test_docs/Chatbot.pdf"
+        mock_s3_key = "test_docs/test_file.pdf"
         result = data_processing_module.process_file(f"s3://autogluon-rag-github-dev/{mock_s3_key}", doc_id=1)
 
         expected_result = pd.DataFrame([{DOC_ID_KEY: 1, CHUNK_ID_KEY: 0, DOC_TEXT_KEY: "This is a test page."}])
