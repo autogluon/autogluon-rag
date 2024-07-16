@@ -1,8 +1,6 @@
 import logging
-import os
 from typing import Optional, Tuple
 
-import psutil
 import torch
 
 logger = logging.getLogger("rag-logger")
