@@ -7,6 +7,7 @@ import yaml
 
 from agrag.args import Arguments
 from agrag.modules.data_processing.data_processing import DataProcessingModule
+from agrag.modules.data_processing.utils import get_all_file_paths
 from agrag.modules.embedding.embedding import EmbeddingModule
 from agrag.modules.generator.generator import GeneratorModule
 from agrag.modules.generator.utils import format_query
@@ -33,6 +34,7 @@ class AutoGluonRAG:
         preset_quality: Optional[str] = None,
         model_ids: Dict = None,
         data_dir: str = "",
+        pipeline_batch_size: int = 20,
     ):
         """
         Initializes the AutoGluonRAG class with either a configuration file or a preset quality setting.
@@ -48,6 +50,55 @@ class AutoGluonRAG:
             Example: {"generator_model_id": "mistral.mistral-7b-instruct-v0:2", "retriever_model_id": "BAAI/bge-large-en", "reranker_model_id": "nv_embed"}
         data_dir : str
             The directory containing the data files that will be used for the RAG pipeline
+        pipeline_batch_size: int
+            Optional batch size to use for pre-processing stage (Data Processing, Embedding, Vector DB Module)
+
+        Methods:
+        -------
+        initialize_data_module()
+            Initializes the Data Processing module.
+
+        initialize_embeddings_module()
+            Initializes the Embedding module.
+
+        initialize_vectordb_module()
+            Initializes the Vector DB module.
+
+        initialize_retriever_module()
+            Initializes the Retriever module.
+
+        initialize_generator_module()
+            Initializes the Generator module.
+
+        initialize_reranker_module()
+            Initializes the Reranker module.
+
+        process_data() -> pd.DataFrame
+            Processes the data in the provided data directory using the initialized Data Processing module.
+
+        generate_embeddings(processed_data: pd.DataFrame) -> pd.DataFrame
+            Generates embeddings from the processed data using the initialized Embedding module.
+
+        construct_vector_db(embeddings: pd.DataFrame)
+            Constructs the vector database using the provided embeddings.
+
+        load_existing_vector_db(index_path: str, metadata_path: str) -> bool
+            Loads an existing Vector Database from the specified paths in the configuration.
+
+        save_index_and_metadata(index_path: str, metadata_path: str)
+            Saves the vector database index and metadata to the specified paths in the configuration.
+
+        retrieve_context_for_query(query: str) -> List[Dict[str, Any]]
+            Retrieves relevant context for the provided query using the Retriever module.
+
+        generate_response(query: str) -> str
+            Generates a response to the provided query using the Generator module.
+
+        batched_processing()
+            Processes documents, generates embeddings, and stores them in the vector database in batches.
+
+        initialize_rag_pipeline()
+            Initializes the entire RAG pipeline by setting up all necessary modules.
         """
         logger.info("\n\nAutoGluon-RAG\n\n")
 
@@ -75,6 +126,8 @@ class AutoGluonRAG:
         self.reranker_module = None
         self.retriever_module = None
         self.generator_module = None
+
+        self.batch_size = pipeline_batch_size or self.args.pipeline_batch_size
 
     def _load_config(self, config_file: str):
         """Load configuration data from a user-defined config file."""
@@ -131,6 +184,11 @@ class AutoGluonRAG:
             similarity_threshold=self.args.vector_db_sim_threshold,
             similarity_fn=self.args.vector_db_sim_fn,
             num_gpus=num_gpus,
+            milvus_db_name=self.args.milvus_db_name,
+            milvus_search_params=self.args.milvus_search_params,
+            milvus_collection_name=self.args.milvus_collection_name,
+            milvus_index_params=self.args.milvus_index_params,
+            milvus_create_params=self.args.milvus_create_params,
         )
         logger.info("Vector DB module initialized")
 
@@ -208,7 +266,7 @@ class AutoGluonRAG:
         agrag.initialize_data_module()
         processed_data = agrag.process_data()
         """
-        logger.info(f"Retrieving Data from {self.data_processing_module.data_dir}")
+        logger.info(f"Retrieving and Processing Data from {self.data_processing_module.data_dir}")
         processed_data = self.data_processing_module.process_data()
         return processed_data
 
@@ -379,6 +437,37 @@ class AutoGluonRAG:
 
         logger.info(f"\nResponse: {response}\n")
 
+    def batched_processing(self):
+        """
+        Processes documents, generates embeddings, and stores them in the vector database in batches.
+        Each batch is processed sequentially.
+
+        - All file paths from the provided data directory are retrieved.
+        - The first batch of documents is processed.
+        - Embeddings for this batch of processed documents are generated.
+        - The embeddings for the current batch are stored in the vector database.
+        - Memory is cleared (processed data and generated embeddings for the batch) to prevent memory overload.
+
+        """
+
+        logger.info(f"Retrieving and Processing Data from {self.data_processing_module.data_dir}")
+        file_paths = get_all_file_paths(self.data_processing_module.data_dir, self.data_processing_module.file_exts)
+        batch_num = 1
+        for i in range(0, len(file_paths), self.batch_size):
+            logger.info(f"Batch {batch_num}")
+            batch_file_paths = file_paths[i : i + self.batch_size]
+            processed_data = self.data_processing_module.process_files(batch_file_paths)
+
+            embeddings = self.generate_embeddings(processed_data)
+
+            self.construct_vector_db(embeddings)
+
+            # Clear memory
+            del processed_data
+            del embeddings
+
+            batch_num += 1
+
     def initialize_rag_pipeline(self):
         """
         Initializes the entire RAG pipeline by setting up all necessary modules.
@@ -410,8 +499,18 @@ class AutoGluonRAG:
             )
 
         if not load_index or not load_index_successful:
-            processed_data = self.process_data()
-            embeddings = self.generate_embeddings(processed_data=processed_data)
-            self.construct_vector_db(embeddings=embeddings)
+            if self.batch_size == 0:
+                logger.info(
+                    f"\nNot using batching since batch size of {self.batch_size} was provided. You can change this value by setting pipeline_batch_size in the config file or when initializing AutoGluon RAG."
+                )
+                processed_data = self.process_data()
+                embeddings = self.generate_embeddings(processed_data=processed_data)
+                self.construct_vector_db(embeddings=embeddings)
+            else:
+                logger.info(
+                    f"\nUsing batch size of {self.batch_size}. You can change this value by setting pipeline_batch_size in the config file or when initializing AutoGluon RAG."
+                )
+                self.batched_processing()
+
             if self.args.save_vector_db_index:
                 self.save_index_and_metadata(self.args.vector_db_index_save_path, self.args.metadata_index_save_path)

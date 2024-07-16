@@ -47,6 +47,7 @@ class Arguments:
         self.vector_db_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/vector_db/default.yaml"))
         self.retriever_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/retriever/default.yaml"))
         self.generator_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/generator/default.yaml"))
+        self.shared_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/shared/default.yaml"))
 
     def _parse_args(self) -> argparse.Namespace:
         parser = argparse.ArgumentParser(description="AutoGluon-RAG - Retrieval-Augmented Generation Pipeline")
@@ -86,6 +87,12 @@ class Arguments:
         except Exception as exc:
             logger.error(f"Unexpected error occurred while loading {default_file}: {exc}")
         return {}
+
+    @property
+    def pipeline_batch_size(self):
+        return self.config.get("shared", {}).get(
+            "pipeline_batch_size", self.shared_defaults.get("PIPELINE_BATCH_SIZE")
+        )
 
     @property
     def data_dir(self):
@@ -147,7 +154,9 @@ class Arguments:
 
     @property
     def embedding_batch_size(self):
-        return self.config.get("embedding", {}).get("embedding_batch_size", "")
+        return self.config.get("embedding", {}).get(
+            "embedding_batch_size", self.embedding_defaults.get("EMBEDDING_BATCH_SIZE")
+        )
 
     @property
     def vector_db_type(self):
