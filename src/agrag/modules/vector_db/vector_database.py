@@ -68,7 +68,7 @@ class VectorDatabaseModule:
         self.milvus_db_name = kwargs.get("milvus_db_name")
         self.milvus_index_params = kwargs.get("milvus_index_params", {})
         self.milvus_create_params = kwargs.get("milvus_create_params", {})
-        self.metadata = []
+        self.metadata = pd.DataFrame([])
         self.index = None
 
     def construct_vector_database(
@@ -92,7 +92,7 @@ class VectorDatabaseModule:
         logger.info("Initializing Vector DB Construction")
 
         embeddings_hidden_dim = embeddings.iloc[0][EMBEDDING_HIDDEN_DIM_KEY]
-        self.metadata = embeddings.drop(columns=[EMBEDDING_KEY, EMBEDDING_HIDDEN_DIM_KEY])
+        metadata = embeddings.drop(columns=[EMBEDDING_KEY, EMBEDDING_HIDDEN_DIM_KEY])
         if pbar:
             pbar.update(1)
 
@@ -100,7 +100,8 @@ class VectorDatabaseModule:
 
         logger.info("\nRemoving Duplicates")
         vectors, indices_to_keep = remove_duplicates(vectors, self.similarity_threshold, self.similarity_fn)
-        self.metadata = self.metadata.iloc[indices_to_keep]
+        metadata = metadata.iloc[indices_to_keep]
+        self.metadata = pd.concat([self.metadata, metadata], ignore_index=True)
         if pbar:
             pbar.update(1)
 
@@ -115,16 +116,29 @@ class VectorDatabaseModule:
                 faiss_clustered_index_params=self.faiss_clustered_index_params,
                 faiss_index_nprobe=self.faiss_index_nprobe,
             )
+            if self.index:
+                self.index.add(np.array(vectors))
+            else:
+                self.index = construct_faiss_index(
+                    embeddings=vectors, num_gpus=self.num_gpus, embedding_dim=embeddings_hidden_dim
+                )
         elif self.db_type == "milvus":
             logger.info("Constructing Milvus Index")
-            self.index = construct_milvus_index(
-                vectors,
-                collection_name=self.milvus_collection_name,
-                db_name=self.milvus_db_name,
-                index_params=self.milvus_index_params,
-                create_params=self.milvus_create_params,
-                embedding_dim=embeddings_hidden_dim,
-            )
+            if self.index:
+                vectors = [embedding.numpy() for embedding in vectors]
+                start_index = len(self.metadata) - len(vectors)
+                data = [{"id": i + start_index, "embedding": vectors[i]} for i in range(len(vectors))]
+
+                _ = self.index.insert(collection_name=self.milvus_collection_name, data=data)
+            else:
+                self.index = construct_milvus_index(
+                    embeddings=vectors,
+                    collection_name=self.milvus_collection_name,
+                    db_name=self.milvus_db_name,
+                    index_params=self.milvus_index_params,
+                    create_params=self.milvus_create_params,
+                    embedding_dim=embeddings_hidden_dim,
+                )
         else:
             raise ValueError(f"Unsupported database type: {self.db_type}")
 

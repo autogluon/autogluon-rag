@@ -66,6 +66,10 @@ class DataProcessingModule:
         self.s3_bucket = data_s3_bucket
         self.s3_client = boto3.client("s3") if self.s3_bucket else None
         self.file_exts = file_exts
+        if self.s3_bucket:
+            self.data_dir = download_directory_from_s3(
+                s3_bucket=self.s3_bucket, data_dir=self.data_dir, s3_client=self.s3_client
+            )
 
     def chunk_data_naive(self, text: str) -> List[str]:
         """
@@ -139,6 +143,29 @@ class DataProcessingModule:
 
         return pd.DataFrame()
 
+    def process_files(self, file_paths: List[str]) -> pd.DataFrame:
+        """
+        Processes the given file paths, extracting and chunking text from each file.
+
+        Parameters:
+        ----------
+        file_paths : List[str]
+            A list of file paths to process.
+
+        Returns:
+        -------
+        pd.DataFrame
+            A DataFrame of processed text chunks from the given files.
+        """
+        processed_data = []
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            results = executor.map(self.process_file, file_paths, range(len(file_paths)))
+            for result in results:
+                processed_data.append(result)
+
+        return pd.concat(processed_data).reset_index(drop=True)
+
     def process_data(self) -> pd.DataFrame:
         """
         Processes all files in the data directory.
@@ -150,17 +177,7 @@ class DataProcessingModule:
         pd.DataFrame
             A DataFrame of processed text chunks from all files in the directory.
         """
-        processed_data = []
-        if self.s3_bucket:
-            self.data_dir = download_directory_from_s3(
-                s3_bucket=self.s3_bucket, data_dir=self.data_dir, s3_client=self.s3_client
-            )
 
         file_paths = get_all_file_paths(self.data_dir, self.file_exts)
 
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            results = executor.map(self.process_file, file_paths, range(len(file_paths)))
-            for result in results:
-                processed_data.append(result)
-
-        return pd.concat(processed_data).reset_index(drop=True)
+        return self.process_files(file_paths)

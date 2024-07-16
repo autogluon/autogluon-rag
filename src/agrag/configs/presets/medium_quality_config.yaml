@@ -1,3 +1,6 @@
+shared:
+  pipeline_batch_size: 20
+
 data:
   chunk_size: 128
   chunk_overlap: 16
