@@ -90,18 +90,8 @@ class Arguments:
 
     @property
     def pipeline_batch_size(self):
-        return self.config.get("shared", {}).get("pipeline_batch_size", None)
-
-    @property
-    def batch_size_calculation_safety_factor(self):
         return self.config.get("shared", {}).get(
-            "batch_size_calculation_safety_factor", self.shared_defaults.get("BATCH_SIZE_SAFETY_FACTOR")
-        )
-
-    @property
-    def max_files_per_batch(self):
-        return self.config.get("shared", {}).get(
-            "max_files_per_batch", self.shared_defaults.get("MAX_FILES_PER_BATCH")
+            "pipeline_batch_size", self.shared_defaults.get("PIPELINE_BATCH_SIZE")
         )
 
     @property
