@@ -21,6 +21,8 @@ from agrag.modules.vector_db.utils import (
 )
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
 
+torch.manual_seed(21)
+
 
 class TestVectorDatabaseModule(unittest.TestCase):
     def setUp(self):
