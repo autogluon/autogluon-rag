@@ -31,7 +31,7 @@ class AutoGluonRAG:
     def __init__(
         self,
         config_file: Optional[str] = None,
-        preset_quality: Optional[str] = None,
+        preset_quality: Optional[str] = "medium_quality",
         model_ids: Dict = None,
         data_dir: str = "",
         pipeline_batch_size: int = 20,
@@ -44,7 +44,7 @@ class AutoGluonRAG:
         config_file : str, optional
             Path to the configuration file.
         preset_quality : str, optional
-            Preset quality setting (e.g., "good", "medium", "best").
+            Preset quality setting (e.g., "good", "medium", "best"). Default is "medium_quality"
         model_ids : dict, optional
             Dictionary of model IDs to use for specific modules.
             Example: {"generator_model_id": "mistral.mistral-7b-instruct-v0:2", "retriever_model_id": "BAAI/bge-large-en", "reranker_model_id": "nv_embed"}
