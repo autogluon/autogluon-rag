@@ -108,7 +108,7 @@ class EmbeddingModule:
         batch_num = 1
 
         for i in range(0, len(texts), batch_size):
-            logger.info(f"Batch {batch_num}")
+            logger.info(f"Embedding Batch {batch_num}")
 
             logger.info("\nTokenizing text chunks")
             batch_texts = texts[i : i + batch_size]

@@ -8,6 +8,7 @@ openai*
 
 *.db
 *milvus_db
+*data
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
