@@ -436,6 +436,7 @@ class AutoGluonRAG:
         response = self.generator_module.generate_response(formatted_query)
 
         logger.info(f"\nResponse: {response}\n")
+        return response
 
     def batched_processing(self):
         """

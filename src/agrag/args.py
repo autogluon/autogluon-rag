@@ -320,6 +320,10 @@ class Arguments:
     def generator_query_prefix(self):
         return self.config.get("generator", {}).get("generator_query_prefix", "")
 
+    @generator_query_prefix.setter
+    def generator_query_prefix(self, value: str):
+        self.config["generator"]["generator_query_prefix"] = value
+
     @property
     def gpt_generate_params(self):
         return self.config.get("generator", {}).get("gpt_generate_params", {})
