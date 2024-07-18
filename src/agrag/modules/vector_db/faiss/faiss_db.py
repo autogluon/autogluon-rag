@@ -2,7 +2,6 @@ import logging
 from typing import List
 
 import faiss
-import faiss.gpu_wrappers
 import numpy as np
 import torch
 
