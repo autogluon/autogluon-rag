@@ -438,6 +438,35 @@ class AutoGluonRAG:
         logger.info(f"\nResponse: {response}\n")
         return response
 
+    def generate_response_no_rag(self, query: str) -> str:
+        """
+        Generates a response to the provided query using the Generator module in a zero-shot setting without any retrieved context.
+
+        Parameters:
+        ----------
+        query : str
+            The user query for which a response is to be generated.
+
+        Returns:
+        -------
+        str
+            The generated response.
+
+        Example:
+        --------
+        response = agrag.generate_response_no_rag("What is AutoGluon?")
+        """
+
+        query_prefix = self.args.generator_query_prefix
+        if query_prefix:
+            query = f"{query_prefix}\n{query}"
+        formatted_query = format_query(model_name=self.generator_module.model_name, query=query, context="")
+
+        response = self.generator_module.generate_response(formatted_query)
+
+        logger.info(f"\nResponse: {response}\n")
+        return response
+
     def batched_processing(self):
         """
         Processes documents, generates embeddings, and stores them in the vector database in batches.

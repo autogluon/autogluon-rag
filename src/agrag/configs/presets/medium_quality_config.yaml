@@ -23,7 +23,7 @@ vector_db:
   params: {gpu: False}
   similarity_threshold: 0.95
   similarity_fn: cosine
-  use_existing_vector_db: false
+  use_existing_vector_db: true
   save_index: true
   num_gpus: 0
   vector_db_index_save_path: s3://autogluon-rag-github-dev/vectorDB_index_save/faiss/index.idx
