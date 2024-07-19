@@ -44,7 +44,8 @@ class Reranker:
         self.top_k = top_k
 
         self.batch_size = kwargs.get("batch_size", 64)
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.num_gpus = kwargs.get("num_gpus", 0)
+        self.device = "cpu" if not self.num_gpus else torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         self.hf_model_params = kwargs.get("hf_model_params", {})
         self.hf_tokenizer_init_params = kwargs.get("hf_tokenizer_init_params", {})
@@ -53,9 +54,7 @@ class Reranker:
 
         self.model = AutoModel.from_pretrained(self.model_name, **self.hf_model_params).to(self.device)
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, **self.hf_tokenizer_init_params)
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        self.num_gpus = kwargs.get("num_gpus", 0)
         if self.num_gpus > 1:
             logger.info(f"Using {self.num_gpus} GPUs")
             self.model = DataParallel(self.model, device_ids=list(range(self.num_gpus)))
