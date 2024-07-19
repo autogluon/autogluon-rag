@@ -71,7 +71,7 @@ class HFGenerator:
         self.hf_tokenizer_params = hf_tokenizer_params or {}
         self.hf_generate_params = hf_generate_params or {}
 
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = "cpu" if not self.num_gpus else torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         logger.info(f"Using Huggingface Model {self.model_name} for HF Generator")
 

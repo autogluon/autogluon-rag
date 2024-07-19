@@ -64,12 +64,12 @@ class EmbeddingModule:
         self.hf_forward_params = kwargs.get("hf_forward_params", {})
         self.normalization_params = kwargs.get("normalization_params", {})
         self.query_instruction_for_retrieval = kwargs.get("query_instruction_for_retrieval", None)
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.num_gpus = kwargs.get("num_gpus", 0)
+        self.device = "cpu" if not self.num_gpus else torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         logger.info(f"Using Huggingface Model {self.hf_model} for Embedding Module")
         self.tokenizer = AutoTokenizer.from_pretrained(self.hf_model, **self.hf_tokenizer_init_params)
         self.model = AutoModel.from_pretrained(self.hf_model, **self.hf_model_params)
-        self.num_gpus = torch.cuda.device_count()
         if self.num_gpus > 1:
             logger.info(f"Using {self.num_gpus} GPUs")
             self.model = DataParallel(self.model)

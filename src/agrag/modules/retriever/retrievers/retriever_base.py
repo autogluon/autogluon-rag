@@ -3,6 +3,7 @@ from typing import Any, Dict, List
 
 import numpy as np
 import pandas as pd
+import torch
 from torch.nn import DataParallel
 
 from agrag.constants import DOC_TEXT_KEY, EMBEDDING_KEY
@@ -49,14 +50,6 @@ class RetrieverModule:
 
         self.vector_database_module = vector_database_module
         self.top_k = top_k
-
-        num_gpus = kwargs.get("num_gpus", 0)
-        self.num_gpus = num_gpus
-        if self.num_gpus > 1:
-            logger.info(f"Using {self.num_gpus} GPUs")
-            self.model = DataParallel(self.model)
-
-        vector_database_module.num_gpus = num_gpus
         self.reranker = reranker
 
     def encode_query(self, query: str) -> np.ndarray:
