@@ -215,6 +215,28 @@ class Arguments:
         )
 
     @property
+    def faiss_index_type(self):
+        return self.config.get("vector_db", {}).get(
+            "faiss_index_type", self.vector_db_defaults.get("FAISS_INDEX_TYPE")
+        )
+
+    @property
+    def faiss_quantized_index_params(self):
+        return self.config.get("vector_db", {}).get(
+            "faiss_quantized_index_params", self.vector_db_defaults.get("FAISS_QUANTIZED_PARAMS")
+        )
+
+    @property
+    def faiss_clustered_index_params(self):
+        return self.config.get("vector_db", {}).get(
+            "faiss_clustered_index_params", self.vector_db_defaults.get("FAISS_CLUSTERED_PARAMS")
+        )
+
+    @property
+    def faiss_index_nprobe(self):
+        return self.config.get("vector_db", {}).get("faiss_index_nprobe", self.vector_db_defaults.get("FAISS_NPROBE"))
+
+    @property
     def milvus_search_params(self):
         return self.config.get("vector_db", {}).get(
             "milvus_search_params", self.vector_db_defaults.get("MILVUS_INDEX_PARAMS")
@@ -319,10 +341,6 @@ class Arguments:
     @property
     def generator_query_prefix(self):
         return self.config.get("generator", {}).get("generator_query_prefix", "")
-
-    @generator_query_prefix.setter
-    def generator_query_prefix(self, value: str):
-        self.config["generator"]["generator_query_prefix"] = value
 
     @property
     def gpt_generate_params(self):

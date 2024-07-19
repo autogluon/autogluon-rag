@@ -1,5 +1,5 @@
 shared:
-  pipeline_batch_size: 1
+  pipeline_batch_size: 20
 
 data:
   chunk_size: 128
@@ -17,15 +17,14 @@ embedding:
     padding: true
   normalization_params: {'p': 2, 'dim': 1, 'eps': 1e-12}
   embedding_batch_size: 64
-  num_gpus: 4
 
 vector_db:
   db_type: faiss
   params: {gpu: False}
   similarity_threshold: 0.95
   similarity_fn: cosine
-  use_existing_vector_db: true
-  save_index: false
+  use_existing_vector_db: false
+  save_index: true
   num_gpus: 0
   vector_db_index_save_path: s3://autogluon-rag-github-dev/vectorDB_index_save/faiss/index.idx
   metadata_index_save_path: s3://autogluon-rag-github-dev/vectorDB_metadata_save/faiss/metadata.json
@@ -33,12 +32,12 @@ vector_db:
   metadata_index_load_path: s3://autogluon-rag-github-dev/vectorDB_metadata_save/faiss/metadata.json
 
 retriever:
-  retriever_top_k: 50
+  retriever_top_k: 20
   use_reranker: true
-  reranker_top_k: 15
+  reranker_top_k: 10
   reranker_model_name: BAAI/bge-large-en
-  reranker_batch_size: 64
-  num_gpus: 4
+  reranker_batch_size: 32
+  num_gpus: 0
   reranker_hf_tokenizer_params:
     padding: true
     truncation: true
