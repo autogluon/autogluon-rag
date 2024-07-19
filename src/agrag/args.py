@@ -324,11 +324,19 @@ class Arguments:
             "faiss_index_type", self.vector_db_defaults.get("FAISS_INDEX_TYPE")
         )
 
+    @faiss_index_type.setter
+    def faiss_index_type(self, value):
+        self.config["vector_db"]["faiss_index_type"] = value
+
     @property
     def faiss_quantized_index_params(self):
         return self.config.get("vector_db", {}).get(
             "faiss_quantized_index_params", self.vector_db_defaults.get("FAISS_QUANTIZED_PARAMS")
         )
+
+    @faiss_quantized_index_params.setter
+    def faiss_quantized_index_params(self, value):
+        self.config["vector_db"]["faiss_quantized_index_params"] = value
 
     @property
     def faiss_clustered_index_params(self):
@@ -336,9 +344,17 @@ class Arguments:
             "faiss_clustered_index_params", self.vector_db_defaults.get("FAISS_CLUSTERED_PARAMS")
         )
 
+    @faiss_clustered_index_params.setter
+    def faiss_clustered_index_params(self, value):
+        self.config["vector_db"]["faiss_clustered_index_params"] = value
+
     @property
     def faiss_index_nprobe(self):
         return self.config.get("vector_db", {}).get("faiss_index_nprobe", self.vector_db_defaults.get("FAISS_NPROBE"))
+
+    @faiss_index_nprobe.setter
+    def faiss_index_nprobe(self, value):
+        self.config["vector_db"]["faiss_index_nprobe"] = value
 
     @property
     def milvus_search_params(self):
