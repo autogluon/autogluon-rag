@@ -9,6 +9,8 @@ import evaluate
 import numpy as np
 from bs4 import BeautifulSoup
 from datasets import load_dataset
+from qa_metrics.pedant import PEDANT
+from qa_metrics.transformerMatcher import TransformerMatcher
 
 from agrag.agrag import AutoGluonRAG
 
@@ -20,13 +22,15 @@ dataset = load_dataset("google-research-datasets/natural_questions", "dev")
 MAX_FILE_SIZE = 50 * 1000 * 1000  # 50 MB
 bertscore = evaluate.load("bertscore")
 exact_match_metric = evaluate.load("exact_match")
+pedant = PEDANT()
+tm = TransformerMatcher("roberta-large")
 
 # Create evaluation directory
-evaluation_dir = "evaluation_data"
+evaluation_dir = "temp_evaluation_data"
 if not os.path.exists(evaluation_dir):
     os.makedirs(evaluation_dir)
 
-MAX_SIZE_EVAL = 100
+MAX_SIZE_EVAL = 50
 
 
 def preprocess_text(text: str) -> str:
@@ -112,6 +116,9 @@ def evaluate_responses(dataset, agrag: AutoGluonRAG):
     predictions = []
     predictions_norag = []
 
+    scores = []
+    scores_norag = []
+
     max = 0
     for row in dataset["validation"]:
         query = row["question"]["text"]
@@ -128,11 +135,16 @@ def evaluate_responses(dataset, agrag: AutoGluonRAG):
             continue
 
         generated_response = agrag.generate_response(query)
-        # generate_response_no_rag = agrag.generate_response_no_rag(query)
+        generate_response_no_rag = agrag.generate_response_no_rag(query)
+
+        # max_pair, highest_score = tm.get_highest_score(generated_response, expected_responses, query)
+        # scores.append(highest_score)
+        # max_pair, highest_score = tm.get_highest_score(generate_response_no_rag, expected_responses, query)
+        # scores_norag.append(highest_score)
 
         references.append(expected_responses)
         predictions.append(generated_response)
-        # predictions_norag.append(generate_response_no_rag)
+        predictions_norag.append(generate_response_no_rag)
 
         logger.info(f"Query: {query}")
         logger.info(f"Expected: {expected_responses}")
@@ -141,19 +153,24 @@ def evaluate_responses(dataset, agrag: AutoGluonRAG):
             break
         max += 1
 
-    print("Predictions: ", predictions)
-    print("References: ", references)
+    # print("Predictions: ", predictions)
+    # print("References: ", references)
     # result = bertscore.compute(predictions=predictions, references=references, lang="en")
     # result = exact_match_metric.compute(predictions=predictions, references=references, ignore_case=True, ignore_punctuation=True)
     exact_matches = custom_exact_match_metric(predictions=predictions, references=references)
-    save_responses_to_csv(
-        generated_responses=predictions,
-        expected_responses=references,
-        exact_matches=exact_matches,
-        output_csv="evaluation_results.csv",
-    )
+    # save_responses_to_csv(
+    #     generated_responses=predictions,
+    #     expected_responses=references,
+    #     exact_matches=exact_matches,
+    #     output_csv="evaluation_results.csv",
+    # )
     result = calculate_exact_match_score(exact_matches=exact_matches)
     logger.info(f"Exact Match Score: {result}")
+    exact_matches = custom_exact_match_metric(predictions=predictions_norag, references=references)
+    result = calculate_exact_match_score(exact_matches=exact_matches)
+    logger.info(f"Exact Match Score No RAG: {result}")
+    # logger.info(f"Average Score: {np.mean(scores)}")
+    # logger.info(f"Average Score No-RAG: {np.mean(scores_norag)}")
     # logger.info(f"Average BERTScore Precision: {np.mean(result['precision'])}")
     # logger.info(f"Average BERTScore Recall: {np.mean(result['recall'])}")
     # logger.info(f"Average BERTScore F1 Score: {np.mean(result['f1'])}")

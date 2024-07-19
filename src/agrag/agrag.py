@@ -127,7 +127,7 @@ class AutoGluonRAG:
         self.retriever_module = None
         self.generator_module = None
 
-        self.batch_size = pipeline_batch_size or self.args.pipeline_batch_size
+        self.batch_size = self.args.pipeline_batch_size or pipeline_batch_size
 
     def _load_config(self, config_file: str):
         """Load configuration data from a user-defined config file."""
