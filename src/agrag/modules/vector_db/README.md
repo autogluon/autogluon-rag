@@ -41,6 +41,14 @@ vector_db:
 
   s3_bucket: If applicable, S3 bucket that contains vector DB index and metadata files 
 
+  faiss_index_type: Type of FAISS Index to use (IndexFlatL2, IndexIVFFlat, IndexIVFPQ). For IndexIVFFlat, and IndexIVFPQ, we use the quantizer IndexFlatL2 by default.
+
+  faiss_quantized_index_params: Additional parameters to pass into IndexIVFPQ
+
+  faiss_clustered_index_params: Additional parameters to pass into IndexIVFFlat
+
+  faiss_index_nprobe: Value to set FAISS index nprobe to
+  
   milvus_db_name: Name of the Milvus DB Client
 
   milvus_collection_name: Name of the Milvus Collection. A DB can have multiple collections but we only use one here
