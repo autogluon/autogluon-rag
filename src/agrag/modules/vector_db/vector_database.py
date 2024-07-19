@@ -106,31 +106,30 @@ class VectorDatabaseModule:
             pbar.update(1)
 
         if self.db_type == "faiss":
-            logger.info("Constructing FAISS Index")
-            self.index = construct_faiss_index(
-                index_type=self.faiss_index_type,
-                embeddings=vectors,
-                num_gpus=self.num_gpus,
-                embedding_dim=embeddings_hidden_dim,
-                faiss_quantized_index_params=self.faiss_quantized_index_params,
-                faiss_clustered_index_params=self.faiss_clustered_index_params,
-                faiss_index_nprobe=self.faiss_index_nprobe,
-            )
             if self.index:
+                logger.info("Adding to existing FAISS Index")
                 self.index.add(np.array(vectors))
             else:
+                logger.info("Constructing FAISS Index")
                 self.index = construct_faiss_index(
-                    embeddings=vectors, num_gpus=self.num_gpus, embedding_dim=embeddings_hidden_dim
+                    index_type=self.faiss_index_type,
+                    embeddings=vectors,
+                    num_gpus=self.num_gpus,
+                    embedding_dim=embeddings_hidden_dim,
+                    faiss_quantized_index_params=self.faiss_quantized_index_params,
+                    faiss_clustered_index_params=self.faiss_clustered_index_params,
+                    faiss_index_nprobe=self.faiss_index_nprobe,
                 )
         elif self.db_type == "milvus":
-            logger.info("Constructing Milvus Index")
             if self.index:
+                logger.info("Adding to existing Milvus Index")
                 vectors = [embedding.numpy() for embedding in vectors]
                 start_index = len(self.metadata) - len(vectors)
                 data = [{"id": i + start_index, "embedding": vectors[i]} for i in range(len(vectors))]
 
                 _ = self.index.insert(collection_name=self.milvus_collection_name, data=data)
             else:
+                logger.info("Constructing Milvus Index")
                 self.index = construct_milvus_index(
                     embeddings=vectors,
                     collection_name=self.milvus_collection_name,

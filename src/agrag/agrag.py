@@ -34,7 +34,7 @@ class AutoGluonRAG:
         preset_quality: Optional[str] = "medium_quality",
         model_ids: Dict = None,
         data_dir: str = "",
-        pipeline_batch_size: int = 20,
+        pipeline_batch_size: int = 0,
     ):
         """
         Initializes the AutoGluonRAG class with either a configuration file or a preset quality setting.
