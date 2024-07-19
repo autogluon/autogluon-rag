@@ -71,6 +71,7 @@ class HFGenerator:
         self.hf_tokenizer_params = hf_tokenizer_params or {}
         self.hf_generate_params = hf_generate_params or {}
 
+        self.num_gpus = num_gpus
         self.device = "cpu" if not self.num_gpus else torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         logger.info(f"Using Huggingface Model {self.model_name} for HF Generator")
@@ -78,7 +79,6 @@ class HFGenerator:
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, **self.hf_tokenizer_init_params)
         self.model = AutoModelForCausalLM.from_pretrained(self.model_name, **self.hf_model_params).to(self.device)
 
-        self.num_gpus = num_gpus
         if self.num_gpus > 1:
             logger.info(f"Using {self.num_gpus} GPUs")
             self.model = DataParallel(self.model, device_ids=list(range(self.num_gpus)))
