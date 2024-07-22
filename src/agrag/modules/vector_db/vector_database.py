@@ -141,6 +141,9 @@ class VectorDatabaseModule:
         else:
             raise ValueError(f"Unsupported database type: {self.db_type}")
 
+        del vectors
+        del metadata
+
         if pbar:
             pbar.update(len(embeddings))
 
