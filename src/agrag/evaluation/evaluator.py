@@ -28,6 +28,9 @@ class EvaluationModule:
         agrag: AutoGluonRAG,
         dataset_name: str,
         metrics: List[str],
+        preprocessing_fn: Callable,
+        query_fn: Callable,
+        response_fn: Callable,
         hf_dataset_params: dict = {},
         split: str = "validation",
         save_evaluation_data: bool = True,
@@ -51,6 +54,12 @@ class EvaluationModule:
                 2. Inclusive Exact Match: ["exact_match"]
                 3. QA Metrics from https://github.com/zli12321/qa_metrics
                 4. Custom Metric Function: This can either be a callable Python function or a function from a Python package
+        preprocessing_fn : Callable
+            A function to preprocess the content before saving.
+        query_fn : Callable
+            A function to extract the query from the dataset row.
+        response_fn : Callable
+            A function to extract the expected responses from the dataset row.
         hf_dataset_params: dict
             Additional parameters to pass into HuggingFace `load_dataset` function
         split : str
@@ -75,6 +84,9 @@ class EvaluationModule:
         self.evaluation_dir = evaluation_dir
         self.save_csv_path = save_csv_path
         self.max_eval_size = max_eval_size
+        self.preprocessing_fn = preprocessing_fn
+        self.query_fn = query_fn
+        self.response_fn = response_fn
 
     def initialize_metrics(self, metrics: List[str]) -> Dict[str, Any]:
         """
@@ -256,9 +268,15 @@ class EvaluationModule:
         """
         save_responses_to_csv(predictions, references, queries, output_csv)
 
-    def evaluate_agrag_google_nq(self):
-        """
-        Evaluates AutoGluon-RAG using the Google Natural Questions dataset.
-        """
-        self.dataset_name = ("google-research-datasets/natural_questions",)
-        evaluate_rag_google_nq(self)
+    def run_evaluation(self):
+        if self.save_evaluation_data:
+            self.save_documents_to_files(evaluation_dir=self.evaluation_dir, preprocessing_fn=self.preprocessing_fn)
+
+        self.agrag.initialize_rag_pipeline()
+
+        queries, expected_repsonses, generated_responses = self.get_queries_and_responses(
+            query_fn=self.query_fn, response_fn=self.response_fn
+        )
+        self.evaluate_responses(predictions=generated_responses, references=expected_repsonses, queries=queries)
+        if self.save_csv_path:
+            self.save_evaluation_results(output_csv=self.save_csv_path, references=expected_repsonses, queries=queries)
