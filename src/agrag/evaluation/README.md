@@ -154,4 +154,4 @@ def get_google_nq_responses(row):
 
 ### max_eval_size
 **Type**: `int`, optional  
-**Description**: The maximum number of datapoints to process for evaluation (default is None). This value should be less than the total number of datapoints.
+**Description**: The maximum number of datapoints to process for evaluation (default is None). If this value is not less than the total number of datapoints (rows), the entire dataset will be used.
