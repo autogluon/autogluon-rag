@@ -82,7 +82,13 @@ class EvaluationModule:
         self.save_evaluation_data = save_evaluation_data
         self.evaluation_dir = evaluation_dir
         self.save_csv_path = save_csv_path
-        self.max_eval_size = max_eval_size
+        self.max_eval_size = None
+        if max_eval_size >= self.dataset.num_rows:
+            logger.warning(
+                f"\nProvided `max_eval_size` ({max_eval_size}) >= Number of rows in the dataset ({self.dataset.num_rows}). Entire dataset will be processed for evaluation."
+            )
+        else:
+            self.max_eval_size = max_eval_size
         self.preprocessing_fn = preprocessing_fn
         self.query_fn = query_fn
         self.response_fn = response_fn
