@@ -27,7 +27,7 @@ def construct_faiss_index(
 
     Returns:
     -------
-    Union[faiss.IndexFlatL2, faiss.GpuIndexFlatL2]
+    Union[IndexFlatL2, IndexIVFFlat, IndexIVFPQ]
         The constructed FAISS index.
     """
     d = embeddings[0].shape[-1]
@@ -42,7 +42,10 @@ def construct_faiss_index(
     quantizer = faiss.IndexFlatL2(d)  # Flat (CPU) index, L2 distance
     logger.info(f"Using FAISS Index {index_type}")
     if index_type == "IndexIVFPQ":
-        index = faiss.IndexIVFPQ(quantizer, d, **faiss_quantized_index_params)
+        nlist = faiss_quantized_index_params.get("nlist")
+        m = faiss_quantized_index_params.get("m")
+        bits = faiss_quantized_index_params.get("bits")
+        index = faiss.IndexIVFPQ(quantizer, d, nlist, m, bits)
     elif index_type == "IndexIVFFlat":
         index = faiss.IndexIVFFlat(quantizer, d, **faiss_clustered_index_params)
     elif index_type == "IndexFlatL2":
