@@ -1,14 +1,11 @@
-from agrag.agrag import AutoGluonRAG
-from agrag.constants import EVALUATION_DIR
 from agrag.evaluation.datasets.google_natural_questions.google_nq import (
     get_google_nq_query,
     get_google_nq_responses,
     preprocess_google_nq,
 )
-from agrag.evaluation.evaluator import EvaluationModule
 
 
-def evaluate_rag_google_nq(evaluator: EvaluationModule):
+def evaluate_rag_google_nq(evaluator):
     """
     Evaluates AutoGluon-RAG using the Google Natural Questions dataset.
     https://huggingface.co/datasets/google-research-datasets/natural_questions/
