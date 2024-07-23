@@ -89,6 +89,7 @@ Alternatively, you can index all your evaluation datasets at once, or create mul
 **Type**: `List[Union[str, Callable]]`  
 **Description**: The list of metrics to use for evaluation. Supported metrics include:
 - `"bertscore"`: Uses the BERTScore metric from HuggingFace.
+- `"bleu"`: Uses the BLEU metric from HuggingFace
 - `"exact_match"`: Uses the Inclusive Exact Match metric. This is a custom metric defined in this module since it is a bit more lenient compared to the HuggingFace `exact_match` metric.
 - `"pedant"`: Uses the PEDANT metric from QA Metrics.
 - `"transformer_matcher"`: Uses the Transformer Matcher metric.

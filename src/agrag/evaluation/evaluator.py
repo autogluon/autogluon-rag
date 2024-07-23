@@ -60,6 +60,8 @@ class EvaluationModule:
                     metric_instances[metric] = PEDANT()
                 elif metric == "transformer_matcher":
                     metric_instances[metric] = TransformerMatcher("roberta-large")
+                elif metric == "bleu":
+                    metric_instances[metric] = evaluate.load("bleu")
                 else:
                     logger.warning(f"Unsupported metric {metric}. Evaluation will not be performed on this metric.")
             elif callable(metric):
@@ -179,6 +181,10 @@ class EvaluationModule:
                     logger.info(f"Average BERTScore Precision: {np.mean(result['precision'])}")
                     logger.info(f"Average BERTScore Recall: {np.mean(result['recall'])}")
                     logger.info(f"Average BERTScore F1 Score: {np.mean(result['f1'])}")
+
+                elif metric == "bleu":
+                    result = metric_instance.compute(predictions=predictions, references=references)
+                    logger.info(f"BLEU score: {result['bleu']}")
 
                 elif metric == "exact_match":
                     exact_matches = custom_exact_match_metric(predictions=predictions, references=references)
