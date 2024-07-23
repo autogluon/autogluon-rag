@@ -21,21 +21,21 @@ To initialize the `EvaluationModule`, you need to provide an instance of `AutoGl
 ```python
 from agrag.agrag import AutoGluonRAG
 from agrag.evaluation.evaluator import EvaluationModule
+from module import preprocessing_fn, query_fn, response_fn
 
 evaluation_dir = "evaluation_data"
 agrag = AutoGluonRAG(preset_quality="medium_quality", data_dir=evaluation_dir)
-evaluator = EvaluationModule(
-    agrag=agrag,
+evaluator = EvaluationModule(rag_instance=agrag)
+evaluator.run_evaluation(
     dataset_name="huggingface_dataset/dataset_name",
     metrics=["exact_match", "transformer_matcher"],
-    preprocessing_fn=preprocessing_fn,
     save_evaluation_data=True,
     evaluation_dir=evaluation_dir,
+    preprocessing_fn=preprocessing_fn,
     query_fn=query_fn,
     response_fn=response_fn,
     hf_dataset_params={"name": "dev"},
 )
-evaluator.run_evaluation()
 ```
 
 Refer to `src/agrag/evaluation/datasets/google_natural_questions/evaluate_agrag.py` for a detailed example of how to evaluate AutoGluon-RAG on the Google Natural Questions dataset from HuggingFace.
@@ -51,6 +51,35 @@ from agrag.agrag import AutoGluonRAG
 agrag = AutoGluonRAG(preset_quality="medium_quality", data_dir=evaluation_dir)
 # Calling agrag.initialize_rag_pipeline() is optional since the EvaluationModule will initialize the pipeline if it has not been done already.
 ```
+
+## AutoGluon-RAG for Large Datasets
+For large datasets, a naive version of AutoGluon-RAG may not be sufficient. Here are some steps you can take when working with a large corpus for RAG:
+1. Using optimized indices for Vector DB. Refer to the documentation for the supported vector databases on how you can use optimized indices such as clustered and quantized databases. Set the parameters appropriately in your configuration file. 
+
+    For example, here is an optimized FAISS setup (in the configuration file) using quantization that runs correctly for the Google Natural Questions dataset:
+    ```python
+        vector_db:
+        db_type: faiss
+        faiss_index_type: IndexIVFPQ
+        faiss_quantized_index_params:
+            nlist: 50
+            m: 8
+            bits: 8
+        faiss_index_nprobe: 15
+    ```
+2. Use GPUs: Make sure to use GPUs appropriately in each module (wherever applicable). You can set the `num_gpus` parameter in the configuration file under each module.
+
+3. System Memory: Make sure your system has enough RAM for at least the size of the dataset. You will require more memory fir the documents that will be generated from the datasets, the embeddings, the metadata, and the vector db index. We recommend running evaluation on a remote instance (such as AWS EC2) instead of running locally. If you would like to run locally, you can choose to run a subset of the evaluation data by setting `max_eval_size` when calling the `run_evaluation` function (see the next section).
+
+
+## Arguments to `run_evaluation` function
+
+### NOTE
+Every time you run the `run_evaluation` function, you may need to set the `agrag.data_dir` parameter if you change the dataset being used. In that case, you will have to reinitialize the RAG pipeline. 
+
+Alternatively, you can index all your evaluation datasets at once, or create multiple instances of `AutoGluonRAG`.
+
+--------------
 
 ### dataset_name
 **Type**: `str`  
