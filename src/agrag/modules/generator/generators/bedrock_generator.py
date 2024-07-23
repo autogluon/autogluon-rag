@@ -52,7 +52,11 @@ class BedrockGenerator:
             The generated response.
         """
 
-        body = json.dumps({"prompt": query, **self.bedrock_generate_params})
+        if "claude" in self.model_name:
+            messages = [{"role": "user", "content": query}]
+            body = json.dumps({"messages": messages, **self.bedrock_generate_params})
+        else:
+            body = json.dumps({"prompt": query, **self.bedrock_generate_params})
 
         accept = "application/json"
         contentType = "application/json"
@@ -81,8 +85,8 @@ class BedrockGenerator:
         if "outputs" in output and isinstance(output["outputs"], list) and "text" in output["outputs"][0]:
             return output["outputs"][0]["text"].strip()
         # Used for Anthropic response
-        elif "type" in output and output["type"] == "completion":
-            return output["completion"].strip()
+        elif "content" in output and output["type"] == "message":
+            return output["content"][0]["text"].strip()
         # Used for Llama response
         elif "generation" in output:
             return output["generation"].strip()
