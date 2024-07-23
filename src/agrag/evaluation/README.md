@@ -88,14 +88,12 @@ Alternatively, you can index all your evaluation datasets at once, or create mul
 ### metrics
 **Type**: `List[Union[str, Callable]]`  
 **Description**: The list of metrics to use for evaluation. Supported metrics include:
-- `"bertscore"`: Uses the BERTScore metric from HuggingFace.
-- `"bleu"`: Uses the BLEU metric from HuggingFace
+- `"bertscore"`: Uses the [BERTScore metric](https://huggingface.co/spaces/evaluate-metric/bertscore) from HuggingFace.
+- `"bleu"`: Uses the [BLEU metric](https://huggingface.co/spaces/evaluate-metric/bleu) from HuggingFace
 - `"exact_match"`: Uses the Inclusive Exact Match metric. This is a custom metric defined in this module since it is a bit more lenient compared to the HuggingFace `exact_match` metric.
-- `"pedant"`: Uses the PEDANT metric from QA Metrics.
-- `"transformer_matcher"`: Uses the Transformer Matcher metric.
+- `"pedant"`: Uses the PEDANT metric from [QA Metrics](https://github.com/zli12321/qa_metrics).
+- `"transformer_matcher"`: Uses the Transformer Matcher metric from [QA Metrics](https://github.com/zli12321/qa_metrics).
 - `<callable_custom_metric>`: Any callable Python function or a function from a Python package.
-
-QA Metrics are from https://github.com/zli12321/qa_metrics
 
 ### preprocessing_fn
 **Type**: `Callable`  
