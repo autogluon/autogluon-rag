@@ -10,7 +10,6 @@ from qa_metrics.transformerMatcher import TransformerMatcher
 
 from agrag.agrag import AutoGluonRAG
 from agrag.constants import EVALUATION_DIR, EVALUATION_MAX_FILE_SIZE
-from agrag.evaluation.datasets.google_natural_questions.evaluate_agrag import evaluate_rag_google_nq
 from agrag.evaluation.utils import (
     calculate_exact_match_score,
     custom_exact_match_metric,
