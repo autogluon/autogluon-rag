@@ -33,6 +33,7 @@ class EvaluationModule:
         save_evaluation_data: bool = True,
         evaluation_dir: str = EVALUATION_DIR,
         save_csv_path: str = None,
+        max_eval_size: int = None,
     ):
         """
         Initializes the EvaluationModule with the given AutoGluonRAG instance, dataset, and metrics.
@@ -56,10 +57,14 @@ class EvaluationModule:
             The dataset split to use (default is "validation").
         save_evaluation_data : bool
             Whether to save evaluation data to files (default is True).
+            You should set this to False if you already have a directory of evaluation files to pass into AutoGluon RAG.
         evaluation_dir : str
-            The directory where evaluation data will be saved (default is EVALUATION_DIR).
+            The directory for evaluation data (default is "./evaluation_data").
         save_csv_path : str
             The path to save the evaluation results as a CSV file (default is None).
+        max_eval_size : int, optional
+            The maximum number of datapoints to process for evaluation (default is None).
+            This value should be less than the total number of datapoints.
         """
         self.agrag = agrag
         self.dataset_name = dataset_name
@@ -69,6 +74,7 @@ class EvaluationModule:
         self.save_evaluation_data = save_evaluation_data
         self.evaluation_dir = evaluation_dir
         self.save_csv_path = save_csv_path
+        self.max_eval_size = max_eval_size
 
     def initialize_metrics(self, metrics: List[str]) -> Dict[str, Any]:
         """
@@ -130,7 +136,9 @@ class EvaluationModule:
         current_file_size = 0
         current_file = open(os.path.join(evaluation_dir, f"doc_{file_index}.txt"), "w", encoding="utf-8")
 
-        for row in self.dataset:
+        for idx, row in enumerate(self.dataset):
+            if self.max_eval_size and idx >= self.max_eval_size:
+                break
             content = preprocessing_fn(row) if preprocessing_fn else row["document"]["content"]
             content_size = len(content.encode("utf-8"))
 
@@ -145,7 +153,7 @@ class EvaluationModule:
 
         current_file.close()
 
-    def get_queries_and_responses(self, query_fn: Callable, response_fn: Callable, max_eval_size: int = None):
+    def get_queries_and_responses(self, query_fn: Callable, response_fn: Callable):
         """
         Obtains the queries and responses from the dataset.
 
@@ -155,8 +163,6 @@ class EvaluationModule:
             A function to extract the query from the dataset row.
         response_fn : Callable
             A function to extract the expected responses from the dataset row.
-        max_eval_size : int, optional
-            The maximum number of evaluations to perform (default is None).
 
         Returns:
         -------
@@ -168,7 +174,7 @@ class EvaluationModule:
         predictions = []
 
         for idx, row in enumerate(self.dataset):
-            if max_eval_size and idx >= max_eval_size:
+            if self.max_eval_size and idx >= self.max_eval_size:
                 break
 
             query = query_fn(row)
@@ -255,4 +261,4 @@ class EvaluationModule:
         Evaluates AutoGluon-RAG using the Google Natural Questions dataset.
         """
         self.dataset_name = ("google-research-datasets/natural_questions",)
-        evaluate_rag_google_nq(self, self.agrag, self.save_csv_path)
+        evaluate_rag_google_nq(self)
