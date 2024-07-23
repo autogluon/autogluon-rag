@@ -268,6 +268,16 @@ class EvaluationModule:
         save_responses_to_csv(predictions, references, queries, output_csv)
 
     def run_evaluation(self):
+        """
+        Runs the evaluation process.
+
+        This method performs the following steps:
+        1. Saves the documents to files if `save_evaluation_data` is True.
+        2. Initializes the RAG pipeline if it has not been initialized.
+        3. Obtains queries and responses from the dataset using the provided functions.
+        4. Evaluates the generated responses using the specified metrics.
+        5. Saves the evaluation results to a CSV file if `save_csv_path` is provided.
+        """
         if self.save_evaluation_data:
             self.save_documents_to_files(evaluation_dir=self.evaluation_dir, preprocessing_fn=self.preprocessing_fn)
 

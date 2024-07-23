@@ -30,6 +30,8 @@ def evaluate_rag_google_nq():
         dataset_name="google-research-datasets/natural_questions",
         metrics=["exact_match", "transformer_matcher"],
         preprocessing_fn=preprocess_google_nq,
+        save_evaluation_data=True,
+        evaluation_dir=evaluation_dir,
         query_fn=get_google_nq_query,
         response_fn=get_google_nq_responses,
         hf_dataset_params={"name": "dev"},
