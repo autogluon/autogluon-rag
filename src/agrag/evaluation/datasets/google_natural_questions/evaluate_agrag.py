@@ -20,6 +20,11 @@ def evaluate_rag_google_nq():
     """
     evaluation_dir = "evaluation_data_google_nq"
     agrag = AutoGluonRAG(preset_quality="medium_quality", data_dir=evaluation_dir)
+    agrag.args.generator_query_prefix = (
+        "You will be answering questions based on Wikipedia articles. "
+        "Your response must contain only the actual answer itself and no extra information or words. Provide just the answer instead of forming full sentences. "
+        "Your answer may even be a singular word or number. For example, if the query is \"what percentage of the earth's surface is water?\", your response must simply be 'roughly 78%', or '78%'. "
+    )
     evaluator = EvaluationModule(
         agrag=agrag,
         dataset_name="google-research-datasets/natural_questions",
@@ -30,9 +35,4 @@ def evaluate_rag_google_nq():
         hf_dataset_params={"name": "dev"},
     )
 
-    evaluator.agrag.args.generator_query_prefix = (
-        "You will be answering questions based on Wikipedia articles. "
-        "Your response must contain only the actual answer itself and no extra information or words. Provide just the answer instead of forming full sentences. "
-        "Your answer may even be a singular word or number. For example, if the query is \"what percentage of the earth's surface is water?\", your response must simply be 'roughly 78%', or '78%'. "
-    )
     evaluator.run_evaluation()
