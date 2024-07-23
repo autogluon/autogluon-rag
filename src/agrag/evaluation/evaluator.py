@@ -28,6 +28,7 @@ class EvaluationModule:
         agrag: AutoGluonRAG,
         dataset_name: str,
         metrics: List[str],
+        hf_dataset_params: dict = {},
         split: str = "validation",
         save_evaluation_data: bool = True,
         evaluation_dir: str = EVALUATION_DIR,
@@ -49,6 +50,8 @@ class EvaluationModule:
                 2. Inclusive Exact Match: ["exact_match"]
                 3. QA Metrics from https://github.com/zli12321/qa_metrics
                 4. Custom Metric Function: This can either be a callable Python function or a function from a Python package
+        hf_dataset_params: dict
+            Additional parameters to pass into HuggingFace `load_dataset` function
         split : str
             The dataset split to use (default is "validation").
         save_evaluation_data : bool
@@ -61,7 +64,7 @@ class EvaluationModule:
         self.agrag = agrag
         self.dataset_name = dataset_name
         self.metrics = metrics
-        self.dataset = load_dataset(dataset_name, split=split)
+        self.dataset = load_dataset(dataset_name, split=split, **hf_dataset_params)
         self.metric_instances = self.initialize_metrics(metrics)
         self.save_evaluation_data = save_evaluation_data
         self.evaluation_dir = evaluation_dir
@@ -251,4 +254,5 @@ class EvaluationModule:
         """
         Evaluates AutoGluon-RAG using the Google Natural Questions dataset.
         """
+        self.dataset_name = ("google-research-datasets/natural_questions",)
         evaluate_rag_google_nq(self, self.agrag, self.save_csv_path)
