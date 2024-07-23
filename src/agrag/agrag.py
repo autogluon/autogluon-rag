@@ -129,6 +129,8 @@ class AutoGluonRAG:
 
         self.batch_size = pipeline_batch_size or self.args.pipeline_batch_size
 
+        self.pipeline_initialized = False
+
     def _load_config(self, config_file: str):
         """Load configuration data from a user-defined config file."""
         try:
@@ -520,3 +522,5 @@ class AutoGluonRAG:
 
             if self.args.save_vector_db_index:
                 self.save_index_and_metadata(self.args.vector_db_index_save_path, self.args.metadata_index_save_path)
+
+        self.pipeline_initialized = True

@@ -272,7 +272,10 @@ class EvaluationModule:
         if self.save_evaluation_data:
             self.save_documents_to_files(evaluation_dir=self.evaluation_dir, preprocessing_fn=self.preprocessing_fn)
 
-        self.agrag.initialize_rag_pipeline()
+        if not self.agrag.pipeline_initialized:
+            self.agrag.initialize_rag_pipeline()
+        else:
+            logger.info("\nAutoGluon-RAG pipeline already initialized...Skipping")
 
         queries, expected_repsonses, generated_responses = self.get_queries_and_responses(
             query_fn=self.query_fn, response_fn=self.response_fn
