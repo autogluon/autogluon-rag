@@ -441,6 +441,8 @@ class AutoGluonRAG:
 
         logger.info(f"\nResponse: {response}\n")
 
+        return response
+
     def batched_processing(self):
         """
         Processes documents, generates embeddings, and stores them in the vector database in batches.
