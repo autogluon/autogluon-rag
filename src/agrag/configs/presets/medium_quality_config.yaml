@@ -47,6 +47,7 @@ retriever:
 generator:
   generator_model_name: mistral.mistral-7b-instruct-v0:2
   use_bedrock: true
+  bedrock_aws_region: us-west-2
   bedrock_generate_params:
     max_tokens: 512
   generator_hf_generate_params:

@@ -603,6 +603,14 @@ class Arguments:
         self.config["generator"]["bedrock_generate_params"] = value
 
     @property
+    def bedrock_aws_region(self):
+        return self.config.get("generator", {}).get("bedrock_aws_region", {})
+
+    @bedrock_aws_region.setter
+    def bedrock_aws_region(self, value):
+        self.config["generator"]["bedrock_aws_region"] = value
+
+    @property
     def generator_local_model_path(self):
         return self.config.get("generator", {}).get("local_model_path", None)
 

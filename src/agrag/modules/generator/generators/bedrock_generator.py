@@ -28,11 +28,12 @@ class BedrockGenerator:
     def __init__(
         self,
         model_name: str,
+        aws_region: str = None,
         bedrock_generate_params: Dict = None,
     ):
         self.model_name = model_name
         self.bedrock_generate_params = bedrock_generate_params or {}
-        self.client = boto3.client("bedrock-runtime", region_name="us-west-2")
+        self.client = boto3.client("bedrock-runtime", region_name=aws_region)
 
         logger.info(f"Using AWS Bedrock Model {self.model_name} for Generator Module")
 
