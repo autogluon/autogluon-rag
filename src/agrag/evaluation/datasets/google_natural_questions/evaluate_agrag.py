@@ -25,8 +25,9 @@ def evaluate_rag_google_nq():
         "Your response must contain only the actual answer itself and no extra information or words. Provide just the answer instead of forming full sentences. "
         "Your answer may even be a singular word or number. For example, if the query is \"what percentage of the earth's surface is water?\", your response must simply be 'roughly 78%', or '78%'. "
     )
-    evaluator = EvaluationModule(
-        agrag=agrag,
+    evaluator = EvaluationModule(rag_instance=agrag)
+
+    evaluator.run_evaluation(
         dataset_name="google-research-datasets/natural_questions",
         metrics=["exact_match", "transformer_matcher"],
         preprocessing_fn=preprocess_google_nq,
@@ -36,5 +37,3 @@ def evaluate_rag_google_nq():
         response_fn=get_google_nq_responses,
         hf_dataset_params={"name": "dev"},
     )
-
-    evaluator.run_evaluation()

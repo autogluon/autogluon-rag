@@ -24,74 +24,16 @@ logger = logging.getLogger(__name__)
 class EvaluationModule:
     def __init__(
         self,
-        agrag: AutoGluonRAG,
-        dataset_name: str,
-        metrics: List[str],
-        preprocessing_fn: Callable,
-        query_fn: Callable,
-        response_fn: Callable,
-        hf_dataset_params: dict = {},
-        split: str = "validation",
-        save_evaluation_data: bool = True,
-        evaluation_dir: str = EVALUATION_DIR,
-        save_csv_path: str = None,
-        max_eval_size: int = None,
+        rag_instance: AutoGluonRAG,
+        **kwargs,
     ):
         """
-        Initializes the EvaluationModule with the given AutoGluonRAG instance, dataset, and metrics.
-
         Parameters:
         ----------
         agrag : AutoGluonRAG
             The AutoGluonRAG instance to be evaluated.
-        dataset_name : str
-            The name of the dataset to use for evaluation.
-        metrics : List[Union[str, Callable]]
-            The list of metrics to use for evaluation (e.g., ["bertscore", "exact_match", "pedant", <callable_custom_metric>]).
-            We currently support the following metrics:
-                1. HuggingFace: bertscore: ["bertscore"]
-                2. Inclusive Exact Match: ["exact_match"]
-                3. QA Metrics from https://github.com/zli12321/qa_metrics
-                4. Custom Metric Function: This can either be a callable Python function or a function from a Python package
-        preprocessing_fn : Callable
-            A function to preprocess the content before saving.
-        query_fn : Callable
-            A function to extract the query from the dataset row.
-        response_fn : Callable
-            A function to extract the expected responses from the dataset row.
-        hf_dataset_params: dict
-            Additional parameters to pass into HuggingFace `load_dataset` function
-        split : str
-            The dataset split to use (default is "validation").
-        save_evaluation_data : bool
-            Whether to save evaluation data to files (default is True).
-            You should set this to False if you already have a directory of evaluation files to pass into AutoGluon RAG.
-        evaluation_dir : str
-            The directory for evaluation data (default is "./evaluation_data").
-        save_csv_path : str
-            The path to save the evaluation results as a CSV file (default is None).
-        max_eval_size : int, optional
-            The maximum number of datapoints to process for evaluation (default is None).
-            This value should be less than the total number of datapoints.
         """
-        self.agrag = agrag
-        self.dataset_name = dataset_name
-        self.metrics = metrics
-        self.dataset = load_dataset(dataset_name, split=split, **hf_dataset_params)
-        self.metric_instances = self.initialize_metrics(metrics)
-        self.save_evaluation_data = save_evaluation_data
-        self.evaluation_dir = evaluation_dir
-        self.save_csv_path = save_csv_path
-        self.max_eval_size = None
-        if max_eval_size >= self.dataset.num_rows:
-            logger.warning(
-                f"\nProvided `max_eval_size` ({max_eval_size}) >= Number of rows in the dataset ({self.dataset.num_rows}). Entire dataset will be processed for evaluation."
-            )
-        else:
-            self.max_eval_size = max_eval_size
-        self.preprocessing_fn = preprocessing_fn
-        self.query_fn = query_fn
-        self.response_fn = response_fn
+        self.agrag = rag_instance
 
     def initialize_metrics(self, metrics: List[str]) -> Dict[str, Any]:
         """
@@ -273,7 +215,20 @@ class EvaluationModule:
         """
         save_responses_to_csv(predictions, references, queries, output_csv)
 
-    def run_evaluation(self):
+    def run_evaluation(
+        self,
+        dataset_name: str,
+        metrics: List[str],
+        preprocessing_fn: Callable,
+        query_fn: Callable,
+        response_fn: Callable,
+        hf_dataset_params: dict = {},
+        split: str = "validation",
+        save_evaluation_data: bool = True,
+        evaluation_dir: str = EVALUATION_DIR,
+        save_csv_path: str = None,
+        max_eval_size: int = None,
+    ):
         """
         Runs the evaluation process.
 
@@ -283,7 +238,57 @@ class EvaluationModule:
         3. Obtains queries and responses from the dataset using the provided functions.
         4. Evaluates the generated responses using the specified metrics.
         5. Saves the evaluation results to a CSV file if `save_csv_path` is provided.
+
+        Parameters
+        ----------
+        dataset_name : str
+            The name of the dataset to use for evaluation.
+        metrics : List[Union[str, Callable]]
+            The list of metrics to use for evaluation (e.g., ["bertscore", "exact_match", "pedant", <callable_custom_metric>]).
+            We currently support the following metrics:
+                1. HuggingFace: bertscore: ["bertscore"]
+                2. Inclusive Exact Match: ["exact_match"]
+                3. QA Metrics from https://github.com/zli12321/qa_metrics
+                4. Custom Metric Function: This can either be a callable Python function or a function from a Python package
+        preprocessing_fn : Callable
+            A function to preprocess the content before saving.
+        query_fn : Callable
+            A function to extract the query from the dataset row.
+        response_fn : Callable
+            A function to extract the expected responses from the dataset row.
+        hf_dataset_params: dict
+            Additional parameters to pass into HuggingFace `load_dataset` function
+        split : str
+            The dataset split to use (default is "validation").
+        save_evaluation_data : bool
+            Whether to save evaluation data to files (default is True).
+            You should set this to False if you already have a directory of evaluation files to pass into AutoGluon RAG.
+        evaluation_dir : str
+            The directory for evaluation data (default is "./evaluation_data").
+        save_csv_path : str
+            The path to save the evaluation results as a CSV file (default is None).
+        max_eval_size : int, optional
+            The maximum number of datapoints to process for evaluation (default is None).
+            This value should be less than the total number of datapoints.
         """
+        self.dataset_name = dataset_name
+        self.metrics = metrics
+        self.dataset = load_dataset(dataset_name, split=split, **hf_dataset_params)
+        self.metric_instances = self.initialize_metrics(metrics)
+        self.save_evaluation_data = save_evaluation_data
+        self.evaluation_dir = evaluation_dir
+        self.save_csv_path = save_csv_path
+        self.max_eval_size = None
+        if max_eval_size >= self.dataset.num_rows:
+            logger.warning(
+                f"\nProvided `max_eval_size` ({max_eval_size}) >= Number of rows in the dataset ({self.dataset.num_rows}). Entire dataset will be processed for evaluation."
+            )
+        else:
+            self.max_eval_size = max_eval_size
+        self.preprocessing_fn = preprocessing_fn
+        self.query_fn = query_fn
+        self.response_fn = response_fn
+
         if self.save_evaluation_data:
             self.save_documents_to_files(evaluation_dir=self.evaluation_dir, preprocessing_fn=self.preprocessing_fn)
 
