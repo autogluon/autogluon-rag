@@ -229,6 +229,7 @@ class AutoGluonRAG:
             bedrock_generate_params=self.args.bedrock_generate_params,
             use_bedrock=self.args.use_bedrock,
             local_model_path=self.args.generator_local_model_path,
+            bedrock_aws_region=self.args.bedrock_aws_region,
         )
         logger.info("Generator module initialized")
 
