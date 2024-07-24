@@ -7,7 +7,7 @@ import pandas as pd
 
 from agrag.constants import CHUNK_ID_KEY, DOC_ID_KEY, DOC_TEXT_KEY
 from agrag.modules.data_processing.data_processing import DataProcessingModule
-from agrag.modules.data_processing.utils import download_directory_from_s3, get_all_file_paths
+from agrag.modules.data_processing.utils import bs4_extractor, download_directory_from_s3, get_all_file_paths
 
 CURRENT_DIR = os.path.dirname(__file__)
 TEST_DIR = os.path.join(CURRENT_DIR, "../../test_docs/")
@@ -189,6 +189,32 @@ class TestDataProcessingModule(unittest.TestCase):
             [{DOC_ID_KEY: 0, CHUNK_ID_KEY: 0, DOC_TEXT_KEY: "This is a test page from a URL."}]
         )
         pd.testing.assert_frame_equal(data, expected_data)
+
+    def test_bs4_extractor(self):
+        html_content = """
+        <html>
+            <body>
+                <p>This is a paragraph.</p>
+                <div>This is a div.</div>
+                <p>Another paragraph.</p>
+                <table>
+                    <tr><td>1</td><td>2</td></tr>
+                </table>
+            </body>
+        </html>
+        """
+
+        extracted_text = bs4_extractor(html_content, tags_to_extract=["p"])
+        expected_text = "This is a paragraph.\nAnother paragraph."
+        self.assertEqual(extracted_text, expected_text)
+
+        extracted_text = bs4_extractor(html_content, tags_to_extract=["table"])
+        expected_text = "1 2"
+        self.assertEqual(extracted_text, expected_text)
+
+        extracted_text = bs4_extractor(html_content, tags_to_extract=["p", "table"])
+        expected_text = "This is a paragraph.\nAnother paragraph.\n1 2"
+        self.assertEqual(extracted_text, expected_text)
 
 
 if __name__ == "__main__":
