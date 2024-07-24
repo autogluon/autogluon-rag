@@ -21,7 +21,7 @@ class TestDataProcessingModule(unittest.TestCase):
         mock_pdf_loader.return_value = [mock_page]
 
         data_processing_module = DataProcessingModule(
-            data_dir=TEST_DIR, chunk_size=10, chunk_overlap=5, s3_bucket=None
+            data_dir=TEST_DIR, chunk_size=10, chunk_overlap=5, s3_bucket=None, web_urls=[]
         )
 
         result = data_processing_module.process_file(os.path.join(TEST_DIR, "test_file.pdf"), doc_id=1)
@@ -40,7 +40,7 @@ class TestDataProcessingModule(unittest.TestCase):
         mock_pdf_loader.return_value = [mock_page]
 
         data_processing_module = DataProcessingModule(
-            data_dir=TEST_DIR, chunk_size=10, chunk_overlap=5, s3_bucket=None
+            data_dir=TEST_DIR, chunk_size=10, chunk_overlap=5, s3_bucket=None, web_urls=[]
         )
 
         mock_thread_map.return_value = [
@@ -54,7 +54,7 @@ class TestDataProcessingModule(unittest.TestCase):
 
     def test_chunk_data_naive(self):
         data_processing_module = DataProcessingModule(
-            data_dir=TEST_DIR, chunk_size=10, chunk_overlap=5, s3_bucket=None
+            data_dir=TEST_DIR, chunk_size=10, chunk_overlap=5, s3_bucket=None, web_urls=[]
         )
         text = "This is a test document to check the chunking method."
 
@@ -78,7 +78,7 @@ class TestDataProcessingModule(unittest.TestCase):
         mock_s3_client.download_file.side_effect = lambda Bucket, Key, Filename: os.rename(tmp_file_path, Filename)
 
         data_processing_module = DataProcessingModule(
-            data_dir="test_docs/", s3_bucket="autogluon-rag-github-dev", chunk_size=10, chunk_overlap=5
+            data_dir="test_docs/", s3_bucket="autogluon-rag-github-dev", chunk_size=10, chunk_overlap=5, web_urls=[]
         )
 
         mock_s3_key = "test_docs/test_file.pdf"
