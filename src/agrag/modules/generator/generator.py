@@ -41,6 +41,7 @@ class GeneratorModule:
         elif kwargs.get("use_bedrock", False):
             self.generator = BedrockGenerator(
                 model_name=self.model_name,
+                aws_region=kwargs.get("bedrock_aws_region", None),
                 bedrock_generate_params=kwargs.get("bedrock_generate_params", {}),
             )
         elif kwargs.get("use_vllm", False):

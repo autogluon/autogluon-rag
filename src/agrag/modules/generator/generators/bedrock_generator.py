@@ -28,11 +28,12 @@ class BedrockGenerator:
     def __init__(
         self,
         model_name: str,
+        aws_region: str = None,
         bedrock_generate_params: Dict = None,
     ):
         self.model_name = model_name
         self.bedrock_generate_params = bedrock_generate_params or {}
-        self.client = boto3.client("bedrock-runtime", region_name="us-west-2")
+        self.client = boto3.client("bedrock-runtime", region_name=aws_region)
 
         logger.info(f"Using AWS Bedrock Model {self.model_name} for Generator Module")
 
@@ -51,7 +52,11 @@ class BedrockGenerator:
             The generated response.
         """
 
-        body = json.dumps({"prompt": query, **self.bedrock_generate_params})
+        if "claude" in self.model_name:
+            messages = [{"role": "user", "content": query}]
+            body = json.dumps({"messages": messages, **self.bedrock_generate_params})
+        else:
+            body = json.dumps({"prompt": query, **self.bedrock_generate_params})
 
         accept = "application/json"
         contentType = "application/json"
@@ -80,8 +85,8 @@ class BedrockGenerator:
         if "outputs" in output and isinstance(output["outputs"], list) and "text" in output["outputs"][0]:
             return output["outputs"][0]["text"].strip()
         # Used for Anthropic response
-        elif "type" in output and output["type"] == "completion":
-            return output["completion"].strip()
+        elif "content" in output and output["type"] == "message":
+            return output["content"][0]["text"].strip()
         # Used for Llama response
         elif "generation" in output:
             return output["generation"].strip()
