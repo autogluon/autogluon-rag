@@ -31,14 +31,16 @@ class DataProcessingModule:
     ----------
     data_dir : str
         The directory containing the data files to be ingested.
+    web_urls: List[str]
+        List of website URLs to be ingested and processed.
     chunk_size : int
         The size of each chunk of text.
     chunk_overlap : int
         The overlap between consecutive chunks of text.
     file_exts: List[str]
-        List of file extensions to support.
-    web_urls: List[str]
-        List of website URLs to be ingested and processed. Default is [".pdf", ".txt", ".docx", ".doc", ".rtf", ".csv", ".md", ".py", ".log"]
+        List of file extensions to support. Default is [".pdf", ".txt", ".docx", ".doc", ".rtf", ".csv", ".md", ".py", ".log"]
+    html_tags_to_extract: List[str]
+        List of HTML tags to extract text from. Default is ["p", "table"].
 
     Methods:
     -------
