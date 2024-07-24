@@ -151,6 +151,45 @@ class TestDataProcessingModule(unittest.TestCase):
 
             self.assertEqual(len(file_paths), 0)
 
+    @patch("agrag.modules.data_processing.utils.RecursiveUrlLoader.load_and_split")
+    def test_process_url(self, mock_url_loader):
+        mock_page = MagicMock()
+        mock_page.page_content = "This is a test page from a URL."
+        mock_url_loader.return_value = [mock_page]
+
+        data_processing_module = DataProcessingModule(
+            data_dir=TEST_DIR, chunk_size=10, chunk_overlap=5, web_urls=["http://example.com"]
+        )
+
+        result = data_processing_module.process_url("http://example.com", doc_id=1)
+
+        expected_result = pd.DataFrame(
+            [{DOC_ID_KEY: 1, CHUNK_ID_KEY: 0, DOC_TEXT_KEY: "This is a test page from a URL."}]
+        )
+        pd.testing.assert_frame_equal(result, expected_result)
+
+    @patch("agrag.modules.data_processing.utils.RecursiveUrlLoader.load_and_split")
+    @patch("concurrent.futures.ThreadPoolExecutor.map")
+    def test_process_urls(self, mock_thread_map, mock_url_loader):
+        mock_page = MagicMock()
+        mock_page.page_content = "This is a test page from a URL."
+        mock_url_loader.return_value = [mock_page]
+
+        data_processing_module = DataProcessingModule(
+            data_dir=TEST_DIR, chunk_size=10, chunk_overlap=5, web_urls=["http://example.com", "http://example.org"]
+        )
+
+        mock_thread_map.return_value = [
+            pd.DataFrame([{DOC_ID_KEY: 0, CHUNK_ID_KEY: 0, DOC_TEXT_KEY: "This is a test page from a URL."}]),
+        ]
+
+        data = data_processing_module.process_urls(data_processing_module.web_urls, start_doc_id=0)
+
+        expected_data = pd.DataFrame(
+            [{DOC_ID_KEY: 0, CHUNK_ID_KEY: 0, DOC_TEXT_KEY: "This is a test page from a URL."}]
+        )
+        pd.testing.assert_frame_equal(data, expected_data)
+
 
 if __name__ == "__main__":
     unittest.main()
