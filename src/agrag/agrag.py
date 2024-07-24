@@ -4,6 +4,8 @@ from typing import Any, Dict, List, Optional
 
 import pandas as pd
 import yaml
+from langchain_community.document_loaders.recursive_url_loader import RecursiveUrlLoader
+from langchain_core.utils.html import extract_sub_links
 
 from agrag.args import Arguments
 from agrag.modules.data_processing.data_processing import DataProcessingModule
@@ -34,6 +36,8 @@ class AutoGluonRAG:
         preset_quality: Optional[str] = "medium_quality",
         model_ids: Dict = None,
         data_dir: str = "",
+        web_urls: List = [],
+        base_urls: List = [],
         pipeline_batch_size: int = 0,
     ):
         """
@@ -114,11 +118,13 @@ class AutoGluonRAG:
 
         self.args = Arguments(self.config)
 
-        # will short-circuit to provided data_dir if config data_dir also provided
+        # will short-circuit to provided data_dir if config value also provided
         self.data_dir = data_dir or self.args.data_dir
+        self.web_urls = web_urls or self.args.web_urls
+        self.base_urls = base_urls or self.args.base_urls
 
-        if not self.data_dir:
-            raise ValueError("data_dir argument must be provided")
+        if not self.data_dir and not self.web_urls:
+            raise ValueError("Either data_dir or web_urls argument must be provided")
 
         self.data_processing_module = None
         self.embedding_module = None
@@ -151,9 +157,11 @@ class AutoGluonRAG:
         """Initializes the Data Processing module."""
         self.data_processing_module = DataProcessingModule(
             data_dir=self.data_dir,
+            web_urls=self.args.web_urls,
             chunk_size=self.args.chunk_size,
             chunk_overlap=self.args.chunk_overlap,
             file_exts=self.args.data_file_extns,
+            html_tags_to_extract=self.args.html_tags_to_extract,
         )
         logger.info("Data Processing module initialized")
 
@@ -454,16 +462,42 @@ class AutoGluonRAG:
 
         """
 
-        logger.info(f"Retrieving and Processing Data from {self.data_processing_module.data_dir}")
+        logger.info(f"Processing Data from Data Directory: {self.data_processing_module.data_dir}")
         file_paths = get_all_file_paths(self.data_processing_module.data_dir, self.data_processing_module.file_exts)
-        batch_num = 1
-        for i in range(0, len(file_paths), self.batch_size):
-            logger.info(f"Batch {batch_num}")
-            batch_file_paths = file_paths[i : i + self.batch_size]
-            processed_data = self.data_processing_module.process_files(batch_file_paths)
 
+        logger.info(f"Processing the Web URLs: {self.data_processing_module.web_urls}")
+        web_urls = []
+        for idx, url in enumerate(self.web_urls):
+            loader = RecursiveUrlLoader(url=url, max_depth=1)
+            docs = loader.load()
+            urls = extract_sub_links(
+                raw_html=docs[0].page_content,
+                url=url,
+                base_url=self.base_urls[idx],
+                continue_on_failure=True,
+            )
+            logger.info(
+                f"\nFound {len(urls)} URLs by recursively parsing the webpage {url} with base URL {self.base_urls[idx]}."
+            )
+            web_urls.extend(urls)
+
+        batch_num = 1
+        for i in range(0, max(len(file_paths), len(web_urls)), self.batch_size):
+            logger.info(f"Batch {batch_num}")
+
+            batch_file_paths = file_paths[i : i + self.batch_size]
+            batch_urls = web_urls[i : i + self.batch_size]
+
+            # Data Processing
+            processed_data = self.data_processing_module.process_files(batch_file_paths)
+            processed_files_data, last_doc_id = self.data_processing_module.process_files(file_paths, start_doc_id=0)
+            processed_urls_data = self.data_processing_module.process_urls(batch_urls, start_doc_id=last_doc_id)
+            processed_data = pd.concat([processed_files_data, processed_urls_data]).reset_index(drop=True)
+
+            # Embedding
             embeddings = self.generate_embeddings(processed_data)
 
+            # Vector DB
             self.construct_vector_db(embeddings)
 
             # Clear memory

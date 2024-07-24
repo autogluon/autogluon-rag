@@ -107,6 +107,30 @@ class Arguments:
         self.config["data"]["data_dir"] = value
 
     @property
+    def web_urls(self):
+        return self.config.get("data", {}).get("web_urls", [])
+
+    @web_urls.setter
+    def web_urls(self, value):
+        self.config["data"]["web_urls"] = value
+
+    @property
+    def base_urls(self):
+        return self.config.get("data", {}).get("base_urls", [])
+
+    @base_urls.setter
+    def base_urls(self, value):
+        self.config["data"]["base_urls"] = value
+
+    @property
+    def html_tags_to_extract(self):
+        return self.config.get("data", {}).get("html_tags_to_extract", [])
+
+    @html_tags_to_extract.setter
+    def html_tags_to_extract(self, value):
+        self.config["data"]["html_tags_to_extract"] = value
+
+    @property
     def chunk_size(self):
         return self.config.get("data", {}).get("chunk_size", self.data_defaults.get("CHUNK_SIZE"))
 
