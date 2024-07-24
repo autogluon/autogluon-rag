@@ -124,11 +124,19 @@ class Arguments:
 
     @property
     def html_tags_to_extract(self):
-        return self.config.get("data", {}).get("html_tags_to_extract", [])
+        return self.config.get("data", {}).get("html_tags_to_extract")
 
     @html_tags_to_extract.setter
     def html_tags_to_extract(self, value):
         self.config["data"]["html_tags_to_extract"] = value
+
+    @property
+    def parse_urls_recursive(self):
+        return self.config.get("data", {}).get("parse_urls_recursive", self.data_defaults.get("PARSE_URLS_RECURSIVE"))
+
+    @parse_urls_recursive.setter
+    def parse_urls_recursive(self, value):
+        self.config["data"]["parse_urls_recursive"] = value
 
     @property
     def chunk_size(self):

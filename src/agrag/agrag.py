@@ -38,6 +38,7 @@ class AutoGluonRAG:
         data_dir: str = "",
         web_urls: List = [],
         base_urls: List = [],
+        parse_urls_recursive: bool = True,
         pipeline_batch_size: int = 0,
     ):
         """
@@ -54,6 +55,13 @@ class AutoGluonRAG:
             Example: {"generator_model_id": "mistral.mistral-7b-instruct-v0:2", "retriever_model_id": "BAAI/bge-large-en", "reranker_model_id": "nv_embed"}
         data_dir : str
             The directory containing the data files that will be used for the RAG pipeline
+        web_urls : List[str]
+            List of website URLs to be ingested and processed.
+        base_urls : List[str]
+            List of optional base URLs to check for links recursively. The base URL controls which URLs will be processed during recursion.
+            The base_url does not need to be the same as the web_url. For example. the web_url can be "https://auto.gluon.ai/stable/index.html", and the base_urls will be "https://auto.gluon.ai/stable/"/
+        parse_urls_recursive: bool
+            Whether to parse each URL in the provided recursively. Setting this to True means that the child links present in each parent webpage will also be processed.
         pipeline_batch_size: int
             Optional batch size to use for pre-processing stage (Data Processing, Embedding, Vector DB Module)
 
@@ -122,6 +130,7 @@ class AutoGluonRAG:
         self.data_dir = data_dir or self.args.data_dir
         self.web_urls = web_urls or self.args.web_urls
         self.base_urls = base_urls or self.args.base_urls
+        self.parse_urls_recursive = parse_urls_recursive or self.args.parse_urls_recursive
 
         if not self.data_dir and not self.web_urls:
             raise ValueError("Either data_dir or web_urls argument must be provided")
@@ -468,20 +477,21 @@ class AutoGluonRAG:
 
         logger.info(f"Processing the Web URLs: {self.data_processing_module.web_urls}")
         web_urls = []
-        for idx, url in enumerate(self.web_urls):
-            loader = RecursiveUrlLoader(url=url, max_depth=1)
-            docs = loader.load()
-            urls = extract_sub_links(
-                raw_html=docs[0].page_content,
-                url=url,
-                base_url=self.base_urls[idx],
-                continue_on_failure=True,
-            )
-            urls = [url] + urls
-            logger.info(
-                f"\nFound {len(urls)} URLs by recursively parsing the webpage {url} with base URL {self.base_urls[idx]}."
-            )
-            web_urls.extend(urls)
+        if self.parse_urls_recursive:
+            for idx, url in enumerate(self.web_urls):
+                loader = RecursiveUrlLoader(url=url, max_depth=1)
+                docs = loader.load()
+                urls = extract_sub_links(
+                    raw_html=docs[0].page_content,
+                    url=url,
+                    base_url=self.base_urls[idx],
+                    continue_on_failure=True,
+                )
+                urls = [url] + urls
+                logger.info(
+                    f"\nFound {len(urls)} URLs by recursively parsing the webpage {url} with base URL {self.base_urls[idx]}."
+                )
+                web_urls.extend(urls)
 
         batch_num = 1
         for i in range(0, max(len(file_paths), len(web_urls)), self.batch_size):

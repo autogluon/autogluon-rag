@@ -75,6 +75,8 @@ web_urls : List[str]
 base_urls : List[str]
     List of optional base URLs to check for links recursively. The base URL controls which URLs will be processed during recursion. The base_url does not need to be the same as the web_url. For example. the web_url can be "https://auto.gluon.ai/stable/index.html", and the base_urls will be "https://auto.gluon.ai/stable/"/
     If this value is not provided when initializing the object, it must be provided in the config file. If both are provided, the value in the class instantiation will be prioritized.
+parse_urls_recursive: bool
+    Whether to parse each URL in the provided recursively. Setting this to True means that the child links present in each parent webpage will also be processed.
 pipeline_batch_size: int
     Batch size to use for pre-processing stage (Data Processing, Embedding, Vector DB Module). This represents the number of files in each batch.
     The default value is 20.
