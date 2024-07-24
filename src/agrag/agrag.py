@@ -477,6 +477,7 @@ class AutoGluonRAG:
                 base_url=self.base_urls[idx],
                 continue_on_failure=True,
             )
+            urls = [url] + urls
             logger.info(
                 f"\nFound {len(urls)} URLs by recursively parsing the webpage {url} with base URL {self.base_urls[idx]}."
             )
