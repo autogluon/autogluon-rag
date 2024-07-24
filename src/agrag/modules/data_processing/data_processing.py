@@ -67,10 +67,9 @@ class DataProcessingModule:
     def __init__(
         self,
         data_dir: str,
+        web_urls: List[str],
         chunk_size: int,
         chunk_overlap: int,
-        file_exts: List[str] = SUPPORTED_FILE_EXTENSIONS,
-        web_urls: List[str] = [],
         **kwargs,
     ):
         if not data_dir:
@@ -81,7 +80,7 @@ class DataProcessingModule:
         self.chunk_overlap = chunk_overlap
         self.s3_bucket = data_s3_bucket
         self.s3_client = boto3.client("s3") if self.s3_bucket else None
-        self.file_exts = file_exts
+        self.file_exts = kwargs.get("file_exts", SUPPORTED_FILE_EXTENSIONS)
         self.web_urls = web_urls
         if self.s3_bucket:
             self.data_dir = download_directory_from_s3(
