@@ -54,7 +54,9 @@ class EvaluationModule:
             if isinstance(metric, str):
                 if metric == "bertscore":
                     metric_instances[metric] = evaluate.load("bertscore")
-                elif metric == "exact_match":
+                elif metric == "hf_exact_match":
+                    metric_instances[metric] = evaluate.load("exact_match")
+                elif metric == "inclusive_exact_match":
                     metric_instances[metric] = custom_exact_match_metric
                 elif metric == "pedant":
                     metric_instances[metric] = PEDANT()
@@ -190,10 +192,15 @@ class EvaluationModule:
                     result = metric_instance.compute(predictions=predictions, references=references)
                     logger.info(f"BLEU score: {result['bleu']}")
 
-                elif metric == "exact_match":
+                elif metric == "inclusive_exact_match":
                     exact_matches = metric_instance(predictions=predictions, references=references)
                     result = calculate_exact_match_score(exact_matches=exact_matches)
-                    logger.info(f"Exact Match Score: {result}")
+                    logger.info(f"Inclusive Exact Match Score: {result}")
+
+                elif metric == "hf_exact_match":
+                    result = metric_instance.compute(predictions=predictions, references=references)
+                    result = round(result["exact_match"], 2)
+                    logger.info(f"HuggingFace Exact Match Score: {result}")
 
                 elif metric in ["pedant", "transformer_matcher"]:
                     rag_score = qa_metric_score(
@@ -205,9 +212,9 @@ class EvaluationModule:
                 metric_instance = self.metric_instances[metric]
                 result = metric_instance(predictions, references)
                 logger.info(f"Custom Metric ({metric}) Score: {result}")
-            
+
             results[metric] = result
-        
+
         return results
 
     def save_evaluation_results(
