@@ -19,15 +19,15 @@ class TestEmbeddingModule(unittest.TestCase):
         mock_tokenizer.return_value = self.mock_tokenizer
         mock_model.return_value = self.mock_model
 
-        hf_model_params = {"param": "param"}
+        model_name_params = {"param": "param"}
         hf_tokenizer_params = {"param": True}
         tokenizer_params = {"padding": 10, "max_length": 512}
         forward_params = {"param": True}
 
         self.embedding_module = EmbeddingModule(
-            hf_model="some-model",
+            model_name="some-model",
             pooling_strategy=None,
-            hf_model_params=hf_model_params,
+            model_name_params=model_name_params,
             hf_tokenizer_init_params=hf_tokenizer_params,
             hf_tokenizer_params=tokenizer_params,
             hf_forward_params=forward_params,

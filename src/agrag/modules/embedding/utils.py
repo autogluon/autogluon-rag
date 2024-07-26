@@ -1,7 +1,12 @@
-from typing import List
+import logging
+from typing import Dict, List
 
+import boto3
 import torch
 from torch.nn import functional as F
+
+logger = logging.getLogger("rag-logger")
+import json
 
 
 def pool(embeddings: List[torch.Tensor], pooling_strategy: str) -> List[torch.Tensor]:
@@ -73,3 +78,71 @@ def normalize_embedding(embeddings, args=None):
     normalized_embeddings = normalize(embeddings, args)
     """
     return F.normalize(embeddings, **args)
+
+
+def get_embeddings_bedrock(
+    batch_texts: List[str], client: boto3.client, model_id: str, generate_params: dict = {}
+) -> List[float]:
+    embeddings = []
+    if "titan" in model_id:
+        for text in batch_texts:
+            body = json.dumps(
+                {
+                    "inputText": text,
+                    **generate_params,
+                }
+            )
+            response = client.invoke_model(
+                body=body,
+                modelId=model_id,
+                accept="application/json",
+                contentType="application/json",
+            )
+            outputs = json.loads(response["body"].read())
+            embeddings.append(outputs.get("embedding"))
+    elif "cohere" in model_id:
+        body = json.dumps(
+            {
+                "texts": batch_texts,
+                **generate_params,
+            }
+        )
+        response = client.invoke_model(
+            body=body,
+            modelId=model_id,
+            accept="application/json",
+            contentType="application/json",
+        )
+        outputs = json.loads(response["body"].read())
+        embeddings = outputs.get("embeddings")
+    else:
+        raise ValueError(f"Unsupported Embedding Model for Bedrock {model_id}")
+    return embeddings
+
+
+def extract_response(output: Dict) -> str:
+    """
+    Extracts the response embeddings from the model output.
+
+    Parameters:
+    ----------
+    output : Dict
+        The output dictionary from the Bedrock model.
+
+    Returns:
+    -------
+    str
+        The extracted response text.
+    """
+    # Used for Mistral response
+    if "outputs" in output and isinstance(output["outputs"], list) and "embedding" in output["outputs"][0]:
+        return output["outputs"][0]["embedding"]
+    # Used for Anthropic response
+    elif "content" in output and output["type"] == "message":
+        return output["content"][0]["embedding"]
+    # Used for Llama response
+    elif "generation" in output:
+        return output["generation"]
+    else:
+        logger.error("Unknown output structure: %s", output)
+        return ""

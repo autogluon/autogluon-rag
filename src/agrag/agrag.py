@@ -160,7 +160,7 @@ class AutoGluonRAG:
     def initialize_embeddings_module(self):
         """Initializes the Embedding module."""
         self.embedding_module = EmbeddingModule(
-            hf_model=self.args.hf_embedding_model,
+            model_name=self.args.hf_embedding_model,
             pooling_strategy=self.args.pooling_strategy,
             normalize_embeddings=self.args.normalize_embeddings,
             hf_model_params=self.args.hf_model_params,
@@ -169,6 +169,9 @@ class AutoGluonRAG:
             hf_forward_params=self.args.hf_forward_params,
             normalization_params=self.args.normalization_params,
             query_instruction_for_retrieval=self.args.query_instruction_for_retrieval,
+            use_bedrock=self.args.embedding_use_bedrock,
+            bedrock_generate_params=self.args.embedding_bedrock_generate_params,
+            bedrock_aws_region=self.args.embedding_bedrock_aws_region,
         )
         logger.info("Embedding module initialized")
 

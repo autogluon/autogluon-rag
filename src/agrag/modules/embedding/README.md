@@ -6,7 +6,7 @@ Here are the configurable parameters for this module:
 
 ```
 embedding:
-  embedding_model: The name of the Huggingface model to use for generating embeddings (default is "BAAI/bge-large-en").
+  embedding_model: The name of the Huggingface or Bedrock model to use for generating embeddings (default is "BAAI/bge-large-en" from Huggingface). Currently only Amazon Titan and Cohere Embedding models are supported on Bedrock.
   
   pooling_strategy: The strategy to use for pooling embeddings. Options are 'mean', 'max', 'cls' (default is None).
   
