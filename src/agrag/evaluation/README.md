@@ -91,7 +91,11 @@ Alternatively, you can index all your evaluation datasets at once, or create mul
 - `"bertscore"`: Uses the [BERTScore metric](https://huggingface.co/spaces/evaluate-metric/bertscore) from HuggingFace.
 - `"bleu"`: Uses the [BLEU metric](https://huggingface.co/spaces/evaluate-metric/bleu) from HuggingFace
 - `"hf_exact_match"` Uses the [Exact Match Metric](https://huggingface.co/spaces/evaluate-metric/exact_match) from HuggingFace
-- `"inclusive_exact_match"`: Uses the Inclusive Exact Match metric. This is a custom metric defined in this module since it is a bit more lenient compared to the HuggingFace `exact_match` metric. It also counts events where the expected response is contained within the generated response as a success.
+- `"inclusive_exact_match"`: Uses the Inclusive Exact Match metric. This is a custom metric defined in this module since it is a bit more lenient compared to the HuggingFace `exact_match` metric. It also counts events where the expected response is contained within the generated response as a success. This metric supports the following optional parameters:
+  - `regexes_to_ignore` (List[str], optional): A list of regex expressions of characters to ignore when calculating the exact matches. Defaults to `None`. Note: the regex changes are applied before capitalization is normalized.
+  - `ignore_case` (bool, optional): If `True`, turns everything to lowercase so that capitalization differences are ignored. Defaults to `False`.
+  - `ignore_punctuation` (bool, optional): If `True`, removes punctuation before comparing strings. Defaults to `False`.
+  - `ignore_numbers` (bool, optional): If `True`, removes all digits before comparing strings. Defaults to `False`.
 - `"pedant"`: Uses the PEDANT metric from [QA Metrics](https://github.com/zli12321/qa_metrics).
 - `"transformer_matcher"`: Uses the Transformer Matcher metric from [QA Metrics](https://github.com/zli12321/qa_metrics).
 - `<callable_custom_metric>`: Any callable Python function or a function from a Python package. It must take in at least the arguments `predictions` and `references`, where `predictions` is a `List` of generated responses and `references` is a `List[List]` of expected responses.
