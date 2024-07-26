@@ -69,7 +69,7 @@ For large datasets, a naive version of AutoGluon-RAG may not be sufficient. Here
     ```
 2. Use GPUs: Make sure to use GPUs appropriately in each module (wherever applicable). You can set the `num_gpus` parameter in the configuration file under each module.
 
-3. System Memory: Make sure your system has enough RAM for at least the size of the dataset. You will require more memory fir the documents that will be generated from the datasets, the embeddings, the metadata, and the vector db index. We recommend running evaluation on a remote instance (such as AWS EC2) instead of running locally. If you would like to run locally, you can choose to run a subset of the evaluation data by setting `max_eval_size` when calling the `run_evaluation` function (see the next section).
+3. System Memory: Make sure your system has enough RAM for at least the size of the dataset. You will require more memory for the documents that will be generated from the datasets, the embeddings, the metadata, and the vector db index. We recommend running evaluation on a remote instance (such as AWS EC2) instead of running locally. If you would like to run locally, you can choose to run a subset of the evaluation data by setting `max_eval_size` when calling the `run_evaluation` function (see the next section).
 
 
 ## Arguments to `run_evaluation` function
