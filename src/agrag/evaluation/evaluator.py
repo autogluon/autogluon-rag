@@ -183,34 +183,59 @@ class EvaluationModule:
             if isinstance(metric, str):
                 metric_instance = self.metric_instances[metric]
                 if metric == "bertscore":
-                    result = metric_instance.compute(predictions=predictions, references=references, lang="en")
+                    result = metric_instance.compute(
+                        predictions=predictions,
+                        references=references,
+                        lang="en",
+                        **self.metric_params,
+                    )
                     logger.info(f"Average BERTScore Precision: {np.mean(result['precision'])}")
                     logger.info(f"Average BERTScore Recall: {np.mean(result['recall'])}")
                     logger.info(f"Average BERTScore F1 Score: {np.mean(result['f1'])}")
 
                 elif metric == "bleu":
-                    result = metric_instance.compute(predictions=predictions, references=references)
+                    result = metric_instance.compute(
+                        predictions=predictions,
+                        references=references,
+                        **self.metric_params,
+                    )
                     logger.info(f"BLEU score: {result['bleu']}")
 
                 elif metric == "inclusive_exact_match":
-                    exact_matches = metric_instance(predictions=predictions, references=references)
+                    exact_matches = metric_instance(
+                        predictions=predictions,
+                        references=references,
+                        **self.metric_params,
+                    )
                     result = calculate_exact_match_score(exact_matches=exact_matches)
                     logger.info(f"Inclusive Exact Match Score: {result}")
 
                 elif metric == "hf_exact_match":
-                    result = metric_instance.compute(predictions=predictions, references=references)
+                    result = metric_instance.compute(
+                        predictions=predictions,
+                        references=references,
+                        **self.metric_params,
+                    )
                     result = round(result["exact_match"], 2)
                     logger.info(f"HuggingFace Exact Match Score: {result}")
 
                 elif metric in ["pedant", "transformer_matcher"]:
                     rag_score = qa_metric_score(
-                        predictions=predictions, references=references, queries=queries, qa_metric=metric_instance
+                        predictions=predictions,
+                        references=references,
+                        queries=queries,
+                        qa_metric=metric_instance,
+                        **self.metric_params,
                     )
                     logger.info(f"RAG Score QA Metric ({metric}): {rag_score}")
             elif callable(metric):
                 metric = metric.__name__
                 metric_instance = self.metric_instances[metric]
-                result = metric_instance(predictions, references)
+                result = metric_instance(
+                    predictions,
+                    references,
+                    **self.metric_params,
+                )
                 logger.info(f"Custom Metric ({metric}) Score: {result}")
 
             results[metric] = result
@@ -243,6 +268,7 @@ class EvaluationModule:
         preprocessing_fn: Callable,
         query_fn: Callable,
         response_fn: Callable,
+        metric_params: dict = {},
         hf_dataset_params: dict = {},
         split: str = "validation",
         save_evaluation_data: bool = True,
@@ -271,6 +297,8 @@ class EvaluationModule:
                 2. Inclusive Exact Match: ["exact_match"]
                 3. QA Metrics from https://github.com/zli12321/qa_metrics
                 4. Custom Metric Function: This can either be a callable Python function or a function from a Python package
+        metric_params: dict
+            Additional parameters to pass into the evaluation metric functions
         preprocessing_fn : Callable
             A function to preprocess the content before saving.
         query_fn : Callable
@@ -300,6 +328,7 @@ class EvaluationModule:
         self.evaluation_dir = evaluation_dir
         self.save_csv_path = save_csv_path
         self.max_eval_size = None
+        self.metric_params = metric_params
         if max_eval_size >= self.dataset.num_rows:
             logger.warning(
                 f"\nProvided `max_eval_size` ({max_eval_size}) >= Number of rows in the dataset ({self.dataset.num_rows}). Entire dataset will be processed for evaluation."

@@ -94,7 +94,11 @@ Alternatively, you can index all your evaluation datasets at once, or create mul
 - `"inclusive_exact_match"`: Uses the Inclusive Exact Match metric. This is a custom metric defined in this module since it is a bit more lenient compared to the HuggingFace `exact_match` metric. It also counts events where the expected response is contained within the generated response as a success.
 - `"pedant"`: Uses the PEDANT metric from [QA Metrics](https://github.com/zli12321/qa_metrics).
 - `"transformer_matcher"`: Uses the Transformer Matcher metric from [QA Metrics](https://github.com/zli12321/qa_metrics).
-- `<callable_custom_metric>`: Any callable Python function or a function from a Python package.
+- `<callable_custom_metric>`: Any callable Python function or a function from a Python package. It must take in at least the arguments `predictions` and `references`, where `predictions` is a `List` of generated responses and `references` is a `List[List]` of expected responses.
+
+### metric_params
+**Type**: `dict`
+**Description**: Optional, additional parameters to pass into evaluation metric functions.
 
 ### preprocessing_fn
 **Type**: `Callable`  
