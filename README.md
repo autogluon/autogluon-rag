@@ -48,7 +48,13 @@ from agrag.agrag import AutoGluonRAG
 
 
 def ag_rag():
-    agrag = AutoGluonRAG(config_file="path/to/config")
+    agrag = AutoGluonRAG(
+        preset_quality="medium_quality", # or path to config file
+        web_urls=["https://auto.gluon.ai/stable/index.html"],
+        base_urls=["https://auto.gluon.ai/stable/"],
+        parse_urls_recursive=True,
+        data_dir="s3://autogluon-rag-github-dev/autogluon_docs/"
+    )
     agrag.initialize_rag_pipeline()
     agrag.generate_response("What is AutoGluon?")
 
