@@ -8,28 +8,60 @@ from qa_metrics.pedant import PEDANT
 from qa_metrics.transformerMatcher import TransformerMatcher
 
 
-def preprocess_text(text: str) -> str:
+def preprocess_text(
+    text: str,
+    regexes_to_ignore: List[str] = None,
+    ignore_case: bool = False,
+    ignore_punctuation: bool = False,
+    ignore_numbers: bool = False,
+) -> str:
     """
-    Preprocesses the text by converting to lowercase and removing punctuation.
+    Preprocesses text by applying specified transformations.
 
     Parameters:
     ----------
     text : str
-        The input text to preprocess.
+        The text to be preprocessed.
+    regexes_to_ignore : List[str]
+        List of regex expressions to ignore in the text.
+    ignore_case : bool
+        If True, turns everything to lowercase.
+    ignore_punctuation : bool
+        If True, removes punctuation.
+    ignore_numbers : bool
+        If True, removes all digits.
 
     Returns:
     -------
     str
         The preprocessed text.
     """
-    text = text.lower()
-    text = re.sub(f"[{re.escape(string.punctuation)}]", "", text)
-    return text
+    if regexes_to_ignore:
+        for regex in regexes_to_ignore:
+            text = re.sub(regex, "", text)
+
+    if ignore_case:
+        text = text.lower()
+
+    if ignore_punctuation:
+        text = text.translate(str.maketrans("", "", string.punctuation))
+
+    if ignore_numbers:
+        text = re.sub(r"\d+", "", text)
+
+    return text.strip()
 
 
-def inclusive_exact_match_metric(predictions: List[str], references: List[List[str]]) -> List[bool]:
+def inclusive_exact_match_metric(
+    predictions: List[str],
+    references: List[List[str]],
+    regexes_to_ignore: List[str] = None,
+    ignore_case: bool = False,
+    ignore_punctuation: bool = False,
+    ignore_numbers: bool = False,
+) -> List[bool]:
     """
-    Custom exact match metric to check if predictions match the references.
+    Inclusive exact match metric to check if predictions match the references.
 
     Parameters:
     ----------
@@ -37,6 +69,14 @@ def inclusive_exact_match_metric(predictions: List[str], references: List[List[s
         The generated responses.
     references : List[List[str]]
         The expected responses.
+    regexes_to_ignore : List[str]
+        List of regex expressions to ignore in the text.
+    ignore_case : bool
+        If True, turns everything to lowercase.
+    ignore_punctuation : bool
+        If True, removes punctuation.
+    ignore_numbers : bool
+        If True, removes all digits.
 
     Returns:
     -------
@@ -50,11 +90,11 @@ def inclusive_exact_match_metric(predictions: List[str], references: List[List[s
     exact_matches = []
 
     for gen_resp, exp_resps in zip(predictions, references):
-        gen_resp = preprocess_text(gen_resp)
+        gen_resp = preprocess_text(gen_resp, regexes_to_ignore, ignore_case, ignore_punctuation, ignore_numbers)
         match_found = False
 
         for exp_resp in exp_resps:
-            exp_resp = preprocess_text(exp_resp)
+            exp_resp = preprocess_text(exp_resp, regexes_to_ignore, ignore_case, ignore_punctuation, ignore_numbers)
 
             if gen_resp == exp_resp or exp_resp in gen_resp:
                 match_found = True
