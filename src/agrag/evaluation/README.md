@@ -96,9 +96,13 @@ Alternatively, you can index all your evaluation datasets at once, or create mul
 - `"transformer_matcher"`: Uses the Transformer Matcher metric from [QA Metrics](https://github.com/zli12321/qa_metrics).
 - `<callable_custom_metric>`: Any callable Python function or a function from a Python package. It must take in at least the arguments `predictions` and `references`, where `predictions` is a `List` of generated responses and `references` is a `List[List]` of expected responses.
 
-### metric_params
+### metric_score_params
 **Type**: `dict`
-**Description**: Optional, additional parameters to pass into evaluation metric functions.
+**Description**: Optional, additional parameters to pass into evaluation metric functions when computing scores.
+
+### metric_init_params
+**Type**: `dict`
+**Description**: Optional, additional parameters to pass into evaluation metric functions when initializing the functions.
 
 ### preprocessing_fn
 **Type**: `Callable`  
