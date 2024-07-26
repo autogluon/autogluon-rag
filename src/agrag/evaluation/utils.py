@@ -27,7 +27,7 @@ def preprocess_text(text: str) -> str:
     return text
 
 
-def custom_exact_match_metric(predictions: List[str], references: List[List[str]]) -> List[bool]:
+def inclusive_exact_match_metric(predictions: List[str], references: List[List[str]]) -> List[bool]:
     """
     Custom exact match metric to check if predictions match the references.
 

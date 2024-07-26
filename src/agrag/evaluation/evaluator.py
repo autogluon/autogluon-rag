@@ -12,7 +12,7 @@ from agrag.agrag import AutoGluonRAG
 from agrag.constants import EVALUATION_DIR, EVALUATION_MAX_FILE_SIZE
 from agrag.evaluation.utils import (
     calculate_exact_match_score,
-    custom_exact_match_metric,
+    inclusive_exact_match_metric,
     qa_metric_score,
     save_responses_to_csv,
 )
@@ -57,7 +57,7 @@ class EvaluationModule:
                 elif metric == "hf_exact_match":
                     metric_instances[metric] = evaluate.load("exact_match", **self.metric_init_params)
                 elif metric == "inclusive_exact_match":
-                    metric_instances[metric] = custom_exact_match_metric
+                    metric_instances[metric] = inclusive_exact_match_metric
                 elif metric == "pedant":
                     metric_instances[metric] = PEDANT(**self.metric_init_params)
                 elif metric == "transformer_matcher":
