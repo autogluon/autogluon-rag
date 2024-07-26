@@ -14,6 +14,7 @@ class TestBedrockGenerator(unittest.TestCase):
         self.bedrock_generator = BedrockGenerator(
             model_name=self.model_name,
             bedrock_generate_params=self.bedrock_generate_params,
+            aws_region="us-west-2",
         )
         self.mock_boto_client_instance = self.mock_boto_client.return_value
         self.mock_boto_client_instance.invoke_model = MagicMock()

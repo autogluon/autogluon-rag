@@ -55,7 +55,7 @@ def read_openai_key(file_path: str) -> str:
         If there is an error reading the file.
     """
     if not file_path:
-        return None
+        return os.getenv("OPENAI_API_KEY", None)
     try:
         with open(file_path, "r") as file:
             key = file.read().strip()

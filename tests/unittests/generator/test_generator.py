@@ -48,6 +48,7 @@ class TestGeneratorModule(unittest.TestCase):
             model_name=model_name,
             use_bedrock=True,
             bedrock_generate_params=bedrock_generate_params,
+            bedrock_aws_region="us-west-2",
         )
 
         self.assertIsInstance(generator_module.generator, BedrockGenerator)

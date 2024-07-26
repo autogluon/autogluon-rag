@@ -4,7 +4,6 @@ from unittest.mock import MagicMock, patch
 
 import boto3
 import torch
-from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
 
 from agrag.modules.vector_db.faiss.faiss_db import construct_faiss_index, load_faiss_index, save_faiss_index
 
@@ -21,11 +20,45 @@ class TestFaissDB(unittest.TestCase):
             os.remove(self.index_path)
 
     @patch("faiss.IndexFlatL2")
-    def test_construct_faiss_index(self, mock_index_flat_l2):
+    def test_construct_faiss_index_flat(self, mock_index_flat_l2):
         mock_index = MagicMock()
         mock_index_flat_l2.return_value = mock_index
         mock_index.ntotal = len(self.embeddings)
-        index = construct_faiss_index(self.embeddings, embedding_dim=self.embeddings[0].shape[-1], num_gpus=0)
+        index = construct_faiss_index(
+            self.embeddings, embedding_dim=self.embeddings[0].shape[-1], num_gpus=0, index_type="IndexFlatL2"
+        )
+        self.assertEqual(index, mock_index)
+
+    @patch("faiss.IndexIVFPQ")
+    def test_construct_faiss_index_ivfpq(self, mock_index_ivfpq):
+        mock_index = MagicMock()
+        mock_index_ivfpq.return_value = mock_index
+        mock_index.ntotal = len(self.embeddings)
+        mock_index.is_trained = True
+        quantized_params = {"nlist": 10, "m": 8, "nbits": 8}
+        index = construct_faiss_index(
+            self.embeddings,
+            embedding_dim=self.embeddings[0].shape[-1],
+            num_gpus=0,
+            index_type="IndexIVFPQ",
+            faiss_quantized_index_params=quantized_params,
+        )
+        self.assertEqual(index, mock_index)
+
+    @patch("faiss.IndexIVFFlat")
+    def test_construct_faiss_index_ivfflat(self, mock_index_ivfflat):
+        mock_index = MagicMock()
+        mock_index_ivfflat.return_value = mock_index
+        mock_index.ntotal = len(self.embeddings)
+        mock_index.is_trained = True
+        clustered_params = {"nlist": 10}
+        index = construct_faiss_index(
+            self.embeddings,
+            embedding_dim=self.embeddings[0].shape[-1],
+            num_gpus=0,
+            index_type="IndexIVFFlat",
+            faiss_clustered_index_params=clustered_params,
+        )
         self.assertEqual(index, mock_index)
 
     @patch("faiss.write_index")

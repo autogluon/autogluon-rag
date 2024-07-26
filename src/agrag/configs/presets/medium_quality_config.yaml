@@ -1,5 +1,6 @@
 shared:
   batch_size_calculation_safety_factor: 0.5
+  pipeline_batch_size: 20
 
 data:
   chunk_size: 128
@@ -45,11 +46,12 @@ retriever:
     return_tensors: pt
 
 generator:
-  generator_model_name: mistral.mistral-7b-instruct-v0:2
+  generator_model_name: anthropic.claude-3-sonnet-20240229-v1:0
   use_bedrock: true
+  bedrock_aws_region: us-west-2
   bedrock_generate_params:
     max_tokens: 512
-  openai_key_file: /Users/shriyen/Desktop/autogluon24/autogluon-rag/openai.txt
+    anthropic_version: "bedrock-2023-05-31"
   generator_hf_generate_params:
     max_new_tokens: 1024
   generator_query_prefix: You are a helpful chat assistant. You will be provided with a query and you must answer it to the best of your abilities. You will be provided with some additional context that is related to the query and will help you answer the question.

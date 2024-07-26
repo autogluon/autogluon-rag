@@ -31,7 +31,7 @@ class AutoGluonRAG:
     def __init__(
         self,
         config_file: Optional[str] = None,
-        preset_quality: Optional[str] = None,
+        preset_quality: Optional[str] = "medium_quality",
         model_ids: Dict = None,
         data_dir: str = "",
         pipeline_batch_size: int = 0,
@@ -45,7 +45,7 @@ class AutoGluonRAG:
         config_file : str, optional
             Path to the configuration file.
         preset_quality : str, optional
-            Preset quality setting (e.g., "good", "medium", "best").
+            Preset quality setting (e.g., "good", "medium", "best"). Default is "medium_quality"
         model_ids : dict, optional
             Dictionary of model IDs to use for specific modules.
             Example: {"generator_model_id": "mistral.mistral-7b-instruct-v0:2", "retriever_model_id": "BAAI/bge-large-en", "reranker_model_id": "nv_embed"}
@@ -189,6 +189,10 @@ class AutoGluonRAG:
             similarity_threshold=self.args.vector_db_sim_threshold,
             similarity_fn=self.args.vector_db_sim_fn,
             num_gpus=num_gpus,
+            faiss_index_type=self.args.faiss_index_type,
+            faiss_quantized_index_params=self.args.faiss_quantized_index_params,
+            faiss_clustered_index_params=self.args.faiss_clustered_index_params,
+            faiss_index_nprobe=self.args.faiss_index_nprobe,
             milvus_db_name=self.args.milvus_db_name,
             milvus_search_params=self.args.milvus_search_params,
             milvus_collection_name=self.args.milvus_collection_name,
@@ -230,6 +234,7 @@ class AutoGluonRAG:
             bedrock_generate_params=self.args.bedrock_generate_params,
             use_bedrock=self.args.use_bedrock,
             local_model_path=self.args.generator_local_model_path,
+            bedrock_aws_region=self.args.bedrock_aws_region,
         )
         logger.info("Generator module initialized")
 
