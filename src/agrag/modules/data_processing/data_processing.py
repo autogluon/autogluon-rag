@@ -41,6 +41,9 @@ class DataProcessingModule:
         List of file extensions to support. Default is [".pdf", ".txt", ".docx", ".doc", ".rtf", ".csv", ".md", ".py", ".log"]
     html_tags_to_extract: List[str]
         List of HTML tags to extract text from. Default is ["p", "table"]. We support ["p", "table", "li", "div", "span", "<h_tags>"]  currently.
+    login_info: dict
+        A dictionary containing login credentials for each URL. Required if the target URL requires authentication.
+        Must be structured as {target_url: {"login_url": <login_url>, "credentials": {"username": "your_username", "password": "your_password"}}}
 
     Methods:
     -------
@@ -84,6 +87,7 @@ class DataProcessingModule:
         self.s3_client = boto3.client("s3") if self.s3_bucket else None
         self.file_exts = kwargs.get("file_exts", SUPPORTED_FILE_EXTENSIONS)
         self.web_urls = web_urls
+        self.login_info = kwargs.get("login_info", {})
         if self.s3_bucket:
             self.data_dir = download_directory_from_s3(
                 s3_bucket=self.s3_bucket, data_dir=self.data_dir, s3_client=self.s3_client
@@ -191,7 +195,7 @@ class DataProcessingModule:
 
         return pd.concat(processed_data).reset_index(drop=True), doc_id_counter
 
-    def process_url(self, url: str, doc_id: int) -> pd.DataFrame:
+    def process_url(self, url: str, doc_id: int, login_info: dict = {}) -> pd.DataFrame:
         """
         Processes a single URL, extracting and chunking the text.
 
@@ -201,6 +205,8 @@ class DataProcessingModule:
             The URL to be processed.
         doc_id : int
             The document ID.
+        login_info: dict
+            A dictionary containing login credentials for each URL. Required if the target URL requires authentication.
 
         Returns:
         -------
@@ -209,11 +215,15 @@ class DataProcessingModule:
         """
         logger.info(f"Processing URL: {url}")
 
+        login_url = login_info.get(url, {}).get("login_url", "")
+        login_creds = login_info.get(url, {}).get("credentials", {})
         chunked_text_content = get_text_from_url(
             url,
             chunk_size=self.chunk_size,
             chunk_overlap=self.chunk_overlap,
             tags_to_extract=self.html_tags_to_extract,
+            login_url=login_url,
+            credentials=login_creds,
         )
 
         data = {
@@ -224,7 +234,7 @@ class DataProcessingModule:
 
         return pd.DataFrame(data)
 
-    def process_urls(self, urls: List[str], start_doc_id: int = 0) -> pd.DataFrame:
+    def process_urls(self, urls: List[str], login_info: dict = {}, start_doc_id: int = 0) -> pd.DataFrame:
         """
         Processes the given URLs, extracting and chunking text from each URL.
 
@@ -232,6 +242,8 @@ class DataProcessingModule:
         ----------
         urls : List[str]
             A list of URLs to process.
+        login_info: dict
+            A dictionary containing login credentials for each URL. Required if the target URL requires authentication.
         start_doc_id : int
             The starting document ID.
 
@@ -244,7 +256,9 @@ class DataProcessingModule:
         doc_id_counter = start_doc_id
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            results = executor.map(self.process_url, urls, range(doc_id_counter, doc_id_counter + len(urls)))
+            results = executor.map(
+                self.process_url, urls, [login_info] * len(urls), range(doc_id_counter, doc_id_counter + len(urls))
+            )
             for result in results:
                 processed_data.append(result)
                 doc_id_counter += 1
@@ -269,6 +283,8 @@ class DataProcessingModule:
             processed_files_data, last_doc_id = self.process_files(file_paths, start_doc_id=0)
 
         if self.web_urls:
-            processed_urls_data = self.process_urls(self.web_urls, start_doc_id=last_doc_id)
+            processed_urls_data = self.process_urls(
+                self.web_urls, login_info=self.login_info, start_doc_id=last_doc_id
+            )
 
         return pd.concat([processed_files_data, processed_urls_data]).reset_index(drop=True)

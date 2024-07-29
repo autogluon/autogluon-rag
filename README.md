@@ -81,6 +81,10 @@ web_urls : List[str]
 base_urls : List[str]
     List of optional base URLs to check for links recursively. The base URL controls which URLs will be processed during recursion. The base_url does not need to be the same as the web_url. For example. the web_url can be "https://auto.gluon.ai/stable/index.html", and the base_urls will be "https://auto.gluon.ai/stable/"/
     If this value is not provided when initializing the object, it must be provided in the config file. If both are provided, the value in the class instantiation will be prioritized.
+login_info: dict
+    A dictionary containing login credentials for each URL. Required if the target URL requires authentication.
+    Must be structured as {target_url: {"login_url": <login_url>, "credentials": {"username": "your_username", "password": "your_password"}}}
+    The target_url is a url that is present in the list of web_urls
 parse_urls_recursive: bool
     Whether to parse each URL in the provided recursively. Setting this to True means that the child links present in each parent webpage will also be processed.
 pipeline_batch_size: int

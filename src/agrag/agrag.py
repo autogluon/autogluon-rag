@@ -38,6 +38,7 @@ class AutoGluonRAG:
         data_dir: str = "",
         web_urls: List = [],
         base_urls: List = [],
+        login_info: dict = {},
         parse_urls_recursive: bool = True,
         pipeline_batch_size: int = 0,
     ):
@@ -60,6 +61,10 @@ class AutoGluonRAG:
         base_urls : List[str]
             List of optional base URLs to check for links recursively. The base URL controls which URLs will be processed during recursion.
             The base_url does not need to be the same as the web_url. For example. the web_url can be "https://auto.gluon.ai/stable/index.html", and the base_urls will be "https://auto.gluon.ai/stable/"/
+        login_info: dict
+            A dictionary containing login credentials for each URL. Required if the target URL requires authentication.
+            Must be structured as {target_url: {"login_url": <login_url>, "credentials": {"username": "your_username", "password": "your_password"}}}
+            The target_url is a url that is present in the list of web_urls
         parse_urls_recursive: bool
             Whether to parse each URL in the provided recursively. Setting this to True means that the child links present in each parent webpage will also be processed.
         pipeline_batch_size: int
@@ -131,6 +136,7 @@ class AutoGluonRAG:
         self.web_urls = web_urls or self.args.web_urls
         self.base_urls = base_urls or self.args.base_urls
         self.parse_urls_recursive = parse_urls_recursive or self.args.parse_urls_recursive
+        self.login_info = login_info or self.args.login_info
 
         if not self.data_dir and not self.web_urls:
             raise ValueError("Either data_dir or web_urls argument must be provided")
@@ -171,6 +177,7 @@ class AutoGluonRAG:
             chunk_overlap=self.args.chunk_overlap,
             file_exts=self.args.data_file_extns,
             html_tags_to_extract=self.args.html_tags_to_extract,
+            login_info=self.login_info,
         )
         logger.info("Data Processing module initialized")
 

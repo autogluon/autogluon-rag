@@ -131,6 +131,14 @@ class Arguments:
         self.config["data"]["html_tags_to_extract"] = value
 
     @property
+    def login_info(self):
+        return self.config.get("data", {}).get("login_info", {})
+
+    @login_info.setter
+    def web_urls(self, value):
+        self.config["data"]["login_info"] = value
+
+    @property
     def parse_urls_recursive(self):
         return self.config.get("data", {}).get("parse_urls_recursive", self.data_defaults.get("PARSE_URLS_RECURSIVE"))
 

@@ -151,11 +151,9 @@ class TestDataProcessingModule(unittest.TestCase):
 
             self.assertEqual(len(file_paths), 0)
 
-    @patch("agrag.modules.data_processing.utils.RecursiveUrlLoader.load_and_split")
+    @patch("agrag.modules.data_processing.utils.RecursiveCharacterTextSplitter.split_text")
     def test_process_url(self, mock_url_loader):
-        mock_page = MagicMock()
-        mock_page.page_content = "This is a test page from a URL."
-        mock_url_loader.return_value = [mock_page]
+        mock_url_loader.return_value = ["This is a test page from a URL."]
 
         data_processing_module = DataProcessingModule(
             data_dir=TEST_DIR, chunk_size=10, chunk_overlap=5, web_urls=["http://example.com"]
