@@ -221,7 +221,7 @@ def process_csv(file_path: str, chunk_data, doc_id: int) -> pd.DataFrame:
     return pd.DataFrame(processed_data)
 
 
-def bs4_extractor(html: str, tags_to_extract: List = ["p", "table"]) -> str:
+def bs4_extractor(html: str, tags_to_extract: List[str] = ["p", "table"]) -> str:
     """
     Extracts text from HTML content using BeautifulSoup, focusing on specified HTML tags.
 
