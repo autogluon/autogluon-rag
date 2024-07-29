@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 import boto3
 import torch
 
-from agrag.modules.vector_db.faiss.faiss_db import construct_faiss_index, load_faiss_index, save_faiss_index
+from ragify.modules.vector_db.faiss.faiss_db import construct_faiss_index, load_faiss_index, save_faiss_index
 
 
 class TestFaissDB(unittest.TestCase):

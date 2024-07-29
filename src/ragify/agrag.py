@@ -5,17 +5,17 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 import yaml
 
-from agrag.args import Arguments
-from agrag.modules.data_processing.data_processing import DataProcessingModule
-from agrag.modules.data_processing.utils import get_all_file_paths
-from agrag.modules.embedding.embedding import EmbeddingModule
-from agrag.modules.generator.generator import GeneratorModule
-from agrag.modules.generator.utils import format_query
-from agrag.modules.retriever.rerankers.reranker import Reranker
-from agrag.modules.retriever.retrievers.retriever_base import RetrieverModule
-from agrag.modules.vector_db.utils import load_index, load_metadata, save_index, save_metadata
-from agrag.modules.vector_db.vector_database import VectorDatabaseModule
-from agrag.utils import get_num_gpus, read_openai_key
+from ragify.args import Arguments
+from ragify.modules.data_processing.data_processing import DataProcessingModule
+from ragify.modules.data_processing.utils import get_all_file_paths
+from ragify.modules.embedding.embedding import EmbeddingModule
+from ragify.modules.generator.generator import GeneratorModule
+from ragify.modules.generator.utils import format_query
+from ragify.modules.retriever.rerankers.reranker import Reranker
+from ragify.modules.retriever.retrievers.retriever_base import RetrieverModule
+from ragify.modules.vector_db.utils import load_index, load_metadata, save_index, save_metadata
+from ragify.modules.vector_db.vector_database import VectorDatabaseModule
+from ragify.utils import get_num_gpus, read_openai_key
 
 logger = logging.getLogger("rag-logger")
 if not logger.hasHandlers():
@@ -100,7 +100,7 @@ class AutoGluonRAG:
         initialize_rag_pipeline()
             Initializes the entire RAG pipeline by setting up all necessary modules.
         """
-        logger.info("\n\nAutoGluon-RAG\n\n")
+        logger.info("\n\nRAGify\n\n")
 
         self.preset_quality = preset_quality
         self.model_ids = model_ids
@@ -267,9 +267,9 @@ class AutoGluonRAG:
 
         Example:
         --------
-        agrag = AutoGluonRAG(config_file="path/to/config")
-        agrag.initialize_data_module()
-        processed_data = agrag.process_data()
+        ragify = AutoGluonRAG(config_file="path/to/config")
+        ragify.initialize_data_module()
+        processed_data = ragify.process_data()
         """
         logger.info(f"Retrieving and Processing Data from {self.data_processing_module.data_dir}")
         processed_data = self.data_processing_module.process_data()
@@ -296,7 +296,7 @@ class AutoGluonRAG:
             "chunk_id": [1, 1],
             "text": ["This is a test sentence.", "This is another test sentence."]
         })
-        embeddings = agrag.generate_embeddings(processed_data)
+        embeddings = ragify.generate_embeddings(processed_data)
         """
         embeddings = self.embedding_module.encode(processed_data, batch_size=self.args.embedding_batch_size)
         return embeddings
@@ -315,8 +315,8 @@ class AutoGluonRAG:
 
         Example:
         --------
-        embeddings = agrag.generate_embeddings(processed_data)
-        agrag.construct_vector_db(embeddings)
+        embeddings = ragify.generate_embeddings(processed_data)
+        ragify.construct_vector_db(embeddings)
         """
         logger.info(f"\nConstructing Vector DB index")
         self.vector_db_module.construct_vector_database(embeddings)
@@ -338,9 +338,9 @@ class AutoGluonRAG:
 
         Example:
         --------
-        agrag = AutoGluonRAG(config_file="path/to/config")
-        agrag.initialize_vectordb_module()
-        success = agrag.load_existing_vector_db("path/to/index", "path/to/metadata")
+        ragify = AutoGluonRAG(config_file="path/to/config")
+        ragify.initialize_vectordb_module()
+        success = ragify.load_existing_vector_db("path/to/index", "path/to/metadata")
         """
         logger.info(f"Loading existing index from {index_path}")
         self.vector_db_module.index = load_index(self.args.vector_db_type, index_path)
@@ -368,9 +368,9 @@ class AutoGluonRAG:
 
         Example:
         --------
-        agrag = AutoGluonRAG(config_file="path/to/config")
-        agrag.initialize_vectordb_module()
-        agrag.save_index_and_metadata()
+        ragify = AutoGluonRAG(config_file="path/to/config")
+        ragify.initialize_vectordb_module()
+        ragify.save_index_and_metadata()
         """
         logger.info(f"\nSaving Vector DB at {index_path}")
         save_index(
@@ -403,7 +403,7 @@ class AutoGluonRAG:
 
         Example:
         --------
-        context = agrag.retrieve_context_for_query("How do I use this package?")
+        context = ragify.retrieve_context_for_query("How do I use this package?")
         """
         return self.retriever_module.retrieve(query)
 
@@ -426,7 +426,7 @@ class AutoGluonRAG:
 
         Example:
         --------
-        response = agrag.generate_response("What is AutoGluon?")
+        response = ragify.generate_response("What is AutoGluon?")
         """
 
         retrieved_context = self.retrieve_context_for_query(query)
@@ -486,8 +486,8 @@ class AutoGluonRAG:
 
         Example:
         --------
-        agrag = AutoGluonRAG(config_file="path/to/config")
-        agrag.initialize_rag_pipeline()
+        ragify = AutoGluonRAG(config_file="path/to/config")
+        ragify.initialize_rag_pipeline()
         """
         self.initialize_data_module()
         self.initialize_embeddings_module()

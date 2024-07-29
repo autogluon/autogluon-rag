@@ -1,11 +1,11 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from agrag.modules.generator.generators.gpt_generator import GPTGenerator
+from ragify.modules.generator.generators.gpt_generator import GPTGenerator
 
 
 class TestGPTGenerator(unittest.TestCase):
-    @patch("agrag.modules.generator.generators.gpt_generator.OpenAI")
+    @patch("ragify.modules.generator.generators.gpt_generator.OpenAI")
     def setUp(self, mock_openai):
         self.mock_openai = mock_openai
         self.model_name = "gpt-3"

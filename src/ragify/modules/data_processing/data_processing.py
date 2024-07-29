@@ -6,8 +6,8 @@ from typing import List
 import boto3
 import pandas as pd
 
-from agrag.constants import SUPPORTED_FILE_EXTENSIONS
-from agrag.modules.data_processing.utils import (
+from ragify.constants import SUPPORTED_FILE_EXTENSIONS
+from ragify.modules.data_processing.utils import (
     download_directory_from_s3,
     get_all_file_paths,
     process_csv,
@@ -16,7 +16,7 @@ from agrag.modules.data_processing.utils import (
     process_rtf,
     process_txt_md_py_log,
 )
-from agrag.utils import parse_path
+from ragify.utils import parse_path
 
 logger = logging.getLogger("rag-logger")
 

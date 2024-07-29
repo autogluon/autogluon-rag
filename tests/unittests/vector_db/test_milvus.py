@@ -3,11 +3,11 @@ from unittest.mock import patch
 
 import torch
 
-from agrag.modules.vector_db.milvus.milvus_db import construct_milvus_index, load_milvus_index
+from ragify.modules.vector_db.milvus.milvus_db import construct_milvus_index, load_milvus_index
 
 
 class TestMilvusInterface(unittest.TestCase):
-    @patch("agrag.modules.vector_db.milvus.milvus_db.MilvusClient")
+    @patch("ragify.modules.vector_db.milvus.milvus_db.MilvusClient")
     def test_construct_milvus_index(self, MockMilvusClient):
         mock_client = MockMilvusClient.return_value
 
@@ -37,7 +37,7 @@ class TestMilvusInterface(unittest.TestCase):
         self.assertEqual(mock_client.insert.call_count, 1)
         self.assertEqual(len(mock_client.insert.call_args[1]["data"]), 10)
 
-    @patch("agrag.modules.vector_db.milvus.milvus_db.MilvusClient")
+    @patch("ragify.modules.vector_db.milvus.milvus_db.MilvusClient")
     def test_load_milvus_index(self, MockMilvusClient):
         mock_client_instance = MockMilvusClient.return_value
         index_path = "valid_path.db"
@@ -47,7 +47,7 @@ class TestMilvusInterface(unittest.TestCase):
         MockMilvusClient.assert_called_once_with(index_path)
         self.assertEqual(client, mock_client_instance)
 
-    @patch("agrag.modules.vector_db.milvus.milvus_db.MilvusClient", side_effect=Exception("Error loading index"))
+    @patch("ragify.modules.vector_db.milvus.milvus_db.MilvusClient", side_effect=Exception("Error loading index"))
     def test_load_milvus_index_exception(self, MockMilvusClient):
         index_path = "invalid_path.db"
 

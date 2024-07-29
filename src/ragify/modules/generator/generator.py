@@ -1,7 +1,7 @@
-from agrag.modules.generator.generators.bedrock_generator import BedrockGenerator
-from agrag.modules.generator.generators.gpt_generator import GPTGenerator
-from agrag.modules.generator.generators.hf_generator import HFGenerator
-from agrag.modules.generator.generators.vllm_generator import VLLMGenerator
+from ragify.modules.generator.generators.bedrock_generator import BedrockGenerator
+from ragify.modules.generator.generators.gpt_generator import GPTGenerator
+from ragify.modules.generator.generators.hf_generator import HFGenerator
+from ragify.modules.generator.generators.vllm_generator import VLLMGenerator
 
 
 class GeneratorModule:

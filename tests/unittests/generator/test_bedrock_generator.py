@@ -2,11 +2,11 @@ import json
 import unittest
 from unittest.mock import MagicMock, patch
 
-from agrag.modules.generator.generators.bedrock_generator import BedrockGenerator
+from ragify.modules.generator.generators.bedrock_generator import BedrockGenerator
 
 
 class TestBedrockGenerator(unittest.TestCase):
-    @patch("agrag.modules.generator.generators.bedrock_generator.boto3.client")
+    @patch("ragify.modules.generator.generators.bedrock_generator.boto3.client")
     def setUp(self, mock_boto_client):
         self.mock_boto_client = mock_boto_client
         self.model_name = "bedrock-model"

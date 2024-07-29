@@ -1,18 +1,18 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from agrag.modules.generator.generator import GeneratorModule
-from agrag.modules.generator.generators.bedrock_generator import BedrockGenerator
-from agrag.modules.generator.generators.gpt_generator import GPTGenerator
-from agrag.modules.generator.generators.hf_generator import HFGenerator
-from agrag.modules.generator.generators.vllm_generator import VLLMGenerator
+from ragify.modules.generator.generator import GeneratorModule
+from ragify.modules.generator.generators.bedrock_generator import BedrockGenerator
+from ragify.modules.generator.generators.gpt_generator import GPTGenerator
+from ragify.modules.generator.generators.hf_generator import HFGenerator
+from ragify.modules.generator.generators.vllm_generator import VLLMGenerator
 
 
 class TestGeneratorModule(unittest.TestCase):
-    @patch("agrag.modules.generator.generators.gpt_generator.GPTGenerator.__init__", return_value=None)
-    @patch("agrag.modules.generator.generators.bedrock_generator.BedrockGenerator.__init__", return_value=None)
-    @patch("agrag.modules.generator.generators.vllm_generator.VLLMGenerator.__init__", return_value=None)
-    @patch("agrag.modules.generator.generators.hf_generator.HFGenerator.__init__", return_value=None)
+    @patch("ragify.modules.generator.generators.gpt_generator.GPTGenerator.__init__", return_value=None)
+    @patch("ragify.modules.generator.generators.bedrock_generator.BedrockGenerator.__init__", return_value=None)
+    @patch("ragify.modules.generator.generators.vllm_generator.VLLMGenerator.__init__", return_value=None)
+    @patch("ragify.modules.generator.generators.hf_generator.HFGenerator.__init__", return_value=None)
     def setUp(
         self,
         mock_hf_generator,
@@ -65,8 +65,8 @@ class TestGeneratorModule(unittest.TestCase):
 
         self.assertIsInstance(generator_module.generator, VLLMGenerator)
 
-    @patch("agrag.modules.generator.generators.hf_generator.AutoModelForCausalLM.from_pretrained")
-    @patch("agrag.modules.generator.generators.hf_generator.AutoTokenizer.from_pretrained")
+    @patch("ragify.modules.generator.generators.hf_generator.AutoModelForCausalLM.from_pretrained")
+    @patch("ragify.modules.generator.generators.hf_generator.AutoTokenizer.from_pretrained")
     def test_hf_generator_initialization(self, mock_hf_tokenizer, mock_hf_model):
         model_name = "hf-model"
         hf_model_params = {"param1": "value1"}
@@ -88,8 +88,8 @@ class TestGeneratorModule(unittest.TestCase):
 
         self.assertIsInstance(generator_module.generator, HFGenerator)
 
-    @patch("agrag.modules.generator.generators.hf_generator.AutoModelForCausalLM.from_pretrained")
-    @patch("agrag.modules.generator.generators.hf_generator.AutoTokenizer.from_pretrained")
+    @patch("ragify.modules.generator.generators.hf_generator.AutoModelForCausalLM.from_pretrained")
+    @patch("ragify.modules.generator.generators.hf_generator.AutoTokenizer.from_pretrained")
     def test_generate_response(self, mock_hf_tokenizer, mock_hf_model):
         query = "What is the weather like today?"
         context = ["It is summer.", "The weather has been warm recently."]

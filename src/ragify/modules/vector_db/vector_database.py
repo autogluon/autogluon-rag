@@ -7,10 +7,10 @@ import pandas as pd
 import torch
 from tqdm import tqdm
 
-from agrag.constants import EMBEDDING_HIDDEN_DIM_KEY, EMBEDDING_KEY
-from agrag.modules.vector_db.faiss.faiss_db import construct_faiss_index
-from agrag.modules.vector_db.milvus.milvus_db import construct_milvus_index
-from agrag.modules.vector_db.utils import SUPPORTED_SIMILARITY_FUNCTIONS, remove_duplicates
+from ragify.constants import EMBEDDING_HIDDEN_DIM_KEY, EMBEDDING_KEY
+from ragify.modules.vector_db.faiss.faiss_db import construct_faiss_index
+from ragify.modules.vector_db.milvus.milvus_db import construct_milvus_index
+from ragify.modules.vector_db.utils import SUPPORTED_SIMILARITY_FUNCTIONS, remove_duplicates
 
 logger = logging.getLogger("rag-logger")
 

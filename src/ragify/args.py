@@ -11,7 +11,7 @@ logger = logging.getLogger("rag-logger")
 
 class Arguments:
     """
-    A class to handle the per-module arguments and loading of configuration files for the AutoGluon-RAG pipeline.
+    A class to handle the per-module arguments and loading of configuration files for the RAGify pipeline.
 
     Attributes:
     ----------
@@ -50,7 +50,7 @@ class Arguments:
         self.shared_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/shared/default.yaml"))
 
     def _parse_args(self) -> argparse.Namespace:
-        parser = argparse.ArgumentParser(description="AutoGluon-RAG - Retrieval-Augmented Generation Pipeline")
+        parser = argparse.ArgumentParser(description="RAGify - Retrieval-Augmented Generation Pipeline")
         parser.add_argument(
             "--config_file",
             type=str,

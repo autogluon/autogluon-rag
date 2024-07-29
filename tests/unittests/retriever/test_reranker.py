@@ -3,12 +3,12 @@ from unittest.mock import MagicMock, patch
 
 import torch
 
-from agrag.modules.retriever.rerankers.reranker import Reranker
+from ragify.modules.retriever.rerankers.reranker import Reranker
 
 
 class TestReranker(unittest.TestCase):
-    @patch("agrag.modules.retriever.rerankers.reranker.AutoModel.from_pretrained")
-    @patch("agrag.modules.retriever.rerankers.reranker.AutoTokenizer.from_pretrained")
+    @patch("ragify.modules.retriever.rerankers.reranker.AutoModel.from_pretrained")
+    @patch("ragify.modules.retriever.rerankers.reranker.AutoTokenizer.from_pretrained")
     def setUp(self, mock_tokenizer, mock_model):
         self.mock_tokenizer = MagicMock()
         self.mock_model = MagicMock()

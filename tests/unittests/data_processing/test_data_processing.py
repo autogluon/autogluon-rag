@@ -5,9 +5,9 @@ from unittest.mock import MagicMock, patch
 
 import pandas as pd
 
-from agrag.constants import CHUNK_ID_KEY, DOC_ID_KEY, DOC_TEXT_KEY
-from agrag.modules.data_processing.data_processing import DataProcessingModule
-from agrag.modules.data_processing.utils import download_directory_from_s3, get_all_file_paths
+from ragify.constants import CHUNK_ID_KEY, DOC_ID_KEY, DOC_TEXT_KEY
+from ragify.modules.data_processing.data_processing import DataProcessingModule
+from ragify.modules.data_processing.utils import download_directory_from_s3, get_all_file_paths
 
 CURRENT_DIR = os.path.dirname(__file__)
 TEST_DIR = os.path.join(CURRENT_DIR, "../../test_docs/")

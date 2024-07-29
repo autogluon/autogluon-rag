@@ -5,16 +5,16 @@ import numpy as np
 import pandas as pd
 import torch
 
-from agrag.constants import DOC_TEXT_KEY
-from agrag.modules.embedding.embedding import EmbeddingModule
-from agrag.modules.retriever.rerankers.reranker import Reranker
-from agrag.modules.retriever.retrievers.retriever_base import RetrieverModule
-from agrag.modules.vector_db.vector_database import VectorDatabaseModule
+from ragify.constants import DOC_TEXT_KEY
+from ragify.modules.embedding.embedding import EmbeddingModule
+from ragify.modules.retriever.rerankers.reranker import Reranker
+from ragify.modules.retriever.retrievers.retriever_base import RetrieverModule
+from ragify.modules.vector_db.vector_database import VectorDatabaseModule
 
 
 class TestRetrieverModule(unittest.TestCase):
-    @patch("agrag.modules.embedding.embedding.AutoTokenizer.from_pretrained")
-    @patch("agrag.modules.embedding.embedding.AutoModel.from_pretrained")
+    @patch("ragify.modules.embedding.embedding.AutoTokenizer.from_pretrained")
+    @patch("ragify.modules.embedding.embedding.AutoModel.from_pretrained")
     def setUp(self, mock_model, mock_tokenizer):
         self.mock_tokenizer = MagicMock()
         self.mock_model = MagicMock()
@@ -51,7 +51,7 @@ class TestRetrieverModule(unittest.TestCase):
         self.assertIsInstance(query_embedding, np.ndarray)
         self.assertEqual(query_embedding.shape, (10,))
 
-    @patch("agrag.modules.retriever.rerankers.reranker.Reranker.rerank")
+    @patch("ragify.modules.retriever.rerankers.reranker.Reranker.rerank")
     def test_retrieve(self, mock_rerank):
         query = "test query"
         text_chunks = ["test chunk 1", "test chunk 2", "test chunk 3"]

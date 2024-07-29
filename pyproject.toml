@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "agrag"
+name = "ragify"
 dynamic = ["version"]
 authors = [
   { name="AutoGluon Community"},
@@ -56,7 +56,7 @@ dependencies = [
 
 
 [project.scripts]
-agrag = "agrag.main:ag_rag"
+ragify = "ragify.main:ag_rag"
 
 [project.optional-dependencies]
 tests = ["pytest", "pytest-mock", "tox", "black>=23.1.9, <=23.7.0", "isort>=5.11.0, <=5.12.0"]

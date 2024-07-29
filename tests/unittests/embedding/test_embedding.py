@@ -5,14 +5,14 @@ import numpy as np
 import pandas as pd
 import torch
 
-from agrag.constants import DOC_TEXT_KEY, EMBEDDING_KEY
-from agrag.modules.embedding.embedding import EmbeddingModule
-from agrag.modules.embedding.utils import normalize_embedding, pool
+from ragify.constants import DOC_TEXT_KEY, EMBEDDING_KEY
+from ragify.modules.embedding.embedding import EmbeddingModule
+from ragify.modules.embedding.utils import normalize_embedding, pool
 
 
 class TestEmbeddingModule(unittest.TestCase):
-    @patch("agrag.modules.embedding.embedding.AutoTokenizer.from_pretrained")
-    @patch("agrag.modules.embedding.embedding.AutoModel.from_pretrained")
+    @patch("ragify.modules.embedding.embedding.AutoTokenizer.from_pretrained")
+    @patch("ragify.modules.embedding.embedding.AutoModel.from_pretrained")
     def setUp(self, mock_model, mock_tokenizer):
         self.mock_tokenizer = MagicMock()
         self.mock_model = MagicMock()
@@ -60,7 +60,7 @@ class TestEmbeddingModule(unittest.TestCase):
         self.assertEqual(len(embeddings_df), 2)
         self.assertTrue(all(isinstance(embedding, np.ndarray) for embedding in embeddings_df[EMBEDDING_KEY]))
 
-    @patch("agrag.modules.embedding.embedding.AutoModel.from_pretrained")
+    @patch("ragify.modules.embedding.embedding.AutoModel.from_pretrained")
     def test_pool_mean(self, mock_model):
         self.embedding_module.pooling_strategy = "mean"
         mock_model.return_value = MagicMock(last_hidden_state=torch.rand((10, 20, 100)))
@@ -72,7 +72,7 @@ class TestEmbeddingModule(unittest.TestCase):
 
         self.assertTrue(torch.allclose(pooled_embeddings, expected_pooled, atol=1e-6))
 
-    @patch("agrag.modules.embedding.embedding.AutoModel.from_pretrained")
+    @patch("ragify.modules.embedding.embedding.AutoModel.from_pretrained")
     def test_pool_max(self, mock_model):
         self.embedding_module.pooling_strategy = "max"
         mock_model.return_value = MagicMock(last_hidden_state=torch.rand((10, 20, 100)))
@@ -84,7 +84,7 @@ class TestEmbeddingModule(unittest.TestCase):
 
         self.assertTrue(torch.allclose(pooled_embeddings, expected_pooled, atol=1e-6))
 
-    @patch("agrag.modules.embedding.embedding.AutoModel.from_pretrained")
+    @patch("ragify.modules.embedding.embedding.AutoModel.from_pretrained")
     def test_pool_cls(self, mock_model):
         self.embedding_module.pooling_strategy = "cls"
         embeddings = torch.rand((10, 20, 100))

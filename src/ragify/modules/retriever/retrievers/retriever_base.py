@@ -6,10 +6,10 @@ import pandas as pd
 import torch
 from torch.nn import DataParallel
 
-from agrag.constants import DOC_TEXT_KEY, EMBEDDING_KEY
-from agrag.modules.embedding.embedding import EmbeddingModule
-from agrag.modules.retriever.rerankers.reranker import Reranker
-from agrag.modules.vector_db.vector_database import VectorDatabaseModule
+from ragify.constants import DOC_TEXT_KEY, EMBEDDING_KEY
+from ragify.modules.embedding.embedding import EmbeddingModule
+from ragify.modules.retriever.rerankers.reranker import Reranker
+from ragify.modules.vector_db.vector_database import VectorDatabaseModule
 
 logger = logging.getLogger("rag-logger")
 

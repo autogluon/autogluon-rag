@@ -7,8 +7,8 @@ import faiss
 import pandas as pd
 import torch
 
-from agrag.constants import CHUNK_ID_KEY, DOC_ID_KEY, DOC_TEXT_KEY, EMBEDDING_HIDDEN_DIM_KEY, EMBEDDING_KEY
-from agrag.modules.vector_db.utils import (
+from ragify.constants import CHUNK_ID_KEY, DOC_ID_KEY, DOC_TEXT_KEY, EMBEDDING_HIDDEN_DIM_KEY, EMBEDDING_KEY
+from ragify.modules.vector_db.utils import (
     cosine_similarity_fn,
     euclidean_similarity_fn,
     load_index,
@@ -19,7 +19,7 @@ from agrag.modules.vector_db.utils import (
     save_index,
     save_metadata,
 )
-from agrag.modules.vector_db.vector_database import VectorDatabaseModule
+from ragify.modules.vector_db.vector_database import VectorDatabaseModule
 
 torch.manual_seed(21)
 
@@ -57,7 +57,7 @@ class TestVectorDatabaseModule(unittest.TestCase):
         if os.path.exists(self.s3_metadata_path):
             os.remove(self.s3_metadata_path)
 
-    @patch("agrag.modules.vector_db.vector_database.construct_faiss_index")
+    @patch("ragify.modules.vector_db.vector_database.construct_faiss_index")
     def test_construct_vector_database_faiss(self, mock_construct_faiss_index):
         mock_faiss_index = MagicMock()
         mock_construct_faiss_index.return_value = mock_faiss_index
@@ -80,7 +80,7 @@ class TestVectorDatabaseModule(unittest.TestCase):
         metadata = embeddings.drop(columns=[EMBEDDING_KEY, EMBEDDING_HIDDEN_DIM_KEY])
         pd.testing.assert_frame_equal(self.vector_db_module.metadata, metadata)
 
-    @patch("agrag.modules.vector_db.vector_database.construct_milvus_index")
+    @patch("ragify.modules.vector_db.vector_database.construct_milvus_index")
     def test_construct_vector_database_milvus(self, mock_construct_milvus_index):
         mock_milvus_index = MagicMock()
         mock_construct_milvus_index.return_value = mock_milvus_index
@@ -150,14 +150,14 @@ class TestVectorDatabaseModule(unittest.TestCase):
                 )
             start_idx = end_idx
 
-    @patch("agrag.modules.vector_db.utils.save_faiss_index")
+    @patch("ragify.modules.vector_db.utils.save_faiss_index")
     def test_save_index(self, mock_save_faiss_index):
         faiss_index = faiss.IndexFlatL2()
         index_path = self.index_path
         save_index("faiss", faiss_index, index_path)
         mock_save_faiss_index.assert_called_once_with(faiss_index, index_path)
 
-    @patch("agrag.modules.vector_db.utils.save_index_s3")
+    @patch("ragify.modules.vector_db.utils.save_index_s3")
     @patch("boto3.client")
     def test_save_index_with_s3(self, mock_s3_client, mock_save_index_s3):
         faiss_index = faiss.IndexFlatL2()
@@ -166,7 +166,7 @@ class TestVectorDatabaseModule(unittest.TestCase):
         save_index("faiss", faiss_index, self.s3_index_path)
         mock_save_index_s3.assert_called_once_with(index_path, "s3_bucket", s3_client)
 
-    @patch("agrag.modules.vector_db.faiss.faiss_db.save_faiss_index")
+    @patch("ragify.modules.vector_db.faiss.faiss_db.save_faiss_index")
     def test_save_index_failure(self, mock_save_faiss_index):
         mock_save_faiss_index.side_effect = IOError("Failed to write index")
         faiss_index = faiss.IndexFlatL2()
@@ -174,7 +174,7 @@ class TestVectorDatabaseModule(unittest.TestCase):
         result = save_index("faiss", faiss_index, index_path)
         self.assertFalse(result)
 
-    @patch("agrag.modules.vector_db.utils.load_faiss_index")
+    @patch("ragify.modules.vector_db.utils.load_faiss_index")
     def test_load_index(self, mock_load_faiss_index):
         mock_index = MagicMock()
         mock_load_faiss_index.return_value = mock_index
@@ -183,8 +183,8 @@ class TestVectorDatabaseModule(unittest.TestCase):
         self.assertEqual(index, mock_index)
         mock_load_faiss_index.assert_called_once_with(index_path)
 
-    @patch("agrag.modules.vector_db.utils.load_index_s3")
-    @patch("agrag.modules.vector_db.utils.load_faiss_index")
+    @patch("ragify.modules.vector_db.utils.load_index_s3")
+    @patch("ragify.modules.vector_db.utils.load_faiss_index")
     @patch("boto3.client")
     def test_load_index_with_s3(self, mock_s3_client, mock_load_faiss_index, mock_load_index_s3):
         mock_index = MagicMock()
@@ -196,7 +196,7 @@ class TestVectorDatabaseModule(unittest.TestCase):
         mock_load_index_s3.assert_called_once_with(index_path, "s3_bucket", s3_client)
         mock_load_faiss_index.assert_called_once_with(index_path)
 
-    @patch("agrag.modules.vector_db.faiss.faiss_db.load_faiss_index")
+    @patch("ragify.modules.vector_db.faiss.faiss_db.load_faiss_index")
     def test_load_index_failure(self, mock_load_faiss_index):
         mock_load_faiss_index.side_effect = IOError("Failed to read index")
         index_path = self.index_path

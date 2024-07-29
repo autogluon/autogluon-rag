@@ -8,8 +8,8 @@ from torch.nn import DataParallel
 from tqdm import tqdm
 from transformers import AutoModel, AutoTokenizer
 
-from agrag.constants import DOC_TEXT_KEY, EMBEDDING_HIDDEN_DIM_KEY, EMBEDDING_KEY
-from agrag.modules.embedding.utils import normalize_embedding, pool
+from ragify.constants import DOC_TEXT_KEY, EMBEDDING_HIDDEN_DIM_KEY, EMBEDDING_KEY
+from ragify.modules.embedding.utils import normalize_embedding, pool
 
 logger = logging.getLogger("rag-logger")
 

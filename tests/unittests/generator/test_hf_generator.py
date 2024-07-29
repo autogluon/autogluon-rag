@@ -3,12 +3,12 @@ from unittest.mock import MagicMock, patch
 
 import torch
 
-from agrag.modules.generator.generators.hf_generator import HFGenerator
+from ragify.modules.generator.generators.hf_generator import HFGenerator
 
 
 class TestHFGenerator(unittest.TestCase):
-    @patch("agrag.modules.generator.generators.hf_generator.AutoModelForCausalLM.from_pretrained")
-    @patch("agrag.modules.generator.generators.hf_generator.AutoTokenizer.from_pretrained")
+    @patch("ragify.modules.generator.generators.hf_generator.AutoModelForCausalLM.from_pretrained")
+    @patch("ragify.modules.generator.generators.hf_generator.AutoTokenizer.from_pretrained")
     def setUp(self, mock_tokenizer, mock_model):
         self.mock_tokenizer = MagicMock()
         self.mock_model = MagicMock()

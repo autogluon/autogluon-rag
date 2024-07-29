@@ -11,9 +11,9 @@ from botocore.exceptions import ClientError, NoCredentialsError, PartialCredenti
 from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances, manhattan_distances
 from tqdm import tqdm
 
-from agrag.modules.vector_db.faiss.faiss_db import load_faiss_index, save_faiss_index
-from agrag.modules.vector_db.milvus.milvus_db import load_milvus_index, save_milvus_index
-from agrag.utils import parse_path
+from ragify.modules.vector_db.faiss.faiss_db import load_faiss_index, save_faiss_index
+from ragify.modules.vector_db.milvus.milvus_db import load_milvus_index, save_milvus_index
+from ragify.utils import parse_path
 
 logger = logging.getLogger("rag-logger")
 
