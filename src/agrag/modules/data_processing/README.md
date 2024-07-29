@@ -22,4 +22,7 @@ data:
   
   html_tags_to_extract: List of HTML tags to extract text from. Default is ["p", "table"]. We support ["p", "table", "li", "div", "span", "<h_tags>"]  currently.
 
+  login_info: A dictionary containing login credentials for each URL. Required if the target URL requires authentication.
+  Must be structured as {target_url: {"login_url": <login_url>, "credentials": {"username": "your_username", "password": "your_password"}}}
+
 ```
