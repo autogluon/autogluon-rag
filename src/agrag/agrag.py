@@ -499,6 +499,9 @@ class AutoGluonRAG:
                     f"\nFound {len(urls)} URLs by recursively parsing the webpage {url} with base URL {self.base_urls[idx]}."
                 )
                 web_urls.extend(urls)
+                if url in self.login_info:
+                    for sub_url in urls:
+                        self.login_info[sub_url] = self.login_info[url]
 
         batch_num = 1
         for i in range(0, max(len(file_paths), len(web_urls)), self.batch_size):
