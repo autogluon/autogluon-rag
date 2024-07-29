@@ -295,9 +295,9 @@ class EvaluationModule:
         metrics : List[Union[str, Callable]]
             The list of metrics to use for evaluation (e.g., ["bertscore", "exact_match", "pedant", <callable_custom_metric>]).
             We currently support the following metrics:
-                1. HuggingFace: bertscore: ["bertscore"]
+                1. From HuggingFace: ["bertscore", "hf_exact_match", "bleu"]
                 2. Inclusive Exact Match: ["exact_match"]
-                3. QA Metrics from https://github.com/zli12321/qa_metrics
+                3. QA Metrics from https://github.com/zli12321/qa_metrics ("pedant", "transformer_matcher")
                 4. Custom Metric Function: This can either be a callable Python function or a function from a Python package
         metric_score_params: dict
             Optional, additional parameters to pass into evaluation metric functions when computing scores.
