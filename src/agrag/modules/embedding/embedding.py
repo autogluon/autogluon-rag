@@ -40,6 +40,13 @@ class EmbeddingModule:
         Additional parameters to pass to the PyTorch `nn.functional.normalize` method.
     query_instruction_for_retrieval: str
         Instruction for query when using embedding model.
+    use_bedrock: str
+        Whether to use the provided model from AWS Bedrock API. https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html
+        Currently only Cohere (https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-embed.html) and Amazon Titan (https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-titan.html) embedding models are supported.
+    bedrock_generate_params: dict
+        Additional parameters to pass into the model when generating the embeddings.
+    bedrock_aws_region: str
+        AWS region where the model is hosted on Bedrock.
 
     Methods:
     -------
