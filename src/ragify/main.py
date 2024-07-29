@@ -1,8 +1,8 @@
-from ragify.ragify import AutoGluonRAG
+from ragify.ragify import RAGify
 
 
 def ag_rag():
-    ragify = AutoGluonRAG(preset_quality="medium_quality", data_dir="s3://autogluon-rag-github-dev/autogluon_docs/")
+    ragify = RAGify(preset_quality="medium_quality", data_dir="s3://autogluon-rag-github-dev/autogluon_docs/")
     ragify.initialize_rag_pipeline()
     while True:
         query_text = input(

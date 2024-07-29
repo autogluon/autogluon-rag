@@ -15,7 +15,7 @@ from ragify.evaluation.utils import (
     qa_metric_score,
     save_responses_to_csv,
 )
-from ragify.ragify import AutoGluonRAG
+from ragify.ragify import RAGify
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -24,14 +24,14 @@ logger = logging.getLogger(__name__)
 class EvaluationModule:
     def __init__(
         self,
-        rag_instance: AutoGluonRAG,
+        rag_instance: RAGify,
         **kwargs,
     ):
         """
         Parameters:
         ----------
-        ragify : AutoGluonRAG
-            The AutoGluonRAG instance to be evaluated.
+        ragify : RAGify
+            The RAGify instance to be evaluated.
         """
         self.ragify = rag_instance
 

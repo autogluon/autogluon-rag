@@ -15,8 +15,8 @@ In line with the AutoGluon team's commitment to meeting user requirements and ex
 ## Usage
 To use this framework, you must first install AutoGluon RAG:
 ```
-git clone https://github.com/autogluon/RAGify
-cd RAGify
+git clone https://github.com/autogluon/ragify
+cd ragify
 
 # Create a Virtual Environment (using Python, or conda if you prefer)
 python3 -m virtualenv venv
@@ -44,11 +44,11 @@ options:
 
 ### Use RAGify through code:
 ```
-from ragify.ragify import AutoGluonRAG
+from ragify.ragify import RAGify
 
 
 def ag_rag():
-    ragify = AutoGluonRAG(config_file="path/to/config")
+    ragify = RAGify(config_file="path/to/config")
     ragify.initialize_rag_pipeline()
     ragify.generate_response("What is AutoGluon?")
 
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     ag_rag()
 ```
 
-These are the <b>optional</b> parameters that can be passed into the `AutoGluonRAG` class:
+These are the <b>optional</b> parameters that can be passed into the `RAGify` class:
 ```
 config_file : str
     Path to a configuration file that will be used to set specific parameters in the RAG pipeline.

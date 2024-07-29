@@ -16,15 +16,15 @@ The `EvaluationModule` is created to:
 
 ### Initialization
 
-To initialize the `EvaluationModule`, you need to provide an instance of `AutoGluonRAG`, the name of the dataset, a list of metrics, and additional optional parameters such as preprocessing functions and paths for saving evaluation data.
+To initialize the `EvaluationModule`, you need to provide an instance of `RAGify`, the name of the dataset, a list of metrics, and additional optional parameters such as preprocessing functions and paths for saving evaluation data.
 
 ```python
-from ragify.ragify import AutoGluonRAG
+from ragify.ragify import RAGify
 from ragify.evaluation.evaluator import EvaluationModule
 from module import preprocessing_fn, query_fn, response_fn
 
 evaluation_dir = "evaluation_data"
-ragify = AutoGluonRAG(preset_quality="medium_quality", data_dir=evaluation_dir)
+ragify = RAGify(preset_quality="medium_quality", data_dir=evaluation_dir)
 evaluator = EvaluationModule(rag_instance=ragify)
 evaluator.run_evaluation(
     dataset_name="huggingface_dataset/dataset_name",
@@ -43,12 +43,12 @@ Refer to `src/ragify/evaluation/datasets/google_natural_questions/evaluate_ragif
 ## Arguments to Evaluation Module
 
 ### ragify
-**Type**: `AutoGluonRAG`  
-**Description**: The AutoGluonRAG instance to be evaluated.
+**Type**: `RAGify`  
+**Description**: The RAGify instance to be evaluated.
 ```python
-from ragify.ragify import AutoGluonRAG
+from ragify.ragify import RAGify
 
-ragify = AutoGluonRAG(preset_quality="medium_quality", data_dir=evaluation_dir)
+ragify = RAGify(preset_quality="medium_quality", data_dir=evaluation_dir)
 # Calling ragify.initialize_rag_pipeline() is optional since the EvaluationModule will initialize the pipeline if it has not been done already.
 ```
 
@@ -77,7 +77,7 @@ For large datasets, a naive version of RAGify may not be sufficient. Here are so
 ### NOTE
 Every time you run the `run_evaluation` function, you may need to set the `ragify.data_dir` parameter if you change the dataset being used. In that case, you will have to reinitialize the RAG pipeline. 
 
-Alternatively, you can index all your evaluation datasets at once, or create multiple instances of `AutoGluonRAG`.
+Alternatively, you can index all your evaluation datasets at once, or create multiple instances of `RAGify`.
 
 --------------
 

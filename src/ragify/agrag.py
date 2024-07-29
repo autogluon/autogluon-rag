@@ -27,7 +27,7 @@ if not logger.hasHandlers():
 PRESETS_CONFIG_DIRECTORY = os.path.join(os.path.dirname(__file__), "configs/presets")
 
 
-class AutoGluonRAG:
+class RAGify:
     def __init__(
         self,
         config_file: Optional[str] = None,
@@ -37,7 +37,7 @@ class AutoGluonRAG:
         pipeline_batch_size: int = 0,
     ):
         """
-        Initializes the AutoGluonRAG class with either a configuration file or a preset quality setting.
+        Initializes the RAGify class with either a configuration file or a preset quality setting.
 
         Parameters:
         ----------
@@ -267,7 +267,7 @@ class AutoGluonRAG:
 
         Example:
         --------
-        ragify = AutoGluonRAG(config_file="path/to/config")
+        ragify = RAGify(config_file="path/to/config")
         ragify.initialize_data_module()
         processed_data = ragify.process_data()
         """
@@ -338,7 +338,7 @@ class AutoGluonRAG:
 
         Example:
         --------
-        ragify = AutoGluonRAG(config_file="path/to/config")
+        ragify = RAGify(config_file="path/to/config")
         ragify.initialize_vectordb_module()
         success = ragify.load_existing_vector_db("path/to/index", "path/to/metadata")
         """
@@ -368,7 +368,7 @@ class AutoGluonRAG:
 
         Example:
         --------
-        ragify = AutoGluonRAG(config_file="path/to/config")
+        ragify = RAGify(config_file="path/to/config")
         ragify.initialize_vectordb_module()
         ragify.save_index_and_metadata()
         """
@@ -486,7 +486,7 @@ class AutoGluonRAG:
 
         Example:
         --------
-        ragify = AutoGluonRAG(config_file="path/to/config")
+        ragify = RAGify(config_file="path/to/config")
         ragify.initialize_rag_pipeline()
         """
         self.initialize_data_module()
