@@ -196,3 +196,12 @@ def get_google_nq_responses(row):
 ### max_eval_size
 **Type**: `int`, optional  
 **Description**: The maximum number of datapoints to process for evaluation (default is None). If this value is not less than the total number of datapoints (rows), the entire dataset will be used.
+
+## Using a Custom Dataset
+If you would like to use your own dataset, you must structure it with following columns:
+
+1. "content": Column containing document content (in the form of plaintext) that will be extracted and passed into the RAG pipeline
+2. "query": Column containing a singular query for each document that will be passed into the generator.
+3. "expected_responses": A list of expected responses for each query that will be used for evaluation.
+
+For the parameters `preprocessing_fn`, `query_fn`, `response_fn`, the `EvaluationModule` will use the functions in `src/agrag/evaluation/dataset_utils.py` by default.

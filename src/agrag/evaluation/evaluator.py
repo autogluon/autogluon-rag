@@ -10,6 +10,7 @@ from qa_metrics.transformerMatcher import TransformerMatcher
 
 from agrag.agrag import AutoGluonRAG
 from agrag.constants import EVALUATION_DIR, EVALUATION_MAX_FILE_SIZE
+from agrag.evaluation.dataset_utils import get_document_content, get_expected_responses, get_query
 from agrag.evaluation.utils import (
     calculate_exact_match_score,
     inclusive_exact_match_metric,
@@ -265,9 +266,9 @@ class EvaluationModule:
         self,
         dataset_name: str,
         metrics: List[str],
-        preprocessing_fn: Callable,
-        query_fn: Callable,
-        response_fn: Callable,
+        preprocessing_fn: Callable = get_document_content,
+        query_fn: Callable = get_query,
+        response_fn: Callable = get_expected_responses,
         metric_score_params: dict = {},
         metric_init_params: dict = {},
         hf_dataset_params: dict = {},
