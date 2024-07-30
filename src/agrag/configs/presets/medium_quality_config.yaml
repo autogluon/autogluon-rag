@@ -9,8 +9,9 @@ data:
     - "txt"
 
 embedding:
-  embedding_model: BAAI/bge-large-en
-  pooling_strategy: cls
+  embedding_model: cohere.embed-english-v3
+  use_bedrock: true
+  bedrock_aws_region: us-west-2
   normalize_embeddings: false
   hf_tokenizer_params: 
     truncation: true

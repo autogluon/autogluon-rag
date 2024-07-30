@@ -259,6 +259,30 @@ class Arguments:
         self.config["embedding"]["embedding_batch_size"] = value
 
     @property
+    def embedding_use_bedrock(self):
+        return self.config.get("embedding", {}).get("use_bedrock", self.embedding_defaults.get("USE_BEDROCK"))
+
+    @embedding_use_bedrock.setter
+    def embedding_use_bedrock(self, value):
+        self.config["embedding"]["use_bedrock"] = value
+
+    @property
+    def bedrock_embedding_params(self):
+        return self.config.get("embedding", {}).get("bedrock_embedding_params", {})
+
+    @bedrock_embedding_params.setter
+    def bedrock_embedding_params(self, value):
+        self.config["embedding"]["bedrock_embedding_params"] = value
+
+    @property
+    def embedding_bedrock_aws_region(self):
+        return self.config.get("embedding", {}).get("bedrock_aws_region", {})
+
+    @embedding_bedrock_aws_region.setter
+    def embedding_bedrock_aws_region(self, value):
+        self.config["embedding"]["bedrock_aws_region"] = value
+
+    @property
     def vector_db_type(self):
         return self.config.get("vector_db", {}).get("db_type", self.vector_db_defaults.get("DB_TYPE"))
 

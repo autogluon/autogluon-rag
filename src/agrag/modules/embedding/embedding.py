@@ -1,6 +1,8 @@
+import json
 import logging
 from typing import List, Union
 
+import boto3
 import numpy as np
 import pandas as pd
 import torch
@@ -9,7 +11,7 @@ from tqdm import tqdm
 from transformers import AutoModel, AutoTokenizer
 
 from agrag.constants import DOC_TEXT_KEY, EMBEDDING_HIDDEN_DIM_KEY, EMBEDDING_KEY
-from agrag.modules.embedding.utils import normalize_embedding, pool
+from agrag.modules.embedding.utils import get_embeddings_bedrock, normalize_embedding, pool
 
 logger = logging.getLogger("rag-logger")
 
@@ -20,8 +22,8 @@ class EmbeddingModule:
 
     Attributes:
     ----------
-    hf_model : str
-        The name of the Huggingface model to use for generating embeddings (default is "BAAI/bge-large-en").
+    model_name : str
+        The name of the Huggingface or Bedrock model to use for generating embeddings (default is "BAAI/bge-large-en" from Huggingface).
     pooling_strategy : str
         The strategy to use for pooling embeddings. Options are 'mean', 'max', 'cls' (default is None).
     normalize_embeddings: bool
@@ -38,6 +40,13 @@ class EmbeddingModule:
         Additional parameters to pass to the PyTorch `nn.functional.normalize` method.
     query_instruction_for_retrieval: str
         Instruction for query when using embedding model.
+    use_bedrock: str
+        Whether to use the provided model from AWS Bedrock API. https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html
+        Currently only Cohere (https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-embed.html) and Amazon Titan (https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-titan.html) embedding models are supported.
+    bedrock_embedding_params: dict
+        Additional parameters to pass into the model when generating the embeddings.
+    bedrock_aws_region: str
+        AWS region where the model is hosted on Bedrock.
 
     Methods:
     -------
@@ -50,12 +59,12 @@ class EmbeddingModule:
 
     def __init__(
         self,
-        hf_model: str = "BAAI/bge-large-en",
+        model_name: str = "BAAI/bge-large-en",
         pooling_strategy: str = None,
         normalize_embeddings: bool = False,
         **kwargs,
     ):
-        self.hf_model = hf_model
+        self.model_name = model_name
         self.pooling_strategy = pooling_strategy
         self.normalize_embeddings = normalize_embeddings
         self.hf_model_params = kwargs.get("hf_model_params", {})
@@ -66,14 +75,25 @@ class EmbeddingModule:
         self.query_instruction_for_retrieval = kwargs.get("query_instruction_for_retrieval", None)
         self.num_gpus = kwargs.get("num_gpus", 0)
         self.device = "cpu" if not self.num_gpus else torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-        logger.info(f"Using Huggingface Model {self.hf_model} for Embedding Module")
-        self.tokenizer = AutoTokenizer.from_pretrained(self.hf_model, **self.hf_tokenizer_init_params)
-        self.model = AutoModel.from_pretrained(self.hf_model, **self.hf_model_params)
-        if self.num_gpus > 1:
-            logger.info(f"Using {self.num_gpus} GPUs")
-            self.model = DataParallel(self.model)
-        self.model.to(self.device)
+        self.use_bedrock = kwargs.get("use_bedrock")
+        if self.use_bedrock:
+            if not "embed" in self.model_name:
+                raise ValueError(
+                    f"Invalid model_id {self.model_name}. Must use an embedding model from Bedrock. The model_id should contain 'embed'."
+                )
+            logger.info(f"Using Bedrock Model {self.model_name} for Embedding Module")
+            self.bedrock_embedding_params = kwargs.get("bedrock_embedding_params", {})
+            if "cohere" in self.model_name:
+                self.bedrock_embedding_params["input_type"] = "search_document"
+            self.client = boto3.client("bedrock-runtime", region_name=kwargs.get("bedrock_aws_region", None))
+        else:
+            logger.info(f"Using Huggingface Model {self.model_name} for Embedding Module")
+            self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, **self.hf_tokenizer_init_params)
+            self.model = AutoModel.from_pretrained(self.model_name, **self.hf_model_params)
+            if self.num_gpus > 1:
+                logger.info(f"Using {self.num_gpus} GPUs")
+                self.model = DataParallel(self.model)
+            self.model.to(self.device)
 
     def encode(self, data: pd.DataFrame, pbar: tqdm = None, batch_size: int = 32) -> pd.DataFrame:
         """
@@ -112,24 +132,35 @@ class EmbeddingModule:
 
             logger.info("\nTokenizing text chunks")
             batch_texts = texts[i : i + batch_size]
-            inputs = self.tokenizer(batch_texts, return_tensors="pt", **self.hf_tokenizer_params)
-            inputs = {k: v.to(self.device) for k, v in inputs.items()}
 
             logger.info("\nGenerating embeddings")
-            with torch.no_grad():
-                outputs = self.model(**inputs, **self.hf_forward_params)
+            if self.use_bedrock:
+                batch_embeddings = get_embeddings_bedrock(
+                    batch_texts=batch_texts,
+                    client=self.client,
+                    model_id=self.model_name,
+                    embedding_params=self.bedrock_embedding_params,
+                )
+            else:
+                inputs = self.tokenizer(batch_texts, return_tensors="pt", **self.hf_tokenizer_params)
+                inputs = {k: v.to(self.device) for k, v in inputs.items()}
+                with torch.no_grad():
+                    outputs = self.model(**inputs, **self.hf_forward_params)
+
+                # The first element in the tuple returned by the model is the embeddings generated
+                # The tuple elements are (embeddings, hidden_states, past_key_values, attentions, cross_attentions)
+                batch_embeddings = outputs[0]
 
             logger.info("\nProcessing embeddings")
-
-            # The first element in the tuple returned by the model is the embeddings generated
-            # The tuple elements are (embeddings, hidden_states, past_key_values, attentions, cross_attentions)
-            batch_embeddings = outputs[0]
 
             batch_embeddings = pool(batch_embeddings, self.pooling_strategy)
             if self.normalize_embeddings:
                 batch_embeddings = normalize_embedding(batch_embeddings, **self.normalization_params)
 
-            batch_embeddings = batch_embeddings.cpu().numpy()
+            if isinstance(batch_embeddings, torch.Tensor):
+                batch_embeddings = batch_embeddings.cpu().numpy()
+            else:
+                batch_embeddings = np.array(batch_embeddings)
             all_embeddings.extend(batch_embeddings)
             all_embeddings_hidden_dim.extend([batch_embeddings.shape[-1]] * batch_embeddings.shape[0])
 
