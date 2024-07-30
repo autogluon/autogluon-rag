@@ -7,7 +7,7 @@ import pandas as pd
 
 from agrag.constants import CHUNK_ID_KEY, DOC_ID_KEY, DOC_TEXT_KEY
 from agrag.modules.data_processing.data_processing import DataProcessingModule
-from agrag.modules.data_processing.utils import download_directory_from_s3, get_all_file_paths
+from agrag.modules.data_processing.utils import bs4_extractor, download_directory_from_s3, get_all_file_paths
 
 CURRENT_DIR = os.path.dirname(__file__)
 TEST_DIR = os.path.join(CURRENT_DIR, "../../test_docs/")
@@ -21,7 +21,7 @@ class TestDataProcessingModule(unittest.TestCase):
         mock_pdf_loader.return_value = [mock_page]
 
         data_processing_module = DataProcessingModule(
-            data_dir=TEST_DIR, chunk_size=10, chunk_overlap=5, s3_bucket=None
+            data_dir=TEST_DIR, chunk_size=10, chunk_overlap=5, s3_bucket=None, web_urls=[]
         )
 
         result = data_processing_module.process_file(os.path.join(TEST_DIR, "test_file.pdf"), doc_id=1)
@@ -40,7 +40,7 @@ class TestDataProcessingModule(unittest.TestCase):
         mock_pdf_loader.return_value = [mock_page]
 
         data_processing_module = DataProcessingModule(
-            data_dir=TEST_DIR, chunk_size=10, chunk_overlap=5, s3_bucket=None
+            data_dir=TEST_DIR, chunk_size=10, chunk_overlap=5, s3_bucket=None, web_urls=[]
         )
 
         mock_thread_map.return_value = [
@@ -54,7 +54,7 @@ class TestDataProcessingModule(unittest.TestCase):
 
     def test_chunk_data_naive(self):
         data_processing_module = DataProcessingModule(
-            data_dir=TEST_DIR, chunk_size=10, chunk_overlap=5, s3_bucket=None
+            data_dir=TEST_DIR, chunk_size=10, chunk_overlap=5, s3_bucket=None, web_urls=[]
         )
         text = "This is a test document to check the chunking method."
 
@@ -78,7 +78,7 @@ class TestDataProcessingModule(unittest.TestCase):
         mock_s3_client.download_file.side_effect = lambda Bucket, Key, Filename: os.rename(tmp_file_path, Filename)
 
         data_processing_module = DataProcessingModule(
-            data_dir="test_docs/", s3_bucket="autogluon-rag-github-dev", chunk_size=10, chunk_overlap=5
+            data_dir="test_docs/", s3_bucket="autogluon-rag-github-dev", chunk_size=10, chunk_overlap=5, web_urls=[]
         )
 
         mock_s3_key = "test_docs/test_file.pdf"
@@ -150,6 +150,69 @@ class TestDataProcessingModule(unittest.TestCase):
             file_paths = get_all_file_paths(tmp_dir, file_exts=[".pdf"])
 
             self.assertEqual(len(file_paths), 0)
+
+    @patch("agrag.modules.data_processing.utils.RecursiveCharacterTextSplitter.split_text")
+    def test_process_url(self, mock_url_loader):
+        mock_url_loader.return_value = ["This is a test page from a URL."]
+
+        data_processing_module = DataProcessingModule(
+            data_dir=TEST_DIR, chunk_size=10, chunk_overlap=5, web_urls=["http://example.com"]
+        )
+
+        result = data_processing_module.process_url("http://example.com", doc_id=1)
+
+        expected_result = pd.DataFrame(
+            [{DOC_ID_KEY: 1, CHUNK_ID_KEY: 0, DOC_TEXT_KEY: "This is a test page from a URL."}]
+        )
+        pd.testing.assert_frame_equal(result, expected_result)
+
+    @patch("agrag.modules.data_processing.utils.RecursiveUrlLoader.load_and_split")
+    @patch("concurrent.futures.ThreadPoolExecutor.map")
+    def test_process_urls(self, mock_thread_map, mock_url_loader):
+        mock_page = MagicMock()
+        mock_page.page_content = "This is a test page from a URL."
+        mock_url_loader.return_value = [mock_page]
+
+        data_processing_module = DataProcessingModule(
+            data_dir=TEST_DIR, chunk_size=10, chunk_overlap=5, web_urls=["http://example.com", "http://example.org"]
+        )
+
+        mock_thread_map.return_value = [
+            pd.DataFrame([{DOC_ID_KEY: 0, CHUNK_ID_KEY: 0, DOC_TEXT_KEY: "This is a test page from a URL."}]),
+        ]
+
+        data = data_processing_module.process_urls(data_processing_module.web_urls, start_doc_id=0)
+
+        expected_data = pd.DataFrame(
+            [{DOC_ID_KEY: 0, CHUNK_ID_KEY: 0, DOC_TEXT_KEY: "This is a test page from a URL."}]
+        )
+        pd.testing.assert_frame_equal(data, expected_data)
+
+    def test_bs4_extractor(self):
+        html_content = """
+        <html>
+            <body>
+                <p>This is a paragraph.</p>
+                <div>This is a div.</div>
+                <p>Another paragraph.</p>
+                <table>
+                    <tr><td>1</td><td>2</td></tr>
+                </table>
+            </body>
+        </html>
+        """
+
+        extracted_text = bs4_extractor(html_content, tags_to_extract=["p"])
+        expected_text = "This is a paragraph.\nAnother paragraph."
+        self.assertEqual(extracted_text, expected_text)
+
+        extracted_text = bs4_extractor(html_content, tags_to_extract=["table"])
+        expected_text = "1 2"
+        self.assertEqual(extracted_text, expected_text)
+
+        extracted_text = bs4_extractor(html_content, tags_to_extract=["p", "table"])
+        expected_text = "This is a paragraph.\nAnother paragraph.\n1 2"
+        self.assertEqual(extracted_text, expected_text)
 
 
 if __name__ == "__main__":

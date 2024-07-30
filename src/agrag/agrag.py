@@ -4,6 +4,8 @@ from typing import Any, Dict, List, Optional
 
 import pandas as pd
 import yaml
+from langchain_community.document_loaders.recursive_url_loader import RecursiveUrlLoader
+from langchain_core.utils.html import extract_sub_links
 
 from agrag.args import Arguments
 from agrag.modules.data_processing.data_processing import DataProcessingModule
@@ -34,6 +36,10 @@ class AutoGluonRAG:
         preset_quality: Optional[str] = "medium_quality",
         model_ids: Dict = None,
         data_dir: str = "",
+        web_urls: List = [],
+        base_urls: List = [],
+        login_info: dict = {},
+        parse_urls_recursive: bool = True,
         pipeline_batch_size: int = 0,
     ):
         """
@@ -50,6 +56,17 @@ class AutoGluonRAG:
             Example: {"generator_model_id": "mistral.mistral-7b-instruct-v0:2", "retriever_model_id": "BAAI/bge-large-en", "reranker_model_id": "nv_embed"}
         data_dir : str
             The directory containing the data files that will be used for the RAG pipeline
+        web_urls : List[str]
+            List of website URLs to be ingested and processed.
+        base_urls : List[str]
+            List of optional base URLs to check for links recursively. The base URL controls which URLs will be processed during recursion.
+            The base_url does not need to be the same as the web_url. For example. the web_url can be "https://auto.gluon.ai/stable/index.html", and the base_urls will be "https://auto.gluon.ai/stable/"/
+        login_info: dict
+            A dictionary containing login credentials for each URL. Required if the target URL requires authentication.
+            Must be structured as {target_url: {"login_url": <login_url>, "credentials": {"username": "your_username", "password": "your_password"}}}
+            The target_url is a url that is present in the list of web_urls
+        parse_urls_recursive: bool
+            Whether to parse each URL in the provided recursively. Setting this to True means that the child links present in each parent webpage will also be processed.
         pipeline_batch_size: int
             Optional batch size to use for pre-processing stage (Data Processing, Embedding, Vector DB Module)
 
@@ -114,11 +131,15 @@ class AutoGluonRAG:
 
         self.args = Arguments(self.config)
 
-        # will short-circuit to provided data_dir if config data_dir also provided
+        # will short-circuit to provided data_dir if config value also provided
         self.data_dir = data_dir or self.args.data_dir
+        self.web_urls = web_urls or self.args.web_urls
+        self.base_urls = base_urls or self.args.base_urls
+        self.parse_urls_recursive = parse_urls_recursive or self.args.parse_urls_recursive
+        self.login_info = login_info or self.args.login_info
 
-        if not self.data_dir:
-            raise ValueError("data_dir argument must be provided")
+        if not self.data_dir and not self.web_urls:
+            raise ValueError("Either data_dir or web_urls argument must be provided")
 
         self.data_processing_module = None
         self.embedding_module = None
@@ -153,9 +174,12 @@ class AutoGluonRAG:
         """Initializes the Data Processing module."""
         self.data_processing_module = DataProcessingModule(
             data_dir=self.data_dir,
+            web_urls=self.args.web_urls,
             chunk_size=self.args.chunk_size,
             chunk_overlap=self.args.chunk_overlap,
             file_exts=self.args.data_file_extns,
+            html_tags_to_extract=self.args.html_tags_to_extract,
+            login_info=self.login_info,
         )
         logger.info("Data Processing module initialized")
 
@@ -462,16 +486,47 @@ class AutoGluonRAG:
 
         """
 
-        logger.info(f"Retrieving and Processing Data from {self.data_processing_module.data_dir}")
+        logger.info(f"Processing Data from Data Directory: {self.data_processing_module.data_dir}")
         file_paths = get_all_file_paths(self.data_processing_module.data_dir, self.data_processing_module.file_exts)
-        batch_num = 1
-        for i in range(0, len(file_paths), self.batch_size):
-            logger.info(f"Batch {batch_num}")
-            batch_file_paths = file_paths[i : i + self.batch_size]
-            processed_data = self.data_processing_module.process_files(batch_file_paths)
 
+        logger.info(f"Processing the Web URLs: {self.data_processing_module.web_urls}")
+        web_urls = []
+        if self.parse_urls_recursive:
+            for idx, url in enumerate(self.web_urls):
+                loader = RecursiveUrlLoader(url=url, max_depth=1)
+                docs = loader.load()
+                urls = extract_sub_links(
+                    raw_html=docs[0].page_content,
+                    url=url,
+                    base_url=self.base_urls[idx],
+                    continue_on_failure=True,
+                )
+                urls = [url] + urls
+                logger.info(
+                    f"\nFound {len(urls)} URLs by recursively parsing the webpage {url} with base URL {self.base_urls[idx]}."
+                )
+                web_urls.extend(urls)
+                if url in self.login_info:
+                    for sub_url in urls:
+                        self.login_info[sub_url] = self.login_info[url]
+
+        batch_num = 1
+        for i in range(0, max(len(file_paths), len(web_urls)), self.batch_size):
+            logger.info(f"Batch {batch_num}")
+
+            batch_file_paths = file_paths[i : i + self.batch_size]
+            batch_urls = web_urls[i : i + self.batch_size]
+
+            # Data Processing
+            processed_data = self.data_processing_module.process_files(batch_file_paths)
+            processed_files_data, last_doc_id = self.data_processing_module.process_files(file_paths, start_doc_id=0)
+            processed_urls_data = self.data_processing_module.process_urls(batch_urls, start_doc_id=last_doc_id)
+            processed_data = pd.concat([processed_files_data, processed_urls_data]).reset_index(drop=True)
+
+            # Embedding
             embeddings = self.generate_embeddings(processed_data)
 
+            # Vector DB
             self.construct_vector_db(embeddings)
 
             # Clear memory

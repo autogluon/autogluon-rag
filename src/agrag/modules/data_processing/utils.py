@@ -4,9 +4,11 @@ from typing import List
 
 import boto3
 import pandas as pd
+from bs4 import BeautifulSoup
 from docx import Document
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import PyPDFLoader, RecursiveUrlLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from requests.sessions import Session
 
 from agrag.constants import CHUNK_ID_KEY, DOC_ID_KEY, DOC_TEXT_KEY, SUPPORTED_FILE_EXTENSIONS
 
@@ -218,3 +220,123 @@ def process_csv(file_path: str, chunk_data, doc_id: int) -> pd.DataFrame:
     for chunk_id, chunk in enumerate(chunk_data(text)):
         processed_data.append({DOC_ID_KEY: doc_id, CHUNK_ID_KEY: chunk_id, DOC_TEXT_KEY: chunk})
     return pd.DataFrame(processed_data)
+
+
+def get_authenticated_html(url: str, login_url: str, credentials: dict) -> str:
+    """
+    Authenticates and retrieves HTML content from a URL that requires login.
+
+    Parameters:
+    ----------
+    url : str
+        The URL to retrieve HTML content from after authentication.
+    login_url : str
+        The URL to submit the login form.
+    credentials : dict
+        A dictionary containing login credentials (e.g., {"username": "your_username", "password": "your_password"}).
+
+    Returns:
+    -------
+    str
+        The HTML content of the authenticated URL.
+    """
+    session = Session()
+    session.post(login_url, data=credentials)
+    response = session.get(url)
+    response.raise_for_status()
+    return response.text
+
+
+def bs4_extractor(html: str, tags_to_extract: List[str] = ["p", "table"]) -> str:
+    """
+    Extracts text from HTML content using BeautifulSoup, focusing on specified HTML tags.
+
+    Parameters:
+    ----------
+    html : str
+        The raw HTML content.
+    tags_to_extract : List
+        A list of HTML tags to extract text from. Default is ["p", "table"].
+
+    Returns:
+    -------
+    str
+        The extracted text content from the specified HTML tags.
+    """
+    soup = BeautifulSoup(
+        html,
+        "lxml",
+    )
+
+    extracted_text = []
+
+    logger.info(f"\n Extracting text from the following HTML tags: {tags_to_extract}.")
+
+    for tag in tags_to_extract:
+        elements = soup.find_all(tag)
+        for element in elements:
+            if tag == "table":
+                table_text = "\n".join([" ".join(row.stripped_strings) for row in element.find_all("tr")])
+                extracted_text.append(table_text)
+            else:
+                extracted_text.append(element.get_text())
+
+    text = "\n".join(extracted_text).strip()
+    return text
+
+
+def get_text_from_url(
+    url: str,
+    chunk_size: int,
+    chunk_overlap: int,
+    tags_to_extract: List = ["p", "table"],
+    login_url: str = None,
+    credentials: dict = None,
+) -> str:
+    """
+    Retrieves and extracts text content from a given URL using a specified extractor.
+    Handles authentication if login URL and credentials are provided.
+
+    Parameters:
+    ----------
+    url : str
+        The URL to retrieve and extract text content from.
+    chunk_size : int
+        The size of each chunk of text.
+    chunk_overlap : int
+        The overlap between consecutive chunks of text.
+    tags_to_extract : List
+        A list of HTML tags to extract text from. Default is ["p", "table"].
+    login_url : str, optional
+        The URL to submit the login form. Required if the target URL requires authentication.
+    credentials : dict, optional
+        A dictionary containing login credentials. Required if the target URL requires authentication.
+
+    Returns:
+    -------
+    str
+        The extracted text content from the URL.
+    """
+    if login_url and credentials:
+        html_content = get_authenticated_html(url, login_url, credentials)
+    else:
+        loader = RecursiveUrlLoader(
+            url,
+            continue_on_failure=True,
+            max_depth=1,
+        )
+        html_content = "".join([page.page_content for page in loader.load()])
+
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=chunk_size,
+        chunk_overlap=chunk_overlap,
+        separators=[".", "\uff0e", "\n"],  # \uff0e -> Fullwidth full stop
+        length_function=len,
+        is_separator_regex=False,
+    )
+    processed_data = []
+    chunks = text_splitter.split_text(html_content)
+    for chunk in chunks:
+        chunk_content = bs4_extractor(chunk, tags_to_extract=tags_to_extract)
+        processed_data.append(chunk_content)
+    return processed_data

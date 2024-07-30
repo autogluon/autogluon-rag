@@ -1,15 +1,17 @@
 import concurrent.futures
 import logging
 import os
+import re
 from typing import List
 
 import boto3
 import pandas as pd
 
-from agrag.constants import SUPPORTED_FILE_EXTENSIONS
+from agrag.constants import SUPPORTED_FILE_EXTENSIONS, SUPPORTED_HTML_TAGS
 from agrag.modules.data_processing.utils import (
     download_directory_from_s3,
     get_all_file_paths,
+    get_text_from_url,
     process_csv,
     process_docx_doc,
     process_pdf,
@@ -29,12 +31,19 @@ class DataProcessingModule:
     ----------
     data_dir : str
         The directory containing the data files to be ingested.
+    web_urls: List[str]
+        List of website URLs to be ingested and processed.
     chunk_size : int
         The size of each chunk of text.
     chunk_overlap : int
         The overlap between consecutive chunks of text.
     file_exts: List[str]
-        List of file extensions to support.
+        List of file extensions to support. Default is [".pdf", ".txt", ".docx", ".doc", ".rtf", ".csv", ".md", ".py", ".log"]
+    html_tags_to_extract: List[str]
+        List of HTML tags to extract text from. Default is ["p", "table"]. We support ["p", "table", "li", "div", "span", "<h_tags>"]  currently.
+    login_info: dict
+        A dictionary containing login credentials for each URL. Required if the target URL requires authentication.
+        Must be structured as {target_url: {"login_url": <login_url>, "credentials": {"username": "your_username", "password": "your_password"}}}
 
     Methods:
     -------
@@ -47,29 +56,43 @@ class DataProcessingModule:
     process_file(file_path: str, doc_id: int) -> pd.DataFrame:
         Processes a single file, extracting and chunking the text.
 
+    process_url(url: str, doc_id: int) -> pd.DataFrame:
+        Processes a single URL, extracting and chunking the text.
+
+    process_files(file_paths: List[str]) -> pd.DataFrame:
+        Processes the given file paths, extracting and chunking text from each file.
+
+    process_urls(urls: List[str]) -> pd.DataFrame:
+        Processes the given URLs, extracting and chunking text from each URL.
+
     process_data() -> pd.DataFrame:
-        Processes all files in the data directory, extracting and chunking text from each file, and compiles the results into a single DataFrame.
+        Processes all files in the data directory and URLs, extracting and chunking text, and compiles the results into a single DataFrame.
     """
 
     def __init__(
         self,
         data_dir: str,
+        web_urls: List[str],
         chunk_size: int,
         chunk_overlap: int,
-        file_exts: List[str] = SUPPORTED_FILE_EXTENSIONS,
         **kwargs,
     ):
+        if not data_dir:
+            data_dir = ""
         data_s3_bucket, data_dir = parse_path(data_dir)
         self.data_dir = data_dir
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         self.s3_bucket = data_s3_bucket
         self.s3_client = boto3.client("s3") if self.s3_bucket else None
-        self.file_exts = file_exts
+        self.file_exts = kwargs.get("file_exts", SUPPORTED_FILE_EXTENSIONS)
+        self.web_urls = web_urls
+        self.login_info = kwargs.get("login_info", {})
         if self.s3_bucket:
             self.data_dir = download_directory_from_s3(
                 s3_bucket=self.s3_bucket, data_dir=self.data_dir, s3_client=self.s3_client
             )
+        self.html_tags_to_extract = kwargs.get("html_tags_to_extract", SUPPORTED_HTML_TAGS)
 
     def chunk_data_naive(self, text: str) -> List[str]:
         """
@@ -143,7 +166,7 @@ class DataProcessingModule:
 
         return pd.DataFrame()
 
-    def process_files(self, file_paths: List[str]) -> pd.DataFrame:
+    def process_files(self, file_paths: List[str], start_doc_id: int = 0) -> pd.DataFrame:
         """
         Processes the given file paths, extracting and chunking text from each file.
 
@@ -151,6 +174,8 @@ class DataProcessingModule:
         ----------
         file_paths : List[str]
             A list of file paths to process.
+        start_doc_id : int
+            The starting document ID.
 
         Returns:
         -------
@@ -158,26 +183,108 @@ class DataProcessingModule:
             A DataFrame of processed text chunks from the given files.
         """
         processed_data = []
+        doc_id_counter = start_doc_id
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            results = executor.map(self.process_file, file_paths, range(len(file_paths)))
+            results = executor.map(
+                self.process_file, file_paths, range(doc_id_counter, doc_id_counter + len(file_paths))
+            )
             for result in results:
                 processed_data.append(result)
+                doc_id_counter += 1
 
-        return pd.concat(processed_data).reset_index(drop=True)
+        return pd.concat(processed_data).reset_index(drop=True), doc_id_counter
 
-    def process_data(self) -> pd.DataFrame:
+    def process_url(self, url: str, doc_id: int, login_info: dict = {}) -> pd.DataFrame:
         """
-        Processes all files in the data directory.
+        Processes a single URL, extracting and chunking the text.
 
-        Extracts and chunks text from each file and compiles the results into a single DataFrame.
+        Parameters:
+        ----------
+        url : str
+            The URL to be processed.
+        doc_id : int
+            The document ID.
+        login_info: dict
+            A dictionary containing login credentials for each URL. Required if the target URL requires authentication.
 
         Returns:
         -------
         pd.DataFrame
-            A DataFrame of processed text chunks from all files in the directory.
+            A table containing processed text chunks and metadata from the given URL.
+        """
+        logger.info(f"Processing URL: {url}")
+
+        login_url = login_info.get(url, {}).get("login_url", "")
+        login_creds = login_info.get(url, {}).get("credentials", {})
+        chunked_text_content = get_text_from_url(
+            url,
+            chunk_size=self.chunk_size,
+            chunk_overlap=self.chunk_overlap,
+            tags_to_extract=self.html_tags_to_extract,
+            login_url=login_url,
+            credentials=login_creds,
+        )
+
+        data = {
+            "doc_id": [doc_id] * len(chunked_text_content),
+            "chunk_id": list(range(len(chunked_text_content))),
+            "text": chunked_text_content,
+        }
+
+        return pd.DataFrame(data)
+
+    def process_urls(self, urls: List[str], login_info: dict = {}, start_doc_id: int = 0) -> pd.DataFrame:
+        """
+        Processes the given URLs, extracting and chunking text from each URL.
+
+        Parameters:
+        ----------
+        urls : List[str]
+            A list of URLs to process.
+        login_info: dict
+            A dictionary containing login credentials for each URL. Required if the target URL requires authentication.
+        start_doc_id : int
+            The starting document ID.
+
+        Returns:
+        -------
+        pd.DataFrame
+            A DataFrame of processed text chunks from the given URLs.
+        """
+        processed_data = []
+        doc_id_counter = start_doc_id
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            results = executor.map(
+                self.process_url, urls, [login_info] * len(urls), range(doc_id_counter, doc_id_counter + len(urls))
+            )
+            for result in results:
+                processed_data.append(result)
+                doc_id_counter += 1
+        return pd.concat(processed_data).reset_index(drop=True)
+
+    def process_data(self) -> pd.DataFrame:
+        """
+        Processes all files in the data directory and URLs.
+
+        Extracts and chunks text from each file and URL, and compiles the results into a single DataFrame.
+
+        Returns:
+        -------
+        pd.DataFrame
+            A DataFrame of processed text chunks from all files in the directory and URLs.
         """
 
-        file_paths = get_all_file_paths(self.data_dir, self.file_exts)
+        last_doc_id = 0
+        processed_files_data, processed_urls_data = pd.DataFrame(), pd.DataFrame()
+        if self.data_dir:
+            file_paths = get_all_file_paths(self.data_dir, self.file_exts)
+            processed_files_data, last_doc_id = self.process_files(file_paths, start_doc_id=0)
 
-        return self.process_files(file_paths)
+        if self.web_urls:
+            processed_urls_data = self.process_urls(
+                self.web_urls, login_info=self.login_info, start_doc_id=last_doc_id
+            )
+
+        return pd.concat([processed_files_data, processed_urls_data]).reset_index(drop=True)
