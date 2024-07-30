@@ -116,7 +116,7 @@ def get_embeddings_bedrock(
         outputs = json.loads(response["body"].read())
         embeddings = outputs.get("embeddings")
     else:
-        raise ValueError(f"Unsupported Embedding Model for Bedrock {model_id}")
+        raise NotImplementedError(f"Unsupported Embedding Model for Bedrock {model_id}")
     return embeddings
 
 
