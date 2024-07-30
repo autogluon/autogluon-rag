@@ -144,5 +144,4 @@ def extract_response(output: Dict) -> str:
     elif "generation" in output:
         return output["generation"]
     else:
-        logger.error("Unknown output structure: %s", output)
-        return ""
+        raise ValueError("Unknown output structure: %s", output)

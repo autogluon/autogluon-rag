@@ -91,5 +91,4 @@ class BedrockGenerator:
         elif "generation" in output:
             return output["generation"].strip()
         else:
-            logger.error("Unknown output structure: %s", output)
-            return ""
+            raise ValueError("Unknown output structure: %s", output)
