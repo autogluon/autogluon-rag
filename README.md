@@ -111,3 +111,6 @@ pipeline_batch_size: Optional batch size to use for pre-processing stage (Data P
 
 ## Evaluation
 For more information about the evaluation module, refer to the code in `src/agrag/evaluation` and the instructions [here](https://github.com/autogluon/autogluon-rag/tree/main/src/agrag/evaluation/README.md).
+
+## Tutorials
+For a list of tutorials on using AutoGluon-RAG in different scenarios, refer to the documentation [here](https://github.com/autogluon/autogluon-rag/tree/main/documentation/tutorial.md)
