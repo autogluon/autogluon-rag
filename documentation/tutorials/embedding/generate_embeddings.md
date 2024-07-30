@@ -1,7 +1,10 @@
 This is a tutorial on using AutoGluon-RAG to generate embeddings:
 
 ```python
-agrag = AutoGluonRAG(preset_quality="medium_quality") # or path to config file
+agrag = AutoGluonRAG(
+            data_dir="path/to/data", 
+            preset_quality="medium_quality", # or path to config file
+        )
 agrag.initialize_data_module() 
 agrag.initialize_embedding_module() 
 

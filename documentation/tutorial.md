@@ -3,6 +3,7 @@ Below is a list of tutorials with different use-cases for AutoGluon-RAG:
 ## General
 
 ## Data Processing Module
+1. [Using AutoGluon-RAG to obtain processed data from documents/websites](https://github.com/autogluon/autogluon-rag/tree/main/documentation/tutorials/embedding/generate_embeddings.md). This will include data in the form of text chunks for each document/website in the directory.
 
 ## Embedding Module
 1. [Using AutoGluon-RAG to generate embeddings](https://github.com/autogluon/autogluon-rag/tree/main/documentation/tutorials/embedding/generate_embeddings.md)
