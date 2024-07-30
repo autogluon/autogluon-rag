@@ -10,7 +10,7 @@ Below is a list of tutorials with different use-cases for AutoGluon-RAG:
 
 ## Vector DB Module
 
-## Reranker Module
+## Retriever Module
 
 ## Generator Module
 1. [Change generator after initializing RAG pipeline](https://github.com/autogluon/autogluon-rag/tree/main/documentation/tutorials/generator/change_generator.md)
