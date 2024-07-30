@@ -196,7 +196,7 @@ class AutoGluonRAG:
             normalization_params=self.args.normalization_params,
             query_instruction_for_retrieval=self.args.query_instruction_for_retrieval,
             use_bedrock=self.args.embedding_use_bedrock,
-            bedrock_generate_params=self.args.embedding_bedrock_generate_params,
+            bedrock_embedding_params=self.args.bedrock_embedding_params,
             bedrock_aws_region=self.args.embedding_bedrock_aws_region,
         )
         logger.info("Embedding module initialized")

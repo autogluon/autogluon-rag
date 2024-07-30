@@ -81,7 +81,7 @@ def normalize_embedding(embeddings, args=None):
 
 
 def get_embeddings_bedrock(
-    batch_texts: List[str], client: boto3.client, model_id: str, generate_params: dict = {}
+    batch_texts: List[str], client: boto3.client, model_id: str, embedding_params: dict = {}
 ) -> List[float]:
     embeddings = []
     if "titan" in model_id:
@@ -89,7 +89,7 @@ def get_embeddings_bedrock(
             body = json.dumps(
                 {
                     "inputText": text,
-                    **generate_params,
+                    **embedding_params,
                 }
             )
             response = client.invoke_model(
@@ -104,7 +104,7 @@ def get_embeddings_bedrock(
         body = json.dumps(
             {
                 "texts": batch_texts,
-                **generate_params,
+                **embedding_params,
             }
         )
         response = client.invoke_model(

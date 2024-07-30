@@ -267,12 +267,12 @@ class Arguments:
         self.config["embedding"]["use_bedrock"] = value
 
     @property
-    def embedding_bedrock_generate_params(self):
-        return self.config.get("embedding", {}).get("bedrock_generate_params", {})
+    def bedrock_embedding_params(self):
+        return self.config.get("embedding", {}).get("bedrock_embedding_params", {})
 
-    @embedding_bedrock_generate_params.setter
-    def embedding_bedrock_generate_params(self, value):
-        self.config["embedding"]["bedrock_generate_params"] = value
+    @bedrock_embedding_params.setter
+    def bedrock_embedding_params(self, value):
+        self.config["embedding"]["bedrock_embedding_params"] = value
 
     @property
     def embedding_bedrock_aws_region(self):
