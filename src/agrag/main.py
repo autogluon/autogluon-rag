@@ -2,7 +2,14 @@ from agrag.agrag import AutoGluonRAG
 
 
 def ag_rag():
-    agrag = AutoGluonRAG(preset_quality="medium_quality", data_dir="s3://autogluon-rag-github-dev/autogluon_docs/")
+    agrag = AutoGluonRAG(
+        preset_quality="medium_quality",
+        web_urls=["https://auto.gluon.ai/stable/index.html"],
+        base_urls=["https://auto.gluon.ai/stable/"],
+        parse_urls_recursive=True,
+        data_dir="s3://autogluon-rag-github-dev/autogluon_docs/",
+    )
+
     agrag.initialize_rag_pipeline()
     while True:
         query_text = input(
