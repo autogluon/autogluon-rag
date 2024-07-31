@@ -94,10 +94,12 @@ class DataProcessingModule:
             )
         self.html_tags_to_extract = kwargs.get("html_tags_to_extract", SUPPORTED_HTML_TAGS)
 
-        logger.info(f"Processing Data from Data Directory: {self.data_dir}")
-        logger.info(f"Processing the Web URLs: {self.web_urls}")
+        if self.data_dir:
+            logger.info(f"Processing Data from Data Directory: {self.data_dir}")
+            logger.info(f"\n Extracting text from the following document types: {self.file_exts}.")
 
         if self.web_urls:
+            logger.info(f"Processing the Web URLs: {self.web_urls}")
             logger.info(f"\n Extracting text from the following HTML tags: {self.html_tags_to_extract}.")
 
     def chunk_data_naive(self, text: str) -> List[str]:
