@@ -174,7 +174,7 @@ class AutoGluonRAG:
         """Initializes the Data Processing module."""
         self.data_processing_module = DataProcessingModule(
             data_dir=self.data_dir,
-            web_urls=self.args.web_urls,
+            web_urls=self.web_urls,
             chunk_size=self.args.chunk_size,
             chunk_overlap=self.args.chunk_overlap,
             file_exts=self.args.data_file_extns,
@@ -486,10 +486,8 @@ class AutoGluonRAG:
 
         """
 
-        logger.info(f"Processing Data from Data Directory: {self.data_processing_module.data_dir}")
         file_paths = get_all_file_paths(self.data_processing_module.data_dir, self.data_processing_module.file_exts)
 
-        logger.info(f"Processing the Web URLs: {self.data_processing_module.web_urls}")
         web_urls = []
         if self.parse_urls_recursive:
             for idx, url in enumerate(self.web_urls):
@@ -511,6 +509,7 @@ class AutoGluonRAG:
                         self.login_info[sub_url] = self.login_info[url]
 
         batch_num = 1
+
         for i in range(0, max(len(file_paths), len(web_urls)), self.batch_size):
             logger.info(f"Batch {batch_num}")
 
@@ -518,9 +517,12 @@ class AutoGluonRAG:
             batch_urls = web_urls[i : i + self.batch_size]
 
             # Data Processing
-            processed_data = self.data_processing_module.process_files(batch_file_paths)
-            processed_files_data, last_doc_id = self.data_processing_module.process_files(file_paths, start_doc_id=0)
-            processed_urls_data = self.data_processing_module.process_urls(batch_urls, start_doc_id=last_doc_id)
+            processed_files_data, last_doc_id = self.data_processing_module.process_files(
+                batch_file_paths, start_doc_id=0
+            )
+            processed_urls_data = self.data_processing_module.process_urls(
+                batch_urls, login_info=self.login_info, start_doc_id=last_doc_id
+            )
             processed_data = pd.concat([processed_files_data, processed_urls_data]).reset_index(drop=True)
 
             # Embedding

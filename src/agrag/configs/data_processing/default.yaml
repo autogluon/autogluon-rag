@@ -1,3 +1,5 @@
 CHUNK_SIZE: 512
 CHUNK_OVERLAP: 64
 PARSE_URLS_RECURSIVE: true
+SUPPORTED_FILE_EXTENSIONS: [".pdf", ".txt", ".docx", ".doc", ".rtf", ".csv", ".md", ".py", ".log"]
+SUPPORTED_HTML_TAGS: ["p", "table"]
