@@ -93,7 +93,7 @@ class DataProcessingModule:
                 s3_bucket=self.s3_bucket, data_dir=self.data_dir, s3_client=self.s3_client
             )
         self.html_tags_to_extract = kwargs.get("html_tags_to_extract", SUPPORTED_HTML_TAGS)
-        
+
         logger.info(f"Processing Data from Data Directory: {self.data_dir}")
         logger.info(f"Processing the Web URLs: {self.web_urls}")
 
