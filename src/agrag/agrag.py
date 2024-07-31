@@ -186,7 +186,7 @@ class AutoGluonRAG:
     def initialize_embeddings_module(self):
         """Initializes the Embedding module."""
         self.embedding_module = EmbeddingModule(
-            model_name=self.args.hf_embedding_model,
+            model_name=self.args.embedding_model,
             pooling_strategy=self.args.pooling_strategy,
             normalize_embeddings=self.args.normalize_embeddings,
             hf_model_params=self.args.hf_model_params,
