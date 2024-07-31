@@ -171,13 +171,13 @@ class Arguments:
         self.config["data"]["file_extns"] = value
 
     @property
-    def hf_embedding_model(self):
+    def embedding_model(self):
         return self.config.get("embedding", {}).get(
             "embedding_model", self.embedding_defaults.get("DEFAULT_EMBEDDING_MODEL")
         )
 
-    @hf_embedding_model.setter
-    def hf_embedding_model(self, value):
+    @embedding_model.setter
+    def embedding_model(self, value):
         self.config["embedding"]["embedding_model"] = value
 
     @property
