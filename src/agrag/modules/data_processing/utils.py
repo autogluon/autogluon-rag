@@ -270,8 +270,6 @@ def bs4_extractor(html: str, tags_to_extract: List[str] = ["p", "table"]) -> str
 
     extracted_text = []
 
-    logger.info(f"\n Extracting text from the following HTML tags: {tags_to_extract}.")
-
     for tag in tags_to_extract:
         elements = soup.find_all(tag)
         for element in elements:
