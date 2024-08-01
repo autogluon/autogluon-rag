@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, mock_open, patch
 
 from agrag.modules.generator.generator import GeneratorModule
 from agrag.modules.generator.generators.bedrock_generator import BedrockGenerator
@@ -27,11 +27,11 @@ class TestGeneratorModule(unittest.TestCase):
         self.mock_tokenizer = MagicMock()
         self.mock_model = MagicMock()
 
-    def test_gpt_generator_initialization(self):
+    @patch("builtins.open", new_callable=mock_open, read_data="fake-api-key")
+    def test_gpt_generator_initialization(self, mock_file):
         model_name = "gpt-3"
-        openai_api_key = "fake-api-key"
         model_platform = "openai"
-        platform_args = {"gpt_generate_params": {"max_tokens": 100}, "openai_api_key": openai_api_key}
+        platform_args = {"gpt_generate_params": {"max_tokens": 100}, "openai_api_key": "fake-path"}
 
         generator_module = GeneratorModule(
             model_name=model_name,
@@ -40,6 +40,7 @@ class TestGeneratorModule(unittest.TestCase):
         )
 
         self.assertIsInstance(generator_module.generator, GPTGenerator)
+        mock_file.assert_called_once_with("fake-path", "r")
 
     def test_bedrock_generator_initialization(self):
         model_name = "bedrock-model"
