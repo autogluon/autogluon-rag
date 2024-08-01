@@ -15,14 +15,8 @@ class Arguments:
 
     Attributes:
     ----------
-    args : argparse.Namespace
-        The parsed command-line arguments.
-    config : dict
-        The loaded configuration from the specified YAML file.
-    data_defaults : dict
-        The default values for the data processing module loaded from a YAML file.
-    embedding_defaults : dict
-        The default values for the embedding module loaded from a YAML file.
+    config_file : str
+        Path to configuration file
 
     Methods:
     -------
