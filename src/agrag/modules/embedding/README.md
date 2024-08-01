@@ -20,6 +20,8 @@ embedding:
   normalization_params: Additional parameters to pass to the PyTorch `nn. functional.normalize` method.
 
   query_instruction_for_retrieval: Instruction for query when using embedding model. 
+
+  embedding_batch_size: Batch size to use when generating embeddings
     
 ```
 
