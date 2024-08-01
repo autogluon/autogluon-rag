@@ -225,6 +225,7 @@ class AutoGluonRAG:
             top_k=self.args.retriever_top_k,
             reranker=self.reranker_module,
             num_gpus=num_gpus,
+            use_reranker=self.args.use_reranker,
         )
         logger.info("Retriever module initialized")
 

@@ -26,6 +26,10 @@ class RetrieverModule:
         The module for generating embeddings.
     top_k: int
         The top-k documents to retrieve (default is 50).
+    reranker: Reranker
+        Optional Reranker object to use for reranking
+    use_reranker: bool
+        Whether or not to use a reranker.
     **kwargs : dict
         Additional parameters for `RetrieverModule`.
 
@@ -44,13 +48,13 @@ class RetrieverModule:
         embedding_module: EmbeddingModule,
         top_k: int = 50,
         reranker: Reranker = None,
+        use_reranker: bool = True,
         **kwargs,
     ):
         self.embedding_module = embedding_module
-
         self.vector_database_module = vector_database_module
         self.top_k = top_k
-        self.reranker = reranker
+        self.reranker = reranker if use_reranker else None
 
     def encode_query(self, query: str) -> np.ndarray:
         """
