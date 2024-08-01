@@ -482,21 +482,21 @@ class Arguments:
 
     @property
     def reranker_model_platform(self):
-        return self.config.get("embedding", {}).get(
+        return self.config.get("retriever", {}).get(
             "reranker_model_platform", self.retriever_defaults.get("DEFAULT_RERANKER_MODEL_PLATFORM")
         )
 
     @reranker_model_platform.setter
     def reranker_model_platform(self, value):
-        self.config["reranker"]["reranker_model_platform"] = value
+        self.config["retriever"]["reranker_model_platform"] = value
 
     @property
     def reranker_model_platform_args(self):
-        return self.config.get("reranker", {}).get("reranker_model_platform_args", {})
+        return self.config.get("retriever", {}).get("reranker_model_platform_args", {})
 
     @reranker_model_platform_args.setter
     def reranker_model_platform_args(self, value):
-        self.config["reranker"]["reranker_model_platform_args"] = value
+        self.config["retriever"]["reranker_model_platform_args"] = value
 
     @property
     def reranker_batch_size(self):
@@ -559,52 +559,30 @@ class Arguments:
         self.config["generator"]["generator_model_name"] = value
 
     @property
+    def generator_model_platform(self):
+        return self.config.get("generator", {}).get(
+            "generator_model_platform", self.generator_defaults.get("DEFAULT_GENERATOR_MODEL_PLATFORM")
+        )
+
+    @generator_model_platform.setter
+    def generator_model_platform(self, value):
+        self.config["generator"]["generator_model_platform"] = value
+
+    @property
+    def generator_model_platform_args(self):
+        return self.config.get("generator", {}).get("generator_model_platform_args", {})
+
+    @generator_model_platform_args.setter
+    def generator_model_platform_args(self, value):
+        self.config["generator"]["generator_model_platform_args"] = value
+
+    @property
     def generator_num_gpus(self):
         return self.config.get("generator", {}).get("num_gpus", 0)
 
     @generator_num_gpus.setter
     def generator_num_gpus(self, value):
         self.config["generator"]["num_gpus"] = value
-
-    @property
-    def generator_hf_model_params(self):
-        return self.config.get("generator", {}).get("generator_hf_model_params", {})
-
-    @generator_hf_model_params.setter
-    def generator_hf_model_params(self, value):
-        self.config["generator"]["generator_hf_model_params"] = value
-
-    @property
-    def generator_hf_tokenizer_params(self):
-        return self.config.get("generator", {}).get("generator_hf_tokenizer_params", {})
-
-    @generator_hf_tokenizer_params.setter
-    def generator_hf_tokenizer_params(self, value):
-        self.config["generator"]["generator_hf_tokenizer_params"] = value
-
-    @property
-    def generator_hf_tokenizer_init_params(self):
-        return self.config.get("generator", {}).get("generator_hf_tokenizer_params", {})
-
-    @generator_hf_tokenizer_init_params.setter
-    def generator_hf_tokenizer_init_params(self, value):
-        self.config["generator"]["generator_hf_tokenizer_params"] = value
-
-    @property
-    def generator_hf_forward_params(self):
-        return self.config.get("generator", {}).get("generator_hf_forward_params", {})
-
-    @generator_hf_forward_params.setter
-    def generator_hf_forward_params(self, value):
-        self.config["generator"]["generator_hf_forward_params"] = value
-
-    @property
-    def generator_hf_generate_params(self):
-        return self.config.get("generator", {}).get("generator_hf_generate_params", {})
-
-    @generator_hf_generate_params.setter
-    def generator_hf_generate_params(self, value):
-        self.config["generator"]["generator_hf_generate_params"] = value
 
     @property
     def generator_query_prefix(self):
@@ -615,52 +593,12 @@ class Arguments:
         self.config["generator"]["generator_query_prefix"] = value
 
     @property
-    def gpt_generate_params(self):
-        return self.config.get("generator", {}).get("gpt_generate_params", {})
-
-    @gpt_generate_params.setter
-    def gpt_generate_params(self, value):
-        self.config["generator"]["gpt_generate_params"] = value
-
-    @property
-    def use_vllm(self):
-        return self.config.get("generator", {}).get("use_vllm", self.generator_defaults.get("USE_VLLM"))
-
-    @use_vllm.setter
-    def use_vllm(self, value):
-        self.config["generator"]["use_vllm"] = value
-
-    @property
-    def vllm_sampling_params(self):
-        return self.config.get("generator", {}).get("vllm_sampling_params", {})
-
-    @vllm_sampling_params.setter
-    def vllm_sampling_params(self, value):
-        self.config["generator"]["vllm_sampling_params"] = value
-
-    @property
     def openai_key_file(self):
         return self.config.get("generator", {}).get("openai_key_file", "")
 
     @openai_key_file.setter
     def openai_key_file(self, value):
         self.config["generator"]["openai_key_file"] = value
-
-    @property
-    def use_bedrock(self):
-        return self.config.get("generator", {}).get("use_bedrock", self.generator_defaults.get("USE_BEDROCK"))
-
-    @use_bedrock.setter
-    def use_bedrock(self, value):
-        self.config["generator"]["use_bedrock"] = value
-
-    @property
-    def bedrock_generate_params(self):
-        return self.config.get("generator", {}).get("bedrock_generate_params", {})
-
-    @bedrock_generate_params.setter
-    def bedrock_generate_params(self, value):
-        self.config["generator"]["bedrock_generate_params"] = value
 
     @property
     def bedrock_aws_region(self):

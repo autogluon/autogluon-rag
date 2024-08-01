@@ -30,24 +30,28 @@ class TestGeneratorModule(unittest.TestCase):
     def test_gpt_generator_initialization(self):
         model_name = "gpt-3"
         openai_api_key = "fake-api-key"
-        gpt_generate_params = {"max_tokens": 100}
+        model_platform = "openai"
+        platform_args = {"gpt_generate_params": {"max_tokens": 100}}
 
         generator_module = GeneratorModule(
             model_name=model_name,
             openai_api_key=openai_api_key,
-            gpt_generate_params=gpt_generate_params,
+            model_platform=model_platform,
+            platform_args=platform_args,
         )
 
         self.assertIsInstance(generator_module.generator, GPTGenerator)
 
     def test_bedrock_generator_initialization(self):
         model_name = "bedrock-model"
-        bedrock_generate_params = {"max_length": 100}
+        model_platform = "bedrock"
+        platform_args = {"bedrock_generate_params": {"max_length": 100}}
 
         generator_module = GeneratorModule(
             model_name=model_name,
             use_bedrock=True,
-            bedrock_generate_params=bedrock_generate_params,
+            model_platform=model_platform,
+            platform_args=platform_args,
             bedrock_aws_region="us-west-2",
         )
 
@@ -55,12 +59,13 @@ class TestGeneratorModule(unittest.TestCase):
 
     def test_vllm_generator_initialization(self):
         model_name = "vllm-model"
-        vllm_sampling_params = {"temperature": 0.7, "top_p": 0.9}
+        model_platform = "vllm"
+        platform_args = {"vllm_sampling_params": {"temperature": 0.7, "top_p": 0.9}}
 
         generator_module = GeneratorModule(
             model_name=model_name,
-            use_vllm=True,
-            vllm_sampling_params=vllm_sampling_params,
+            model_platform=model_platform,
+            platform_args=platform_args,
         )
 
         self.assertIsInstance(generator_module.generator, VLLMGenerator)
@@ -69,20 +74,21 @@ class TestGeneratorModule(unittest.TestCase):
     @patch("agrag.modules.generator.generators.hf_generator.AutoTokenizer.from_pretrained")
     def test_hf_generator_initialization(self, mock_hf_tokenizer, mock_hf_model):
         model_name = "hf-model"
-        hf_model_params = {"param1": "value1"}
-        hf_tokenizer_init_params = {"param2": "value2"}
-        hf_tokenizer_params = {"param3": "value3"}
-        hf_generate_params = {"param4": "value4"}
+        model_platform = "huggingface"
+        platform_args = {
+            "hf_model_params": {"param1": "value1"},
+            "hf_tokenizer_init_params": {"param2": "value2"},
+            "hf_tokenizer_params": {"param3": "value3"},
+            "hf_generate_params": {"param4": "value4"},
+        }
 
         mock_hf_tokenizer.return_value = self.mock_tokenizer
         mock_hf_model.return_value = self.mock_model
 
         generator_module = GeneratorModule(
             model_name=model_name,
-            hf_model_params=hf_model_params,
-            hf_tokenizer_init_params=hf_tokenizer_init_params,
-            hf_tokenizer_params=hf_tokenizer_params,
-            hf_generate_params=hf_generate_params,
+            model_platform=model_platform,
+            platform_args=platform_args,
             num_gpus=1,
         )
 

@@ -243,17 +243,10 @@ class AutoGluonRAG:
 
         self.generator_module = GeneratorModule(
             model_name=self.args.generator_model_name,
-            hf_model_params=self.args.generator_hf_model_params,
-            hf_tokenizer_init_params=self.args.generator_hf_tokenizer_init_params,
-            hf_tokenizer_params=self.args.generator_hf_tokenizer_params,
-            hf_generate_params=self.args.generator_hf_generate_params,
-            gpt_generate_params=self.args.gpt_generate_params,
-            vllm_sampling_params=self.args.vllm_sampling_params,
+            model_platform=self.args.generator_model_platform,
+            platform_args=self.args.generator_model_platform_args,
             num_gpus=num_gpus,
-            use_vllm=self.args.use_vllm,
             openai_api_key=openai_api_key,
-            bedrock_generate_params=self.args.bedrock_generate_params,
-            use_bedrock=self.args.use_bedrock,
             local_model_path=self.args.generator_local_model_path,
             bedrock_aws_region=self.args.bedrock_aws_region,
         )

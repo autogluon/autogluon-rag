@@ -1,3 +1,4 @@
-GENERATOR_MODEL: meta.llama2-13b-chat-v1
+GENERATOR_MODEL: mistralai/Mistral-7B-Instruct-v0.2
+DEFAULT_GENERATOR_MODEL_PLATFORM: huggingface
 USE_VLLM: false
 USE_BEDROCK: true
