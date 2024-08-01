@@ -122,11 +122,6 @@ class AutoGluonRAG:
         self.preset_quality = preset_quality
         self.model_ids = model_ids
 
-        if config_file:
-            self._load_config(config_file=config_file)
-        elif self.preset_quality:
-            self._load_preset()
-
         self.config = config_file or self._load_preset()
 
         self.args = Arguments(self.config)
