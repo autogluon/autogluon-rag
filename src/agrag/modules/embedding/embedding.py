@@ -13,7 +13,7 @@ from transformers import AutoModel, AutoTokenizer
 from agrag.constants import DOC_TEXT_KEY, EMBEDDING_HIDDEN_DIM_KEY, EMBEDDING_KEY
 from agrag.modules.embedding.utils import get_embeddings_bedrock, normalize_embedding, pool
 
-logger = logging.getLogger("rag-logger")
+logger = logging.getLogger("AutoGluon-RAG-logger")
 
 
 class EmbeddingModule:

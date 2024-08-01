@@ -12,7 +12,7 @@ from requests.sessions import Session
 
 from agrag.constants import CHUNK_ID_KEY, DOC_ID_KEY, DOC_TEXT_KEY, SUPPORTED_FILE_EXTENSIONS
 
-logger = logging.getLogger("rag-logger")
+logger = logging.getLogger("AutoGluon-RAG-logger")
 
 
 def download_directory_from_s3(s3_bucket: str, data_dir: str, s3_client: boto3.client):

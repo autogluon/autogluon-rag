@@ -5,7 +5,7 @@ from typing import List
 import torch
 from pymilvus import MilvusClient
 
-logger = logging.getLogger("rag-logger")
+logger = logging.getLogger("AutoGluon-RAG-logger")
 
 
 def construct_milvus_index(

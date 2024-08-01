@@ -11,7 +11,7 @@ from agrag.modules.embedding.embedding import EmbeddingModule
 from agrag.modules.retriever.rerankers.reranker import Reranker
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
 
-logger = logging.getLogger("rag-logger")
+logger = logging.getLogger("AutoGluon-RAG-logger")
 
 
 class RetrieverModule:

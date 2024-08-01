@@ -4,7 +4,7 @@ from typing import Optional, Tuple
 
 import torch
 
-logger = logging.getLogger("rag-logger")
+logger = logging.getLogger("AutoGluon-RAG-logger")
 
 
 def parse_path(path: str) -> Tuple[Optional[str], str]:

@@ -6,7 +6,7 @@ import yaml
 
 CURRENT_DIR = os.path.dirname(__file__)
 
-logger = logging.getLogger("rag-logger")
+logger = logging.getLogger("AutoGluon-RAG-logger")
 
 
 class Arguments:

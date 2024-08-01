@@ -19,7 +19,7 @@ from agrag.modules.vector_db.utils import load_index, load_metadata, save_index,
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
 from agrag.utils import get_num_gpus, read_openai_key
 
-logger = logging.getLogger("rag-logger")
+logger = logging.getLogger("AutoGluon-RAG-logger")
 if not logger.hasHandlers():
     logger.setLevel(logging.INFO)
     ch = logging.StreamHandler()

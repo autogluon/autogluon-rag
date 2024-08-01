@@ -4,7 +4,7 @@ from typing import Dict
 
 import boto3
 
-logger = logging.getLogger("rag-logger")
+logger = logging.getLogger("AutoGluon-RAG-logger")
 
 
 class BedrockGenerator:

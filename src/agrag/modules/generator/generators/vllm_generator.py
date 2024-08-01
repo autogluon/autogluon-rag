@@ -8,7 +8,7 @@ found = spec is not None
 if found:
     from vllm import LLM, SamplingParams
 
-logger = logging.getLogger("rag-logger")
+logger = logging.getLogger("AutoGluon-RAG-logger")
 
 
 class VLLMGenerator:
