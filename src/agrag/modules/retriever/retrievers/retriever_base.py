@@ -54,7 +54,10 @@ class RetrieverModule:
         self.embedding_module = embedding_module
         self.vector_database_module = vector_database_module
         self.top_k = top_k
-        self.reranker = reranker if use_reranker else None
+        self.reranker = None
+        if use_reranker:
+            assert isinstance(reranker, Reranker), "reranker must be of type <class> Reranker"
+            self.reranker = reranker
 
     def encode_query(self, query: str) -> np.ndarray:
         """
