@@ -2,6 +2,7 @@ from agrag.modules.generator.generators.bedrock_generator import BedrockGenerato
 from agrag.modules.generator.generators.gpt_generator import GPTGenerator
 from agrag.modules.generator.generators.hf_generator import HFGenerator
 from agrag.modules.generator.generators.vllm_generator import VLLMGenerator
+from agrag.utils import read_openai_key
 
 
 class GeneratorModule:
@@ -41,9 +42,10 @@ class GeneratorModule:
         self.platform_args = platform_args
 
         if self.model_platform == "openai":
+            openai_api_key = read_openai_key(self.platform_args.get("openai_api_key"))
             self.generator = GPTGenerator(
                 model_name=self.model_name,
-                openai_api_key=self.platform_args.get("openai_api_key"),
+                openai_api_key=openai_api_key,
                 gpt_generate_params=self.platform_args.get("gpt_generate_params", {}),
             )
         elif self.model_platform == "bedrock":

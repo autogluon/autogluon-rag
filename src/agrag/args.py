@@ -591,27 +591,3 @@ class Arguments:
     @generator_query_prefix.setter
     def generator_query_prefix(self, value):
         self.config["generator"]["generator_query_prefix"] = value
-
-    @property
-    def openai_key_file(self):
-        return self.config.get("generator", {}).get("openai_key_file", "")
-
-    @openai_key_file.setter
-    def openai_key_file(self, value):
-        self.config["generator"]["openai_key_file"] = value
-
-    @property
-    def bedrock_aws_region(self):
-        return self.config.get("generator", {}).get("bedrock_aws_region", {})
-
-    @bedrock_aws_region.setter
-    def bedrock_aws_region(self, value):
-        self.config["generator"]["bedrock_aws_region"] = value
-
-    @property
-    def generator_local_model_path(self):
-        return self.config.get("generator", {}).get("local_model_path", None)
-
-    @generator_local_model_path.setter
-    def generator_local_model_path(self, value):
-        self.config["generator"]["local_model_path"] = value

@@ -17,7 +17,7 @@ from agrag.modules.retriever.rerankers.reranker import Reranker
 from agrag.modules.retriever.retrievers.retriever_base import RetrieverModule
 from agrag.modules.vector_db.utils import load_index, load_metadata, save_index, save_metadata
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
-from agrag.utils import get_num_gpus, read_openai_key
+from agrag.utils import get_num_gpus
 
 logger = logging.getLogger("rag-logger")
 if not logger.hasHandlers():
@@ -237,7 +237,6 @@ class AutoGluonRAG:
 
     def initialize_generator_module(self):
         """Initializes the Generator module."""
-        openai_api_key = read_openai_key(self.args.openai_key_file)
         num_gpus = get_num_gpus(self.args.generator_num_gpus)
         logger.info(f"Using number of GPUs: {num_gpus} for Generator Module")
 
@@ -246,9 +245,6 @@ class AutoGluonRAG:
             model_platform=self.args.generator_model_platform,
             platform_args=self.args.generator_model_platform_args,
             num_gpus=num_gpus,
-            openai_api_key=openai_api_key,
-            local_model_path=self.args.generator_local_model_path,
-            bedrock_aws_region=self.args.bedrock_aws_region,
         )
         logger.info("Generator module initialized")
 

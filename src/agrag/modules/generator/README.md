@@ -27,6 +27,8 @@ generator:
   generator_model_platform_args: Additional platform-specific parameters to use when initializing the model, generating text, etc.
   
   num_gpus: Number of GPUs to use for generating responses (default is 0).
+
+  generator_query_prefix: Prefix to add to each query that will be passed into the generator.
 ```
 
 #### `generator_model_platform_args` structure
