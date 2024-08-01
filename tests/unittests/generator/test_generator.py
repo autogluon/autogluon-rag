@@ -31,11 +31,10 @@ class TestGeneratorModule(unittest.TestCase):
         model_name = "gpt-3"
         openai_api_key = "fake-api-key"
         model_platform = "openai"
-        platform_args = {"gpt_generate_params": {"max_tokens": 100}}
+        platform_args = {"gpt_generate_params": {"max_tokens": 100}, "openai_api_key": openai_api_key}
 
         generator_module = GeneratorModule(
             model_name=model_name,
-            openai_api_key=openai_api_key,
             model_platform=model_platform,
             platform_args=platform_args,
         )
@@ -45,14 +44,13 @@ class TestGeneratorModule(unittest.TestCase):
     def test_bedrock_generator_initialization(self):
         model_name = "bedrock-model"
         model_platform = "bedrock"
-        platform_args = {"bedrock_generate_params": {"max_length": 100}}
+        platform_args = {"bedrock_generate_params": {"max_length": 100}, "bedrock_aws_region": "us-west-2"}
 
         generator_module = GeneratorModule(
             model_name=model_name,
             use_bedrock=True,
             model_platform=model_platform,
             platform_args=platform_args,
-            bedrock_aws_region="us-west-2",
         )
 
         self.assertIsInstance(generator_module.generator, BedrockGenerator)

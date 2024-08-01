@@ -43,13 +43,13 @@ class GeneratorModule:
         if self.model_platform == "openai":
             self.generator = GPTGenerator(
                 model_name=self.model_name,
-                openai_api_key=kwargs.get("openai_api_key"),
+                openai_api_key=self.platform_args.get("openai_api_key"),
                 gpt_generate_params=self.platform_args.get("gpt_generate_params", {}),
             )
         elif self.model_platform == "bedrock":
             self.generator = BedrockGenerator(
                 model_name=self.model_name,
-                aws_region=kwargs.get("bedrock_aws_region", None),
+                aws_region=self.platform_args.get("bedrock_aws_region", None),
                 bedrock_generate_params=self.platform_args.get("bedrock_generate_params", {}),
             )
         elif self.model_platform == "vllm":
@@ -60,7 +60,7 @@ class GeneratorModule:
         elif self.model_platform == "huggingface":
             self.generator = HFGenerator(
                 model_name=self.model_name,
-                local_model_path=kwargs.get("hf_local_model_path", None),
+                local_model_path=self.platform_args.get("hf_local_model_path", None),
                 hf_model_params=self.platform_args.get("hf_model_params", {}),
                 hf_tokenizer_init_params=self.platform_args.get("hf_tokenizer_init_params", {}),
                 hf_tokenizer_params=self.platform_args.get("hf_tokenizer_params", {}),
