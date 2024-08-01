@@ -65,7 +65,6 @@ class EmbeddingModule:
         self.query_instruction_for_retrieval = kwargs.get("query_instruction_for_retrieval", None)
         self.num_gpus = kwargs.get("num_gpus", 0)
         self.device = "cpu" if not self.num_gpus else torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.use_bedrock = kwargs.get("use_bedrock")
         if self.model_platform == "bedrock":
             if not "embed" in self.model_name:
                 raise ValueError(
@@ -75,7 +74,9 @@ class EmbeddingModule:
             self.bedrock_embedding_params = self.platform_args.get("bedrock_embedding_params", {})
             if "cohere" in self.model_name:
                 self.bedrock_embedding_params["input_type"] = "search_document"
-            self.client = boto3.client("bedrock-runtime", region_name=kwargs.get("bedrock_aws_region", None))
+            self.client = boto3.client(
+                "bedrock-runtime", region_name=self.platform_args.get("bedrock_aws_region", None)
+            )
         elif self.model_platform == "huggingface":
             logger.info(f"Using Huggingface Model {self.model_name} for Embedding Module")
             self.hf_model_params = self.platform_args.get("hf_model_params", {})
@@ -130,7 +131,7 @@ class EmbeddingModule:
             batch_texts = texts[i : i + batch_size]
 
             logger.info("\nGenerating embeddings")
-            if self.use_bedrock:
+            if self.model_platform == "bedrock":
                 batch_embeddings = get_embeddings_bedrock(
                     batch_texts=batch_texts,
                     client=self.client,

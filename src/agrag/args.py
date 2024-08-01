@@ -253,14 +253,6 @@ class Arguments:
         self.config["embedding"]["use_bedrock"] = value
 
     @property
-    def embedding_bedrock_aws_region(self):
-        return self.config.get("embedding", {}).get("bedrock_aws_region", {})
-
-    @embedding_bedrock_aws_region.setter
-    def embedding_bedrock_aws_region(self, value):
-        self.config["embedding"]["bedrock_aws_region"] = value
-
-    @property
     def vector_db_type(self):
         return self.config.get("vector_db", {}).get("db_type", self.vector_db_defaults.get("DB_TYPE"))
 

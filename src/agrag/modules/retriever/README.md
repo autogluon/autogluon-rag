@@ -26,12 +26,12 @@ retriever:
 If you are using `huggingface` platform, the arguments must be structured as:
   ```python
   reranker_model_platform_args = {
-      "hf_model_params": {} # Additional parameters to pass to the Huggingface model's `from_pretrained` initializer method.
+      "hf_model_params": {}, # Additional parameters to pass to the Huggingface model's `from_pretrained` initializer method.
   
-      "hf_tokenizer_init_params": {} # Additional parameters to pass to the Huggingface tokenizer's `from_pretrained` initializer method.
+      "hf_tokenizer_init_params": {}, # Additional parameters to pass to the Huggingface tokenizer's `from_pretrained` initializer method.
       
-      "hf_tokenizer_params": {} # Additional parameters to pass to the `tokenizer` method for the Huggingface model.
+      "hf_tokenizer_params": {}, # Additional parameters to pass to the `tokenizer` method for the Huggingface model.
       
-      "hf_forward_params": {} # Additional parameters to pass to the Huggingface model's `forward` method.
+      "hf_forward_params": {}, # Additional parameters to pass to the Huggingface model's `forward` method.
   }
   ```

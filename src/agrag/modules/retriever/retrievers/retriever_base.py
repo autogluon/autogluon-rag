@@ -66,7 +66,7 @@ class RetrieverModule:
         np.ndarray
             The embedding of the query.
         """
-        if self.embedding_module.use_bedrock and "cohere" in self.embedding_module.model_name:
+        if self.embedding_module.model_platform == "bedrock" and "cohere" in self.embedding_module.model_name:
             self.embedding_module.bedrock_embedding_params["input_type"] = "search_query"
         query_embedding = self.embedding_module.encode(data=pd.DataFrame([{DOC_TEXT_KEY: query}]))
         query_embedding = query_embedding[EMBEDDING_KEY][0]
