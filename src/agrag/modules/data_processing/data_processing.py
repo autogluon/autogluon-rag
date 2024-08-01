@@ -94,6 +94,14 @@ class DataProcessingModule:
             )
         self.html_tags_to_extract = kwargs.get("html_tags_to_extract", SUPPORTED_HTML_TAGS)
 
+        if self.data_dir:
+            logger.info(f"Processing Data from Data Directory: {self.data_dir}")
+            logger.info(f"\n Extracting text from the following document types: {self.file_exts}.")
+
+        if self.web_urls:
+            logger.info(f"Processing the Web URLs: {self.web_urls}")
+            logger.info(f"\n Extracting text from the following HTML tags: {self.html_tags_to_extract}.")
+
     def chunk_data_naive(self, text: str) -> List[str]:
         """
         Naively chunks text into segments of a specified size without any overlap.
@@ -182,7 +190,7 @@ class DataProcessingModule:
         pd.DataFrame
             A DataFrame of processed text chunks from the given files.
         """
-        processed_data = []
+        processed_data = [pd.DataFrame([])]
         doc_id_counter = start_doc_id
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -252,12 +260,14 @@ class DataProcessingModule:
         pd.DataFrame
             A DataFrame of processed text chunks from the given URLs.
         """
-        processed_data = []
+        processed_data = [pd.DataFrame([])]
         doc_id_counter = start_doc_id
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
             results = executor.map(
-                self.process_url, urls, [login_info] * len(urls), range(doc_id_counter, doc_id_counter + len(urls))
+                lambda url, doc_id: self.process_url(url, doc_id, login_info),
+                urls,
+                range(doc_id_counter, doc_id_counter + len(urls)),
             )
             for result in results:
                 processed_data.append(result)

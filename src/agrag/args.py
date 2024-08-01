@@ -15,14 +15,8 @@ class Arguments:
 
     Attributes:
     ----------
-    args : argparse.Namespace
-        The parsed command-line arguments.
-    config : dict
-        The loaded configuration from the specified YAML file.
-    data_defaults : dict
-        The default values for the data processing module loaded from a YAML file.
-    embedding_defaults : dict
-        The default values for the embedding module loaded from a YAML file.
+    config_file : str
+        Path to configuration file
 
     Methods:
     -------
@@ -124,7 +118,7 @@ class Arguments:
 
     @property
     def html_tags_to_extract(self):
-        return self.config.get("data", {}).get("html_tags_to_extract")
+        return self.config.get("data", {}).get("html_tags_to_extract", self.data_defaults.get("SUPPORTED_HTML_TAGS"))
 
     @html_tags_to_extract.setter
     def html_tags_to_extract(self, value):
@@ -164,20 +158,20 @@ class Arguments:
 
     @property
     def data_file_extns(self):
-        return self.config.get("data", {}).get("file_extns", [])
+        return self.config.get("data", {}).get("file_extns", self.data_defaults.get("SUPPORTED_FILE_EXTENSIONS"))
 
     @data_file_extns.setter
     def data_file_extns(self, value):
         self.config["data"]["file_extns"] = value
 
     @property
-    def hf_embedding_model(self):
+    def embedding_model(self):
         return self.config.get("embedding", {}).get(
             "embedding_model", self.embedding_defaults.get("DEFAULT_EMBEDDING_MODEL")
         )
 
-    @hf_embedding_model.setter
-    def hf_embedding_model(self, value):
+    @embedding_model.setter
+    def embedding_model(self, value):
         self.config["embedding"]["embedding_model"] = value
 
     @property
