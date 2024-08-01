@@ -245,14 +245,6 @@ class Arguments:
         self.config["embedding"]["embedding_batch_size"] = value
 
     @property
-    def embedding_use_bedrock(self):
-        return self.config.get("embedding", {}).get("use_bedrock", self.embedding_defaults.get("USE_BEDROCK"))
-
-    @embedding_use_bedrock.setter
-    def embedding_use_bedrock(self, value):
-        self.config["embedding"]["use_bedrock"] = value
-
-    @property
     def vector_db_type(self):
         return self.config.get("vector_db", {}).get("db_type", self.vector_db_defaults.get("DB_TYPE"))
 

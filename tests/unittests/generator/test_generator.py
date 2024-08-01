@@ -49,7 +49,6 @@ class TestGeneratorModule(unittest.TestCase):
 
         generator_module = GeneratorModule(
             model_name=model_name,
-            use_bedrock=True,
             model_platform=model_platform,
             platform_args=platform_args,
         )
