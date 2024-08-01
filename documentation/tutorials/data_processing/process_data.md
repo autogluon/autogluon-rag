@@ -1,4 +1,4 @@
-This is a tutorial on using AutoGluon-RAG to process data from documents/websites:
+## This is a tutorial on using AutoGluon-RAG to process data from documents/websites.
 
 ```python
 agrag = AutoGluonRAG(

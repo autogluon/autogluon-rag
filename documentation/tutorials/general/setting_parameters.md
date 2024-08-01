@@ -1,4 +1,4 @@
-This is a tutorial on setting module parameters in `AutoGluonRAG`. 
+## This is a tutorial on setting module parameters in `AutoGluonRAG`. 
 
 ```python
 agrag = AutoGluon()

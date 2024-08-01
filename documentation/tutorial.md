@@ -1,4 +1,4 @@
-Below is a list of tutorials with different use-cases for AutoGluon-RAG:
+# Below is a list of tutorials with different use-cases for AutoGluon-RAG
 
 ## General
 1. [Setting Parameters for `AutoGluonRAG` through code](https://github.com/autogluon/autogluon-rag/tree/main/documentation/tutorials/general/setting_parameters.md)
@@ -10,6 +10,7 @@ Below is a list of tutorials with different use-cases for AutoGluon-RAG:
 1. [Using AutoGluon-RAG to generate embeddings](https://github.com/autogluon/autogluon-rag/tree/main/documentation/tutorials/embedding/generate_embeddings.md)
 
 ## Vector DB Module
+1. [Optimizing FAISS for large-scale data](https://github.com/autogluon/autogluon-rag/tree/main/documentation/tutorials/vector_db/optimizing_faiss.md)
 
 ## Retriever Module
 
