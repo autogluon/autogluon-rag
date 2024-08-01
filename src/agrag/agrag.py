@@ -269,12 +269,10 @@ class AutoGluonRAG:
 
         self.reranker_module = Reranker(
             model_name=reranker_model,
+            model_platform=self.args.reranker_model_platform,
+            platform_args=self.args.reranker_model_platform_args,
             batch_size=self.args.reranker_batch_size,
             top_k=self.args.reranker_top_k,
-            hf_forward_params=self.args.reranker_hf_forward_params,
-            hf_tokenizer_init_params=self.args.reranker_hf_tokenizer_init_params,
-            hf_tokenizer_params=self.args.reranker_hf_tokenizer_params,
-            hf_model_params=self.args.reranker_hf_model_params,
             num_gpus=num_gpus,
         )
         logger.info("Reranker module initialized")

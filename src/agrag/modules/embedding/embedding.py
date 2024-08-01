@@ -56,7 +56,7 @@ class EmbeddingModule:
         **kwargs,
     ):
         self.model_name = model_name
-        self.model_platform = (model_platform,)
+        self.model_platform = model_platform
         self.platform_args = platform_args
 
         self.pooling_strategy = kwargs.get("pooling_strategy", None)
@@ -76,7 +76,7 @@ class EmbeddingModule:
             if "cohere" in self.model_name:
                 self.bedrock_embedding_params["input_type"] = "search_document"
             self.client = boto3.client("bedrock-runtime", region_name=kwargs.get("bedrock_aws_region", None))
-        else:
+        elif self.model_platform == "huggingface":
             logger.info(f"Using Huggingface Model {self.model_name} for Embedding Module")
             self.hf_model_params = self.platform_args.get("hf_model_params", {})
             self.hf_tokenizer_init_params = self.platform_args.get("hf_tokenizer_init_params", {})
@@ -88,6 +88,8 @@ class EmbeddingModule:
                 logger.info(f"Using {self.num_gpus} GPUs")
                 self.model = DataParallel(self.model)
             self.model.to(self.device)
+        else:
+            raise NotImplementedError(f"Unsupported platform type: {model_platform}")
 
     def encode(self, data: pd.DataFrame, pbar: tqdm = None, batch_size: int = 32) -> pd.DataFrame:
         """

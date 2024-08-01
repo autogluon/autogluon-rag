@@ -14,14 +14,24 @@ retriever:
 
   reranker_model_name: The name of the Huggingface model to use for reranking the embeddings related to the query.
 
+  reranker_model_platform: The name of the platform where the model is hosted. Currently only Huggingface ("huggingface") models are supported.
+  
+  reranker_model_platform_args: Additional platform-specific parameters to use when initializing the model, reranking, etc.
+
   reranker_batch_size: Batch size to use when processing the retrieved embeddings
   
-  reranker_hf_model_params: Additional parameters to pass to the Huggingface model's `from_pretrained` initializer method.
-  
-  reranker_hf_tokenizer_init_params: Additional parameters to pass to the Huggingface tokenizer's `from_pretrained` initializer method.
-  
-  reranker_hf_tokenizer_params: Additional parameters to pass to the `tokenizer` method for the Huggingface model.
-  
-  reranker_hf_forward_params: Additional parameters to pass to the Huggingface model's `forward` method.
-  
 ```
+
+#### `reranker_model_platform_args` structure
+If you are using `huggingface` platform, the arguments must be structured as:
+  ```python
+  reranker_model_platform_args = {
+      "hf_model_params": {} # Additional parameters to pass to the Huggingface model's `from_pretrained` initializer method.
+  
+      "hf_tokenizer_init_params": {} # Additional parameters to pass to the Huggingface tokenizer's `from_pretrained` initializer method.
+      
+      "hf_tokenizer_params": {} # Additional parameters to pass to the `tokenizer` method for the Huggingface model.
+      
+      "hf_forward_params": {} # Additional parameters to pass to the Huggingface model's `forward` method.
+  }
+  ```

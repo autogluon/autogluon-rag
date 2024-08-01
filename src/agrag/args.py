@@ -481,6 +481,24 @@ class Arguments:
         self.config["retriever"]["reranker_model_name"] = value
 
     @property
+    def reranker_model_platform(self):
+        return self.config.get("embedding", {}).get(
+            "reranker_model_platform", self.retriever_defaults.get("DEFAULT_RERANKER_MODEL_PLATFORM")
+        )
+
+    @reranker_model_platform.setter
+    def reranker_model_platform(self, value):
+        self.config["reranker"]["reranker_model_platform"] = value
+
+    @property
+    def reranker_model_platform_args(self):
+        return self.config.get("reranker", {}).get("reranker_model_platform_args", {})
+
+    @reranker_model_platform_args.setter
+    def reranker_model_platform_args(self, value):
+        self.config["reranker"]["reranker_model_platform_args"] = value
+
+    @property
     def reranker_batch_size(self):
         return self.config.get("retriever", {}).get(
             "reranker_batch_size", self.retriever_defaults.get("RERANKER_BATCH_SIZE")
