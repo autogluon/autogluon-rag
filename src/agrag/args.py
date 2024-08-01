@@ -181,6 +181,24 @@ class Arguments:
         self.config["embedding"]["embedding_model"] = value
 
     @property
+    def embedding_model_platform(self):
+        return self.config.get("embedding", {}).get(
+            "embedding_model_platform", self.embedding_defaults.get("DEFAULT_EMBEDDING_MODEL_PLATFORM")
+        )
+
+    @embedding_model_platform.setter
+    def embedding_model_platform(self, value):
+        self.config["embedding"]["embedding_model_platform"] = value
+
+    @property
+    def embedding_model_platform_args(self):
+        return self.config.get("embedding", {}).get("embedding_model_platform_args", {})
+
+    @embedding_model_platform_args.setter
+    def embedding_model_platform_args(self, value):
+        self.config["embedding"]["embedding_model_platform_args"] = value
+
+    @property
     def pooling_strategy(self):
         return self.config.get("embedding", {}).get(
             "pooling_strategy", self.embedding_defaults.get("POOLING_STRATEGY")
@@ -199,38 +217,6 @@ class Arguments:
     @normalize_embeddings.setter
     def normalize_embeddings(self, value):
         self.config["embedding"]["normalize_embeddings"] = value
-
-    @property
-    def hf_model_params(self):
-        return self.config.get("embedding", {}).get("hf_model_params", {})
-
-    @hf_model_params.setter
-    def hf_model_params(self, value):
-        self.config["embedding"]["hf_model_params"] = value
-
-    @property
-    def hf_tokenizer_params(self):
-        return self.config.get("embedding", {}).get("hf_tokenizer_params", {"truncation": True, "padding": True})
-
-    @hf_tokenizer_params.setter
-    def hf_tokenizer_params(self, value):
-        self.config["embedding"]["hf_tokenizer_params"] = value
-
-    @property
-    def hf_tokenizer_init_params(self):
-        return self.config.get("embedding", {}).get("hf_tokenizer_params", {})
-
-    @hf_tokenizer_init_params.setter
-    def hf_tokenizer_init_params(self, value):
-        self.config["embedding"]["hf_tokenizer_params"] = value
-
-    @property
-    def hf_forward_params(self):
-        return self.config.get("embedding", {}).get("hf_forward_params", {})
-
-    @hf_forward_params.setter
-    def hf_forward_params(self, value):
-        self.config["embedding"]["hf_forward_params"] = value
 
     @property
     def normalization_params(self):
@@ -265,14 +251,6 @@ class Arguments:
     @embedding_use_bedrock.setter
     def embedding_use_bedrock(self, value):
         self.config["embedding"]["use_bedrock"] = value
-
-    @property
-    def bedrock_embedding_params(self):
-        return self.config.get("embedding", {}).get("bedrock_embedding_params", {})
-
-    @bedrock_embedding_params.setter
-    def bedrock_embedding_params(self, value):
-        self.config["embedding"]["bedrock_embedding_params"] = value
 
     @property
     def embedding_bedrock_aws_region(self):
