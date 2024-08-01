@@ -13,6 +13,7 @@
 1. [Optimizing FAISS for large-scale data](https://github.com/autogluon/autogluon-rag/tree/main/documentation/tutorials/vector_db/optimizing_faiss.md)
 
 ## Retriever Module
+1. [Disable the reranker and only use embedding model for retrieval](https://github.com/autogluon/autogluon-rag/tree/main/documentation/tutorials/retriever/disable_reranker.md)
 
 ## Generator Module
 1. [Change generator after initializing RAG pipeline](https://github.com/autogluon/autogluon-rag/tree/main/documentation/tutorials/generator/change_generator.md)
