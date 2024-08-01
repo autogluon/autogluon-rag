@@ -12,3 +12,4 @@ agrag.args.generator_query_prefix = "new query prefix"
 agrag.initialize_generator_module()
 response = agrag.generate_response(query_text) 
 ```
+**Note**: You <b>must</b> reinitialize the appropriate module after updating its arguments to propagate the changes into the module.
