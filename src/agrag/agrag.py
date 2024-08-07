@@ -8,6 +8,7 @@ from langchain_community.document_loaders.recursive_url_loader import RecursiveU
 from langchain_core.utils.html import extract_sub_links
 
 from agrag.args import Arguments
+from agrag.constants import LOGGER_NAME
 from agrag.modules.data_processing.data_processing import DataProcessingModule
 from agrag.modules.data_processing.utils import get_all_file_paths
 from agrag.modules.embedding.embedding import EmbeddingModule

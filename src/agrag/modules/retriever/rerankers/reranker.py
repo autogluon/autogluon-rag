@@ -5,6 +5,8 @@ import torch
 from torch.nn import DataParallel
 from transformers import AutoModel, AutoTokenizer
 
+from agrag.constants import LOGGER_NAME
+
 logger = logging.getLogger("AutoGluon-RAG-logger")
 
 

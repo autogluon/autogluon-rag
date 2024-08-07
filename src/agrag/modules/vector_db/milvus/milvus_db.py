@@ -5,6 +5,8 @@ from typing import List
 import torch
 from pymilvus import MilvusClient
 
+from agrag.constants import LOGGER_NAME
+
 logger = logging.getLogger("AutoGluon-RAG-logger")
 
 

@@ -5,6 +5,8 @@ import faiss
 import numpy as np
 import torch
 
+from agrag.constants import LOGGER_NAME
+
 logger = logging.getLogger("AutoGluon-RAG-logger")
 
 

@@ -6,7 +6,7 @@ import pandas as pd
 import torch
 from torch.nn import DataParallel
 
-from agrag.constants import DOC_TEXT_KEY, EMBEDDING_KEY
+from agrag.constants import DOC_TEXT_KEY, EMBEDDING_KEY, LOGGER_NAME
 from agrag.modules.embedding.embedding import EmbeddingModule
 from agrag.modules.retriever.rerankers.reranker import Reranker
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule

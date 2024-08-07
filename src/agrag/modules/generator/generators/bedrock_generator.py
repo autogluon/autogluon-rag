@@ -4,6 +4,8 @@ from typing import Dict
 
 import boto3
 
+from agrag.constants import LOGGER_NAME
+
 logger = logging.getLogger("AutoGluon-RAG-logger")
 
 

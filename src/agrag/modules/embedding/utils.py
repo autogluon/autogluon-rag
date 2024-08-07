@@ -5,6 +5,8 @@ import boto3
 import torch
 from torch.nn import functional as F
 
+from agrag.constants import LOGGER_NAME
+
 logger = logging.getLogger("AutoGluon-RAG-logger")
 import json
 

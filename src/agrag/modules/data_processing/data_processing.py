@@ -7,7 +7,7 @@ from typing import List
 import boto3
 import pandas as pd
 
-from agrag.constants import SUPPORTED_FILE_EXTENSIONS, SUPPORTED_HTML_TAGS
+from agrag.constants import LOGGER_NAME, SUPPORTED_FILE_EXTENSIONS, SUPPORTED_HTML_TAGS
 from agrag.modules.data_processing.utils import (
     download_directory_from_s3,
     get_all_file_paths,
