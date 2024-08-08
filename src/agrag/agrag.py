@@ -8,6 +8,7 @@ from langchain_community.document_loaders.recursive_url_loader import RecursiveU
 from langchain_core.utils.html import extract_sub_links
 
 from agrag.args import Arguments
+from agrag.constants import LOGGER_NAME
 from agrag.modules.data_processing.data_processing import DataProcessingModule
 from agrag.modules.data_processing.utils import get_all_file_paths
 from agrag.modules.embedding.embedding import EmbeddingModule
@@ -19,7 +20,7 @@ from agrag.modules.vector_db.utils import load_index, load_metadata, save_index,
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
 from agrag.utils import get_num_gpus, read_openai_key
 
-logger = logging.getLogger("rag-logger")
+logger = logging.getLogger(LOGGER_NAME)
 if not logger.hasHandlers():
     logger.setLevel(logging.INFO)
     ch = logging.StreamHandler()

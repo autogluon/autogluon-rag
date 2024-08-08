@@ -5,7 +5,9 @@ import torch
 from torch.nn import DataParallel
 from transformers import AutoModel, AutoTokenizer
 
-logger = logging.getLogger("rag-logger")
+from agrag.constants import LOGGER_NAME
+
+logger = logging.getLogger(LOGGER_NAME)
 
 
 class Reranker:
