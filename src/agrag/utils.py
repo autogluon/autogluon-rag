@@ -4,7 +4,9 @@ from typing import Optional, Tuple
 
 import torch
 
-logger = logging.getLogger("AutoGluon-RAG-logger")
+from agrag.constants import LOGGER_NAME
+
+logger = logging.getLogger(LOGGER_NAME)
 
 
 def parse_path(path: str) -> Tuple[Optional[str], str]:

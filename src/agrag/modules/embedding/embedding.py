@@ -10,10 +10,10 @@ from torch.nn import DataParallel
 from tqdm import tqdm
 from transformers import AutoModel, AutoTokenizer
 
-from agrag.constants import DOC_TEXT_KEY, EMBEDDING_HIDDEN_DIM_KEY, EMBEDDING_KEY
+from agrag.constants import DOC_TEXT_KEY, EMBEDDING_HIDDEN_DIM_KEY, EMBEDDING_KEY, LOGGER_NAME
 from agrag.modules.embedding.utils import get_embeddings_bedrock, normalize_embedding, pool
 
-logger = logging.getLogger("AutoGluon-RAG-logger")
+logger = logging.getLogger(LOGGER_NAME)
 
 
 class EmbeddingModule:

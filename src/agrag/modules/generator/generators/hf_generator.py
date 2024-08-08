@@ -5,7 +5,9 @@ import torch
 from torch.nn import DataParallel
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-logger = logging.getLogger("AutoGluon-RAG-logger")
+from agrag.constants import LOGGER_NAME
+
+logger = logging.getLogger(LOGGER_NAME)
 
 
 class HFGenerator:

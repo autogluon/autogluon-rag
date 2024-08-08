@@ -5,7 +5,9 @@ import faiss
 import numpy as np
 import torch
 
-logger = logging.getLogger("AutoGluon-RAG-logger")
+from agrag.constants import LOGGER_NAME
+
+logger = logging.getLogger(LOGGER_NAME)
 
 
 def construct_faiss_index(
