@@ -14,7 +14,7 @@ In line with the AutoGluon team's commitment to meeting user requirements and ex
 
 ## Usage
 To use this framework, you must first install AutoGluon RAG:
-```
+```python
 git clone https://github.com/autogluon/autogluon-rag
 cd autogluon-rag
 
@@ -29,7 +29,7 @@ You can now use the package in two ways.
 
 ### Use AutoGluon-RAG through the command line as `agrag`:
 
-```
+```python
 AutoGluon-RAG
 
 
@@ -43,7 +43,7 @@ options:
 ```
 
 ### Use AutoGluon-RAG through code:
-```
+```python
 from agrag.agrag import AutoGluonRAG
 
 
@@ -64,7 +64,7 @@ if __name__ == "__main__":
 ```
 
 These are the <b>optional</b> parameters that can be passed into the `AutoGluonRAG` class:
-```
+```python
 config_file : str
     Path to a configuration file that will be used to set specific parameters in the RAG pipeline.
 
@@ -105,9 +105,12 @@ pipeline_batch_size: int
 The configuration file contains the specific parameters to use for each module in the RAG pipeline. For an example of a config file, please refer to `example_config.yaml` in `src/agrag/configs/`. For specific details about the parameters in each individual module, refer to the `README` files in each module in `src/agrag/modules/`.
 
 There is also a `shared` section in the config file for parameters that do not refer to a specific module. Currently, the parameters in `shared` are: 
-```
+```python
 pipeline_batch_size: Optional batch size to use for pre-processing stage (Data Processing, Embedding, Vector DB Module). This represents the number of files in each batch. The default value is 20.
 ```
 
 ## Evaluation
 For more information about the evaluation module, refer to the code in `src/agrag/evaluation` and the instructions [here](https://github.com/autogluon/autogluon-rag/tree/main/src/agrag/evaluation/README.md).
+
+## Tutorials
+For a list of tutorials on using AutoGluon-RAG in different scenarios, refer to the documentation [here](https://github.com/autogluon/autogluon-rag/tree/main/documentation/tutorial.md)
