@@ -20,7 +20,7 @@ from agrag.modules.data_processing.utils import (
 )
 from agrag.utils import parse_path
 
-logger = logging.getLogger("AutoGluon-RAG-logger")
+logger = logging.getLogger(LOGGER_NAME)
 
 
 class DataProcessingModule:

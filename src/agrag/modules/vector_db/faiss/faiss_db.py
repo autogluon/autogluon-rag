@@ -7,7 +7,7 @@ import torch
 
 from agrag.constants import LOGGER_NAME
 
-logger = logging.getLogger("AutoGluon-RAG-logger")
+logger = logging.getLogger(LOGGER_NAME)
 
 
 def construct_faiss_index(

@@ -16,7 +16,7 @@ from agrag.modules.vector_db.faiss.faiss_db import load_faiss_index, save_faiss_
 from agrag.modules.vector_db.milvus.milvus_db import load_milvus_index, save_milvus_index
 from agrag.utils import parse_path
 
-logger = logging.getLogger("AutoGluon-RAG-logger")
+logger = logging.getLogger(LOGGER_NAME)
 
 
 def cosine_similarity_fn(embeddings: np.ndarray) -> np.ndarray:

@@ -7,7 +7,7 @@ from pymilvus import MilvusClient
 
 from agrag.constants import LOGGER_NAME
 
-logger = logging.getLogger("AutoGluon-RAG-logger")
+logger = logging.getLogger(LOGGER_NAME)
 
 
 def construct_milvus_index(

@@ -6,7 +6,7 @@ import torch
 
 from agrag.constants import LOGGER_NAME
 
-logger = logging.getLogger("AutoGluon-RAG-logger")
+logger = logging.getLogger(LOGGER_NAME)
 
 
 def parse_path(path: str) -> Tuple[Optional[str], str]:

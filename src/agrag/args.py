@@ -8,7 +8,7 @@ CURRENT_DIR = os.path.dirname(__file__)
 
 from agrag.constants import LOGGER_NAME
 
-logger = logging.getLogger("AutoGluon-RAG-logger")
+logger = logging.getLogger(LOGGER_NAME)
 
 
 class Arguments:

@@ -10,7 +10,7 @@ if found:
 
 from agrag.constants import LOGGER_NAME
 
-logger = logging.getLogger("AutoGluon-RAG-logger")
+logger = logging.getLogger(LOGGER_NAME)
 
 
 class VLLMGenerator:
