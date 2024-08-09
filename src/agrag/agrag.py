@@ -505,6 +505,7 @@ class AutoGluonRAG:
                         self.login_info[sub_url] = self.login_info[url]
 
         batch_num = 1
+        start_doc_id = 0
 
         for i in range(0, max(len(file_paths), len(web_urls)), self.batch_size):
             logger.info(f"Batch {batch_num}")
@@ -514,11 +515,12 @@ class AutoGluonRAG:
 
             # Data Processing
             processed_files_data, last_doc_id = self.data_processing_module.process_files(
-                batch_file_paths, start_doc_id=0
+                batch_file_paths, start_doc_id=start_doc_id
             )
-            processed_urls_data = self.data_processing_module.process_urls(
+            processed_urls_data, last_doc_id = self.data_processing_module.process_urls(
                 batch_urls, login_info=self.login_info, start_doc_id=last_doc_id
             )
+            start_doc_id = last_doc_id
             processed_data = pd.concat([processed_files_data, processed_urls_data]).reset_index(drop=True)
 
             # Embedding
