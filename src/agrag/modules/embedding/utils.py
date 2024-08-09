@@ -89,8 +89,8 @@ def get_embeddings_bedrock(
 ) -> List[float]:
     embeddings = []
     if "titan" in model_id:
+        batch_texts = [text[:TITAN_MAX_TOKENS] for text in batch_texts]
         for text in batch_texts:
-            text = text[:TITAN_MAX_TOKENS]
             body = json.dumps(
                 {
                     "inputText": text,
