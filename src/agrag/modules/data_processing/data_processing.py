@@ -1,8 +1,7 @@
 import concurrent.futures
 import logging
 import os
-import re
-from typing import List
+from typing import List, Tuple
 
 import boto3
 import pandas as pd
@@ -174,7 +173,7 @@ class DataProcessingModule:
 
         return pd.DataFrame()
 
-    def process_files(self, file_paths: List[str], start_doc_id: int = 0) -> pd.DataFrame:
+    def process_files(self, file_paths: List[str], start_doc_id: int = 0) -> Tuple[pd.DataFrame, int]:
         """
         Processes the given file paths, extracting and chunking text from each file.
 
@@ -187,8 +186,9 @@ class DataProcessingModule:
 
         Returns:
         -------
-        pd.DataFrame
-            A DataFrame of processed text chunks from the given files.
+        Tuple[pd.DataFrame, int]
+            - DataFrame of processed text chunks from the given files.
+            - Final document ID after processing all files.
         """
         processed_data = [pd.DataFrame([])]
         doc_id_counter = start_doc_id
@@ -242,7 +242,7 @@ class DataProcessingModule:
 
         return pd.DataFrame(data)
 
-    def process_urls(self, urls: List[str], login_info: dict = {}, start_doc_id: int = 0) -> pd.DataFrame:
+    def process_urls(self, urls: List[str], login_info: dict = {}, start_doc_id: int = 0) -> Tuple[pd.DataFrame, int]:
         """
         Processes the given URLs, extracting and chunking text from each URL.
 
@@ -257,8 +257,9 @@ class DataProcessingModule:
 
         Returns:
         -------
-        pd.DataFrame
-            A DataFrame of processed text chunks from the given URLs.
+        Tuple[pd.DataFrame, int]
+            - DataFrame of processed text chunks from all files in the directory and URLs.
+            - Final document ID after processing all files.
         """
         processed_data = [pd.DataFrame([])]
         doc_id_counter = start_doc_id
@@ -272,7 +273,7 @@ class DataProcessingModule:
             for result in results:
                 processed_data.append(result)
                 doc_id_counter += 1
-        return pd.concat(processed_data).reset_index(drop=True)
+        return pd.concat(processed_data).reset_index(drop=True), doc_id_counter
 
     def process_data(self) -> pd.DataFrame:
         """
