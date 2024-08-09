@@ -517,7 +517,7 @@ class AutoGluonRAG:
             processed_files_data, last_doc_id = self.data_processing_module.process_files(
                 batch_file_paths, start_doc_id=start_doc_id
             )
-            processed_urls_data = self.data_processing_module.process_urls(
+            processed_urls_data, last_doc_id = self.data_processing_module.process_urls(
                 batch_urls, login_info=self.login_info, start_doc_id=last_doc_id
             )
             start_doc_id = last_doc_id
