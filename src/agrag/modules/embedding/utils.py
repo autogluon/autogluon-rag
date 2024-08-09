@@ -10,6 +10,8 @@ from agrag.constants import LOGGER_NAME
 logger = logging.getLogger(LOGGER_NAME)
 import json
 
+from agrag.modules.embedding.constants import COHERE_MAX_TOKENS, TITAN_MAX_TOKENS
+
 
 def pool(embeddings: List[torch.Tensor], pooling_strategy: str) -> List[torch.Tensor]:
     """
@@ -88,6 +90,7 @@ def get_embeddings_bedrock(
     embeddings = []
     if "titan" in model_id:
         for text in batch_texts:
+            text = text[:TITAN_MAX_TOKENS]
             body = json.dumps(
                 {
                     "inputText": text,
@@ -103,6 +106,7 @@ def get_embeddings_bedrock(
             outputs = json.loads(response["body"].read())
             embeddings.append(outputs.get("embedding"))
     elif "cohere" in model_id:
+        batch_texts = [text[:COHERE_MAX_TOKENS] for text in batch_texts]
         body = json.dumps(
             {
                 "texts": batch_texts,
