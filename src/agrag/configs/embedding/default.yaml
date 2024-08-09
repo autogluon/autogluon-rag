@@ -1,4 +1,5 @@
 DEFAULT_EMBEDDING_MODEL: "BAAI/bge-large-en"
+DEFAULT_EMBEDDING_MODEL_PLATFORM: "huggingface"
 POOLING_STRATEGY: null
 NORMALIZE_EMBEDDINGS: False
 HF_TOKENIZER_PARAMS: {"truncation": True, "padding": True}

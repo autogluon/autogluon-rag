@@ -18,16 +18,12 @@ class Reranker:
     ----------
     model_name : str
         The name of the Huggingface model to use for the reranker (default is "BAAI/bge-large-en").
+    model_platform: str
+        The name of the platform where the model is hosted. Currently only Huggingface ("huggingface") models are supported.
+    platform_args: dict
+        Additional platform-specific parameters to use when initializing the model, reranking, etc.
     batch_size : int
         The size of the batch. If you have limited CUDA memory, decrease the size of the batch (default is 64).
-    hf_model_params : dict
-        Additional parameters to pass to the Huggingface model's `from_pretrained` initializer method.
-    hf_tokenizer_init_params : dict
-        Additional parameters to pass to the Huggingface tokenizer's `from_pretrained` initializer method.
-    hf_tokenizer_params : dict
-        Additional parameters to pass to the `tokenizer` method for the Huggingface model.
-    hf_forward_params : dict
-        Additional parameters to pass to the Huggingface model's `forward` method.
     num_gpus: int
         Number of GPUs to use for reranking.
     top_k: int,
@@ -41,18 +37,30 @@ class Reranker:
         Reranks the text chunks based on their relevance to the query.
     """
 
-    def __init__(self, model_name: str = "BAAI/bge-large-en", top_k: int = 10, **kwargs):
+    def __init__(
+        self,
+        model_name: str = "BAAI/bge-large-en",
+        top_k: int = 10,
+        model_platform: str = "huggingface",
+        platform_args: dict = {},
+        **kwargs,
+    ):
         self.model_name = model_name
         self.top_k = top_k
+        self.model_platform = model_platform
+        self.platform_args = platform_args
 
         self.batch_size = kwargs.get("batch_size", 64)
         self.num_gpus = kwargs.get("num_gpus", 0)
         self.device = "cpu" if not self.num_gpus else torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        self.hf_model_params = kwargs.get("hf_model_params", {})
-        self.hf_tokenizer_init_params = kwargs.get("hf_tokenizer_init_params", {})
-        self.hf_tokenizer_params = kwargs.get("hf_tokenizer_params", {})
-        self.hf_forward_params = kwargs.get("hf_forward_params", {})
+        if self.model_platform == "huggingface":
+            self.hf_model_params = self.platform_args.get("hf_model_params", {})
+            self.hf_tokenizer_init_params = self.platform_args.get("hf_tokenizer_init_params", {})
+            self.hf_tokenizer_params = self.platform_args.get("hf_tokenizer_params", {})
+            self.hf_forward_params = self.platform_args.get("hf_forward_params", {})
+        else:
+            raise NotImplementedError(f"Unsupported platform type: {model_platform}")
 
         self.model = AutoModel.from_pretrained(self.model_name, **self.hf_model_params).to(self.device)
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, **self.hf_tokenizer_init_params)
