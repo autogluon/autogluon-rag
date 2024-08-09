@@ -2,6 +2,7 @@
 
 ## General
 1. [Setting Parameters for `AutoGluonRAG` through code](https://github.com/autogluon/autogluon-rag/tree/main/documentation/tutorials/general/setting_parameters.md)
+2. [Accessing models through different services](https://github.com/autogluon/autogluon-rag/tree/main/documentation/tutorials/general/model_access.md)
 
 ## Data Processing Module
 1. [Using AutoGluon-RAG to obtain processed data from documents/websites](https://github.com/autogluon/autogluon-rag/tree/main/documentation/tutorials/embedding/generate_embeddings.md). This will include data in the form of text chunks for each document/website in the directory.
