@@ -6,7 +6,9 @@ import yaml
 
 CURRENT_DIR = os.path.dirname(__file__)
 
-logger = logging.getLogger("rag-logger")
+from agrag.constants import LOGGER_NAME
+
+logger = logging.getLogger(LOGGER_NAME)
 
 
 class Arguments:
@@ -175,6 +177,24 @@ class Arguments:
         self.config["embedding"]["embedding_model"] = value
 
     @property
+    def embedding_model_platform(self):
+        return self.config.get("embedding", {}).get(
+            "embedding_model_platform", self.embedding_defaults.get("DEFAULT_EMBEDDING_MODEL_PLATFORM")
+        )
+
+    @embedding_model_platform.setter
+    def embedding_model_platform(self, value):
+        self.config["embedding"]["embedding_model_platform"] = value
+
+    @property
+    def embedding_model_platform_args(self):
+        return self.config.get("embedding", {}).get("embedding_model_platform_args", {})
+
+    @embedding_model_platform_args.setter
+    def embedding_model_platform_args(self, value):
+        self.config["embedding"]["embedding_model_platform_args"] = value
+
+    @property
     def pooling_strategy(self):
         return self.config.get("embedding", {}).get(
             "pooling_strategy", self.embedding_defaults.get("POOLING_STRATEGY")
@@ -193,38 +213,6 @@ class Arguments:
     @normalize_embeddings.setter
     def normalize_embeddings(self, value):
         self.config["embedding"]["normalize_embeddings"] = value
-
-    @property
-    def hf_model_params(self):
-        return self.config.get("embedding", {}).get("hf_model_params", {})
-
-    @hf_model_params.setter
-    def hf_model_params(self, value):
-        self.config["embedding"]["hf_model_params"] = value
-
-    @property
-    def hf_tokenizer_params(self):
-        return self.config.get("embedding", {}).get("hf_tokenizer_params", {"truncation": True, "padding": True})
-
-    @hf_tokenizer_params.setter
-    def hf_tokenizer_params(self, value):
-        self.config["embedding"]["hf_tokenizer_params"] = value
-
-    @property
-    def hf_tokenizer_init_params(self):
-        return self.config.get("embedding", {}).get("hf_tokenizer_params", {})
-
-    @hf_tokenizer_init_params.setter
-    def hf_tokenizer_init_params(self, value):
-        self.config["embedding"]["hf_tokenizer_params"] = value
-
-    @property
-    def hf_forward_params(self):
-        return self.config.get("embedding", {}).get("hf_forward_params", {})
-
-    @hf_forward_params.setter
-    def hf_forward_params(self, value):
-        self.config["embedding"]["hf_forward_params"] = value
 
     @property
     def normalization_params(self):
@@ -251,30 +239,6 @@ class Arguments:
     @embedding_batch_size.setter
     def embedding_batch_size(self, value):
         self.config["embedding"]["embedding_batch_size"] = value
-
-    @property
-    def embedding_use_bedrock(self):
-        return self.config.get("embedding", {}).get("use_bedrock", self.embedding_defaults.get("USE_BEDROCK"))
-
-    @embedding_use_bedrock.setter
-    def embedding_use_bedrock(self, value):
-        self.config["embedding"]["use_bedrock"] = value
-
-    @property
-    def bedrock_embedding_params(self):
-        return self.config.get("embedding", {}).get("bedrock_embedding_params", {})
-
-    @bedrock_embedding_params.setter
-    def bedrock_embedding_params(self, value):
-        self.config["embedding"]["bedrock_embedding_params"] = value
-
-    @property
-    def embedding_bedrock_aws_region(self):
-        return self.config.get("embedding", {}).get("bedrock_aws_region", {})
-
-    @embedding_bedrock_aws_region.setter
-    def embedding_bedrock_aws_region(self, value):
-        self.config["embedding"]["bedrock_aws_region"] = value
 
     @property
     def vector_db_type(self):
@@ -497,6 +461,24 @@ class Arguments:
         self.config["retriever"]["reranker_model_name"] = value
 
     @property
+    def reranker_model_platform(self):
+        return self.config.get("retriever", {}).get(
+            "reranker_model_platform", self.retriever_defaults.get("DEFAULT_RERANKER_MODEL_PLATFORM")
+        )
+
+    @reranker_model_platform.setter
+    def reranker_model_platform(self, value):
+        self.config["retriever"]["reranker_model_platform"] = value
+
+    @property
+    def reranker_model_platform_args(self):
+        return self.config.get("retriever", {}).get("reranker_model_platform_args", {})
+
+    @reranker_model_platform_args.setter
+    def reranker_model_platform_args(self, value):
+        self.config["retriever"]["reranker_model_platform_args"] = value
+
+    @property
     def reranker_batch_size(self):
         return self.config.get("retriever", {}).get(
             "reranker_batch_size", self.retriever_defaults.get("RERANKER_BATCH_SIZE")
@@ -557,6 +539,24 @@ class Arguments:
         self.config["generator"]["generator_model_name"] = value
 
     @property
+    def generator_model_platform(self):
+        return self.config.get("generator", {}).get(
+            "generator_model_platform", self.generator_defaults.get("DEFAULT_GENERATOR_MODEL_PLATFORM")
+        )
+
+    @generator_model_platform.setter
+    def generator_model_platform(self, value):
+        self.config["generator"]["generator_model_platform"] = value
+
+    @property
+    def generator_model_platform_args(self):
+        return self.config.get("generator", {}).get("generator_model_platform_args", {})
+
+    @generator_model_platform_args.setter
+    def generator_model_platform_args(self, value):
+        self.config["generator"]["generator_model_platform_args"] = value
+
+    @property
     def generator_num_gpus(self):
         return self.config.get("generator", {}).get("num_gpus", 0)
 
@@ -565,113 +565,9 @@ class Arguments:
         self.config["generator"]["num_gpus"] = value
 
     @property
-    def generator_hf_model_params(self):
-        return self.config.get("generator", {}).get("generator_hf_model_params", {})
-
-    @generator_hf_model_params.setter
-    def generator_hf_model_params(self, value):
-        self.config["generator"]["generator_hf_model_params"] = value
-
-    @property
-    def generator_hf_tokenizer_params(self):
-        return self.config.get("generator", {}).get("generator_hf_tokenizer_params", {})
-
-    @generator_hf_tokenizer_params.setter
-    def generator_hf_tokenizer_params(self, value):
-        self.config["generator"]["generator_hf_tokenizer_params"] = value
-
-    @property
-    def generator_hf_tokenizer_init_params(self):
-        return self.config.get("generator", {}).get("generator_hf_tokenizer_params", {})
-
-    @generator_hf_tokenizer_init_params.setter
-    def generator_hf_tokenizer_init_params(self, value):
-        self.config["generator"]["generator_hf_tokenizer_params"] = value
-
-    @property
-    def generator_hf_forward_params(self):
-        return self.config.get("generator", {}).get("generator_hf_forward_params", {})
-
-    @generator_hf_forward_params.setter
-    def generator_hf_forward_params(self, value):
-        self.config["generator"]["generator_hf_forward_params"] = value
-
-    @property
-    def generator_hf_generate_params(self):
-        return self.config.get("generator", {}).get("generator_hf_generate_params", {})
-
-    @generator_hf_generate_params.setter
-    def generator_hf_generate_params(self, value):
-        self.config["generator"]["generator_hf_generate_params"] = value
-
-    @property
     def generator_query_prefix(self):
         return self.config.get("generator", {}).get("generator_query_prefix", "")
 
     @generator_query_prefix.setter
     def generator_query_prefix(self, value):
         self.config["generator"]["generator_query_prefix"] = value
-
-    @property
-    def gpt_generate_params(self):
-        return self.config.get("generator", {}).get("gpt_generate_params", {})
-
-    @gpt_generate_params.setter
-    def gpt_generate_params(self, value):
-        self.config["generator"]["gpt_generate_params"] = value
-
-    @property
-    def use_vllm(self):
-        return self.config.get("generator", {}).get("use_vllm", self.generator_defaults.get("USE_VLLM"))
-
-    @use_vllm.setter
-    def use_vllm(self, value):
-        self.config["generator"]["use_vllm"] = value
-
-    @property
-    def vllm_sampling_params(self):
-        return self.config.get("generator", {}).get("vllm_sampling_params", {})
-
-    @vllm_sampling_params.setter
-    def vllm_sampling_params(self, value):
-        self.config["generator"]["vllm_sampling_params"] = value
-
-    @property
-    def openai_key_file(self):
-        return self.config.get("generator", {}).get("openai_key_file", "")
-
-    @openai_key_file.setter
-    def openai_key_file(self, value):
-        self.config["generator"]["openai_key_file"] = value
-
-    @property
-    def use_bedrock(self):
-        return self.config.get("generator", {}).get("use_bedrock", self.generator_defaults.get("USE_BEDROCK"))
-
-    @use_bedrock.setter
-    def use_bedrock(self, value):
-        self.config["generator"]["use_bedrock"] = value
-
-    @property
-    def bedrock_generate_params(self):
-        return self.config.get("generator", {}).get("bedrock_generate_params", {})
-
-    @bedrock_generate_params.setter
-    def bedrock_generate_params(self, value):
-        self.config["generator"]["bedrock_generate_params"] = value
-
-    @property
-    def bedrock_aws_region(self):
-        return self.config.get("generator", {}).get("bedrock_aws_region", {})
-
-    @bedrock_aws_region.setter
-    def bedrock_aws_region(self, value):
-        self.config["generator"]["bedrock_aws_region"] = value
-
-    @property
-    def generator_local_model_path(self):
-        return self.config.get("generator", {}).get("local_model_path", None)
-
-    @generator_local_model_path.setter
-    def generator_local_model_path(self, value):
-        self.config["generator"]["local_model_path"] = value

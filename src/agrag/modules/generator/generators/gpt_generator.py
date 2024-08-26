@@ -3,7 +3,9 @@ from typing import Dict
 
 from openai import OpenAI
 
-logger = logging.getLogger("rag-logger")
+from agrag.constants import LOGGER_NAME
+
+logger = logging.getLogger(LOGGER_NAME)
 
 
 class GPTGenerator:

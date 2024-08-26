@@ -8,6 +8,7 @@ from langchain_community.document_loaders.recursive_url_loader import RecursiveU
 from langchain_core.utils.html import extract_sub_links
 
 from agrag.args import Arguments
+from agrag.constants import LOGGER_NAME
 from agrag.modules.data_processing.data_processing import DataProcessingModule
 from agrag.modules.data_processing.utils import get_all_file_paths
 from agrag.modules.embedding.embedding import EmbeddingModule
@@ -17,9 +18,9 @@ from agrag.modules.retriever.rerankers.reranker import Reranker
 from agrag.modules.retriever.retrievers.retriever_base import RetrieverModule
 from agrag.modules.vector_db.utils import load_index, load_metadata, save_index, save_metadata
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
-from agrag.utils import get_num_gpus, read_openai_key
+from agrag.utils import get_num_gpus
 
-logger = logging.getLogger("rag-logger")
+logger = logging.getLogger(LOGGER_NAME)
 if not logger.hasHandlers():
     logger.setLevel(logging.INFO)
     ch = logging.StreamHandler()
@@ -182,17 +183,12 @@ class AutoGluonRAG:
         """Initializes the Embedding module."""
         self.embedding_module = EmbeddingModule(
             model_name=self.args.embedding_model,
+            model_platform=self.args.embedding_model_platform,
+            platform_args=self.args.embedding_model_platform_args,
             pooling_strategy=self.args.pooling_strategy,
             normalize_embeddings=self.args.normalize_embeddings,
-            hf_model_params=self.args.hf_model_params,
-            hf_tokenizer_init_params=self.args.hf_tokenizer_init_params,
-            hf_tokenizer_params=self.args.hf_tokenizer_params,
-            hf_forward_params=self.args.hf_forward_params,
             normalization_params=self.args.normalization_params,
             query_instruction_for_retrieval=self.args.query_instruction_for_retrieval,
-            use_bedrock=self.args.embedding_use_bedrock,
-            bedrock_embedding_params=self.args.bedrock_embedding_params,
-            bedrock_aws_region=self.args.embedding_bedrock_aws_region,
         )
         logger.info("Embedding module initialized")
 
@@ -230,30 +226,20 @@ class AutoGluonRAG:
             top_k=self.args.retriever_top_k,
             reranker=self.reranker_module,
             num_gpus=num_gpus,
+            use_reranker=self.args.use_reranker,
         )
         logger.info("Retriever module initialized")
 
     def initialize_generator_module(self):
         """Initializes the Generator module."""
-        openai_api_key = read_openai_key(self.args.openai_key_file)
         num_gpus = get_num_gpus(self.args.generator_num_gpus)
         logger.info(f"Using number of GPUs: {num_gpus} for Generator Module")
 
         self.generator_module = GeneratorModule(
             model_name=self.args.generator_model_name,
-            hf_model_params=self.args.generator_hf_model_params,
-            hf_tokenizer_init_params=self.args.generator_hf_tokenizer_init_params,
-            hf_tokenizer_params=self.args.generator_hf_tokenizer_params,
-            hf_generate_params=self.args.generator_hf_generate_params,
-            gpt_generate_params=self.args.gpt_generate_params,
-            vllm_sampling_params=self.args.vllm_sampling_params,
+            model_platform=self.args.generator_model_platform,
+            platform_args=self.args.generator_model_platform_args,
             num_gpus=num_gpus,
-            use_vllm=self.args.use_vllm,
-            openai_api_key=openai_api_key,
-            bedrock_generate_params=self.args.bedrock_generate_params,
-            use_bedrock=self.args.use_bedrock,
-            local_model_path=self.args.generator_local_model_path,
-            bedrock_aws_region=self.args.bedrock_aws_region,
         )
         logger.info("Generator module initialized")
 
@@ -267,12 +253,10 @@ class AutoGluonRAG:
 
         self.reranker_module = Reranker(
             model_name=reranker_model,
+            model_platform=self.args.reranker_model_platform,
+            platform_args=self.args.reranker_model_platform_args,
             batch_size=self.args.reranker_batch_size,
             top_k=self.args.reranker_top_k,
-            hf_forward_params=self.args.reranker_hf_forward_params,
-            hf_tokenizer_init_params=self.args.reranker_hf_tokenizer_init_params,
-            hf_tokenizer_params=self.args.reranker_hf_tokenizer_params,
-            hf_model_params=self.args.reranker_hf_model_params,
             num_gpus=num_gpus,
         )
         logger.info("Reranker module initialized")
@@ -504,6 +488,7 @@ class AutoGluonRAG:
                         self.login_info[sub_url] = self.login_info[url]
 
         batch_num = 1
+        start_doc_id = 0
 
         for i in range(0, max(len(file_paths), len(web_urls)), self.batch_size):
             logger.info(f"Batch {batch_num}")
@@ -513,11 +498,12 @@ class AutoGluonRAG:
 
             # Data Processing
             processed_files_data, last_doc_id = self.data_processing_module.process_files(
-                batch_file_paths, start_doc_id=0
+                batch_file_paths, start_doc_id=start_doc_id
             )
-            processed_urls_data = self.data_processing_module.process_urls(
+            processed_urls_data, last_doc_id = self.data_processing_module.process_urls(
                 batch_urls, login_info=self.login_info, start_doc_id=last_doc_id
             )
+            start_doc_id = last_doc_id
             processed_data = pd.concat([processed_files_data, processed_urls_data]).reset_index(drop=True)
 
             # Embedding

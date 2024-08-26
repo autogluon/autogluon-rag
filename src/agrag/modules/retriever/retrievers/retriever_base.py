@@ -3,15 +3,13 @@ from typing import Any, Dict, List
 
 import numpy as np
 import pandas as pd
-import torch
-from torch.nn import DataParallel
 
-from agrag.constants import DOC_TEXT_KEY, EMBEDDING_KEY
+from agrag.constants import DOC_TEXT_KEY, EMBEDDING_KEY, LOGGER_NAME
 from agrag.modules.embedding.embedding import EmbeddingModule
 from agrag.modules.retriever.rerankers.reranker import Reranker
 from agrag.modules.vector_db.vector_database import VectorDatabaseModule
 
-logger = logging.getLogger("rag-logger")
+logger = logging.getLogger(LOGGER_NAME)
 
 
 class RetrieverModule:
@@ -26,6 +24,10 @@ class RetrieverModule:
         The module for generating embeddings.
     top_k: int
         The top-k documents to retrieve (default is 50).
+    reranker: Reranker
+        Optional Reranker object to use for reranking
+    use_reranker: bool
+        Whether or not to use a reranker.
     **kwargs : dict
         Additional parameters for `RetrieverModule`.
 
@@ -44,13 +46,16 @@ class RetrieverModule:
         embedding_module: EmbeddingModule,
         top_k: int = 50,
         reranker: Reranker = None,
+        use_reranker: bool = True,
         **kwargs,
     ):
         self.embedding_module = embedding_module
-
         self.vector_database_module = vector_database_module
         self.top_k = top_k
-        self.reranker = reranker
+        self.reranker = None
+        if use_reranker:
+            assert isinstance(reranker, Reranker), "reranker must be of type <class> Reranker"
+            self.reranker = reranker
 
     def encode_query(self, query: str) -> np.ndarray:
         """
@@ -66,7 +71,7 @@ class RetrieverModule:
         np.ndarray
             The embedding of the query.
         """
-        if self.embedding_module.use_bedrock and "cohere" in self.embedding_module.model_name:
+        if self.embedding_module.model_platform == "bedrock" and "cohere" in self.embedding_module.model_name:
             self.embedding_module.bedrock_embedding_params["input_type"] = "search_query"
         query_embedding = self.embedding_module.encode(data=pd.DataFrame([{DOC_TEXT_KEY: query}]))
         query_embedding = query_embedding[EMBEDDING_KEY][0]
