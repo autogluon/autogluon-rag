@@ -7,3 +7,6 @@ A common error you may encounter when setting up the RAG pipeline end-to-end is 
 
 ### 2. Model Access Issues
 Refer to the tutorial [Accessing models through different services](https://github.com/autogluon/autogluon-rag/tree/main/documentation/tutorials/general/model_access.md) for more information about model access setup. These refer to both embedding models and generative models.
+
+### 3. AWS Resource Issues
+Refer to the tutorial [Using AWS resources and services](https://github.com/autogluon/autogluon-rag/tree/main/documentation/tutorials/general/aws_resources.md) for more information about AWS access setup.
