@@ -16,21 +16,18 @@ Depending on what service you are using to access certain models for different m
 
 3. Using Huggingface models: You can use the [Hugging Face Command Line Interface (CLI)](https://huggingface.co/docs/huggingface_hub/en/guides/cli#command-line-interface-cli) to access Hugging Face models. Follow these steps to access Hugging Face models:
     1. Installation
-        ```
-        pip install -U "huggingface_hub[cli]"
-        ```
+            
+            pip install -U "huggingface_hub[cli]"
         
         Once installed, check that the CLI is correctly setup:
-        ```
-        huggingface-cli --help
-        ```
+                
+            huggingface-cli --help
 
     2. Login to your Hugging Face account
         1. First, create a Hugging Face account [here](https://huggingface.co/join).
         2. Then, obtain an access token using [this](https://huggingface.co/settings/tokens) link. You can find more information about User access tokens [here](https://huggingface.co/docs/huggingface_hub/en/guides/cli#command-line-interface-cli).
         3. Once you have your token, run the following command in your terminal:
-        ```
-        huggingface-cli login
-        ```
+
+                huggingface-cli login
 
             Enter your access token when prompted. You can optionally use the Hugging Face token as a `git` credential if you plan to use `git` locally and contribute to this package.
