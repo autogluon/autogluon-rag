@@ -60,9 +60,9 @@ D, I = index.search(query_vectors, k)
 ```
 
 ### Choosing the Right Index
-* IndexFlatL2: Use when accuracy is the primary concern, and the dataset is relatively small.
-* IndexIVFFlat: Use when dealing with large datasets and you need to speed up the search process while maintaining reasonable accuracy.
-* IndexPQ: Use when you need to optimize for memory usage and speed at the cost of some precision.
+* `IndexFlatL2`: Use when accuracy is the primary concern, and the dataset is relatively small.
+* `IndexIVFFlat`: Use when dealing with large datasets and you need to speed up the search process while maintaining reasonable accuracy.
+* `IndexPQ`: Use when you need to optimize for memory usage and speed at the cost of some precision.
 
 ### Integration into AutoGluon-RAG
 You must specify the values in your configuration file or after instantiating your `AutoGluonRAG` object. Refer to [this](https://github.com/autogluon/autogluon-rag/tree/main/documentation/tutorials/general/setting_parameters.md) tutorial on how to modify arguments through code after instantiating an  `AutoGluonRAG` object.
