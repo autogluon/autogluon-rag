@@ -49,7 +49,7 @@ if __name__ == "__main__":
     ag_rag()
 ```
 
-For a list of configurable parameters that can be passed into the `AutoGluonRAG` class, refer to the tutorial [here](https://github.com/autogluon/autogluon-rag/tree/main/documentation/tutorials/general/code_parameteres.md). 
+For a list of configurable parameters that can be passed into the `AutoGluonRAG` class, refer to the tutorial [here](tutorials/general/code_parameters.md). 
 
 You can also use a configuration file with `AutoGluonRAG`.
 The configuration file contains the specific parameters to use for each module in the RAG pipeline. For an example of a config file, please refer to `example_config.yaml` in `src/agrag/configs/`. For specific details about the parameters in each individual module, refer to the `README` files in each module in `src/agrag/modules/`.

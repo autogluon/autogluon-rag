@@ -7,27 +7,27 @@ Thus, it is not the best option for scaling with the size of the data. To solve 
 Partitioned indices, also known as clustered indices, use clustering algorithms like k-means to partition the data into multiple clusters. This way, only a subset of clusters needs to be searched, significantly reducing the number of comparisons.
 
 #### Steps to create a Partitioned Index:
-   ```python
-   from faiss import IndexFlatL2, IndexIVFFlat
-   import faiss
+```python
+from faiss import IndexFlatL2, IndexIVFFlat
+import faiss
 
-   d = 128 # Dimension of the vectors
-   nlist = 100 # Number of clusters
+d = 128 # Dimension of the vectors
+nlist = 100 # Number of clusters
 
-   # Initialize the quantizer
-   quantizer = IndexFlatL2(d)
-   # Initialize the IVF index
-   index = IndexIVFFlat(quantizer, d, nlist)
+# Initialize the quantizer
+quantizer = IndexFlatL2(d)
+# Initialize the IVF index
+index = IndexIVFFlat(quantizer, d, nlist)
 
-   # Train the index with your data
-   index.train(vectors) # Assuming 'vectors' is a numpy array of your data
+# Train the index with your data
+index.train(vectors) # Assuming 'vectors' is a numpy array of your data
 
-   # Add vectors to the index
-   index.add(vectors)
+# Add vectors to the index
+index.add(vectors)
 
-   # Search the index
-   D, I = index.search(query_vectors, k)
-   ```
+# Search the index
+D, I = index.search(query_vectors, k)
+```
 
 #### Usage in AutoGluon-RAG
 
@@ -35,29 +35,29 @@ Partitioned indices, also known as clustered indices, use clustering algorithms 
 Quantized indices reduce the precision of the vectors to lower the memory footprint and improve search speed. Product Quantization (PQ) is a common technique used in FAISS for this purpose.
 
 #### Steps to create a Quantized Index:
-   ```python
-   from faiss import IndexFlatL2, IndexIVFPQ
-   import faiss
+```python
+from faiss import IndexFlatL2, IndexIVFPQ
+import faiss
 
-   d = 128 # Dimension of the vectors
-   nlist = 100 # Number of clusters
-   m = 8  # number of centroid IDs in final compressed vectors
-   bits = 8 # number of bits in each centroid
+d = 128 # Dimension of the vectors
+nlist = 100 # Number of clusters
+m = 8  # number of centroid IDs in final compressed vectors
+bits = 8 # number of bits in each centroid
 
-   # Initialize the quantizer
-   quantizer = IndexFlatL2(d)
-   # Initialize the IVFPQ index
-   index = IndexIVFPQ(quantizer, d, nlist, m, bits)
+# Initialize the quantizer
+quantizer = IndexFlatL2(d)
+# Initialize the IVFPQ index
+index = IndexIVFPQ(quantizer, d, nlist, m, bits)
 
-   # Train the index with your data
-   index.train(vectors) # Assuming 'vectors' is a numpy array of your data
+# Train the index with your data
+index.train(vectors) # Assuming 'vectors' is a numpy array of your data
 
-   # Add vectors to the index
-   index.add(vectors)
+# Add vectors to the index
+index.add(vectors)
 
-   # Search the index
-   D, I = index.search(query_vectors, k)
-   ```
+# Search the index
+D, I = index.search(query_vectors, k)
+```
 
 ### Choosing the Right Index
 * IndexFlatL2: Use when accuracy is the primary concern, and the dataset is relatively small.

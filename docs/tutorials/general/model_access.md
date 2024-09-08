@@ -26,8 +26,8 @@ Depending on what service you are using to access certain models for different m
         ```
 
     2. Login to your Hugging Face account
-        1. First, create a Hugging Face account at https://huggingface.co/join.
-        2. Then, obtain an access token from https://huggingface.co/settings/tokens. You can find more information about User access tokens [here](https://huggingface.co/docs/huggingface_hub/en/guides/cli#command-line-interface-cli.
+        1. First, create a Hugging Face account [here](https://huggingface.co/join).
+        2. Then, obtain an access token using [this](https://huggingface.co/settings/tokens) link. You can find more information about User access tokens [here](https://huggingface.co/docs/huggingface_hub/en/guides/cli#command-line-interface-cli).
         3. Once you have your token, run the following command in your terminal:
         ```
         huggingface-cli login
