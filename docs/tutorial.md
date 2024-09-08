@@ -5,7 +5,7 @@
 2. [Accessing models through different services](tutorials/general/model_access.md)
 
 ## Data Processing Module
-1. [Using AutoGluon-RAG to obtain processed data from documents/websites](tutorials/embedding/generate_embeddings.md). This will include data in the form of text chunks for each document/website in the directory.
+1. [Using AutoGluon-RAG to obtain processed data from documents/websites](tutorials/data_processing/process_data.md). This will include data in the form of text chunks for each document/website in the directory.
 
 ## Embedding Module
 1. [Using AutoGluon-RAG to generate embeddings](tutorials/embedding/generate_embeddings.md)
