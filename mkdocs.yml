@@ -1,5 +1,7 @@
 site_name: AutoGluon-RAG
 nav:
   - Home: index.md
+  - Usage: usage.md
   - Tutorials: tutorial.md
+  - Evaluation: evaluation.md
 theme: readthedocs
