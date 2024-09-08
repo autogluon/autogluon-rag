@@ -4,6 +4,8 @@
 
 # AutoGluon-RAG
 
+[Github](https://github.com/autogluon/autogluon-rag)
+
 ## Overview
 AutoGluon-RAG is a framework designed to streamline the development of RAG (Retrieval-Augmented Generation) pipelines. RAG has emerged as a crucial approach for tailoring large language models (LLMs) to address domain-specific queries. However, constructing RAG pipelines traditionally involves navigating through a complex array of modules and functionalities, including retrievers, generators, vector database construction, fast semantic search, and handling long-context inputs, among others.
 

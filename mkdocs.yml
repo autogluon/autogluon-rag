@@ -1,0 +1,5 @@
+site_name: AutoGluon-RAG
+nav:
+  - Home: index.md
+  - Tutorials: tutorial.md
+theme: readthedocs
