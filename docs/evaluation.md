@@ -54,10 +54,11 @@ agrag = AutoGluonRAG(preset_quality="medium_quality", data_dir=evaluation_dir)
 
 ## AutoGluon-RAG for Large Datasets
 For large datasets, a naive version of AutoGluon-RAG may not be sufficient. Here are some steps you can take when working with a large corpus for RAG:
+
 1. Using optimized indices for Vector DB. Refer to the documentation for the supported vector databases on how you can use optimized indices such as clustered and quantized databases. Set the parameters appropriately in your configuration file. 
 
     For example, here is an optimized FAISS setup (in the configuration file) using quantization that runs correctly for the Google Natural Questions dataset:
-    ```python
+        
         vector_db:
         db_type: faiss
         faiss_index_type: IndexIVFPQ
@@ -66,7 +67,7 @@ For large datasets, a naive version of AutoGluon-RAG may not be sufficient. Here
             m: 8
             bits: 8
         faiss_index_nprobe: 15
-    ```
+
 2. Use GPUs: Make sure to use GPUs appropriately in each module (wherever applicable). You can set the `num_gpus` parameter in the configuration file under each module.
 
 3. System Memory: Make sure your system has enough RAM for at least the size of the dataset. You will require more memory for the documents that will be generated from the datasets, the embeddings, the metadata, and the vector db index. We recommend running evaluation on a remote instance (such as AWS EC2) instead of running locally. If you would like to run locally, you can choose to run a subset of the evaluation data by setting `max_eval_size` when calling the `run_evaluation` function (see the next section).
@@ -88,14 +89,17 @@ Alternatively, you can index all your evaluation datasets at once, or create mul
 ### metrics
 **Type**: `List[Union[str, Callable]]`  
 **Description**: The list of metrics to use for evaluation. Supported metrics include:
+
 - `"bertscore"`: Uses the [BERTScore metric](https://huggingface.co/spaces/evaluate-metric/bertscore) from HuggingFace.
 - `"bleu"`: Uses the [BLEU metric](https://huggingface.co/spaces/evaluate-metric/bleu) from HuggingFace
 - `"hf_exact_match"` Uses the [Exact Match Metric](https://huggingface.co/spaces/evaluate-metric/exact_match) from HuggingFace
 - `"inclusive_exact_match"`: Uses the Inclusive Exact Match metric. This is a custom metric defined in this module since it is a bit more lenient compared to the HuggingFace `exact_match` metric. It also counts events where the expected response is contained within the generated response as a success. This metric supports the following optional parameters:
-  - `regexes_to_ignore` (List[str], optional): A list of regex expressions of characters to ignore when calculating the exact matches. Defaults to `None`. Note: the regex changes are applied before capitalization is normalized.
-  - `ignore_case` (bool, optional): If `True`, turns everything to lowercase so that capitalization differences are ignored. Defaults to `False`.
-  - `ignore_punctuation` (bool, optional): If `True`, removes punctuation before comparing strings. Defaults to `False`.
-  - `ignore_numbers` (bool, optional): If `True`, removes all digits before comparing strings. Defaults to `False`.
+
+    - `regexes_to_ignore` (List[str], optional): A list of regex expressions of characters to ignore when calculating the exact matches. Defaults to `None`. Note: the regex changes are applied before capitalization is normalized.
+    - `ignore_case` (bool, optional): If `True`, turns everything to lowercase so that capitalization differences are ignored. Defaults to `False`.
+    - `ignore_punctuation` (bool, optional): If `True`, removes punctuation before comparing strings. Defaults to `False`.
+    - `ignore_numbers` (bool, optional): If `True`, removes all digits before comparing strings. Defaults to `False`.
+
 - `"pedant"`: Uses the PEDANT metric from [QA Metrics](https://github.com/zli12321/qa_metrics).
 - `"transformer_matcher"`: Uses the Transformer Matcher metric from [QA Metrics](https://github.com/zli12321/qa_metrics).
 - `<callable_custom_metric>`: Any callable Python function or a function from a Python package. It must take in at least the arguments `predictions` and `references`, where `predictions` is a `List` of generated responses and `references` is a `List[List]` of expected responses.
