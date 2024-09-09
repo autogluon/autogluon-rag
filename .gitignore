@@ -2,6 +2,7 @@
 *venv/
 *test_docs/
 .vscode
+site/
 
 *save
 openai*
