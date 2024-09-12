@@ -3,6 +3,9 @@
 *test_docs/
 .vscode
 site/
+_build
+_static
+_templates
 
 *save
 openai*
