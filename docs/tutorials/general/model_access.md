@@ -1,4 +1,4 @@
-## This is a tutorial on accessing models through different services in `AutoGluonRAG`. 
+# This is a tutorial on accessing models through different services in `AutoGluonRAG`. 
 
 Depending on what service you are using to access certain models for different modules, you may need to provide access keys for each service.
 1. Using GPT models: 

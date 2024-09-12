@@ -1,4 +1,4 @@
-## This is a tutorial on using AWS resources and services in `AutoGluonRAG`. 
+# This is a tutorial on using AWS resources and services in `AutoGluonRAG`. 
 
 To use any AWS resources, you need to make sure you have an appropriate AWS account with access to the required resources. Additionally, you will need to set up your access credentials.
 

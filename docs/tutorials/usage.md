@@ -1,4 +1,5 @@
-## Usage
+# Usage
+
 To use this framework, you must first install AutoGluon RAG:
 ```python
 git clone https://github.com/autogluon/autogluon-rag
@@ -13,7 +14,7 @@ pip install -e .
 ```
 You can now use the package in two ways. 
 
-### Use AutoGluon-RAG through the command line as `agrag`:
+## Use AutoGluon-RAG through the command line as `agrag`:
 
 ```python
 AutoGluon-RAG
@@ -28,7 +29,7 @@ options:
   --config_file        Path to the configuration file 
 ```
 
-### Use AutoGluon-RAG through code:
+## Use AutoGluon-RAG through code:
 ```python
 from agrag.agrag import AutoGluonRAG
 
@@ -49,12 +50,12 @@ if __name__ == "__main__":
     ag_rag()
 ```
 
-### Configuring Parameters for AutoGluon-RAG:
+## Configuring Parameters for AutoGluon-RAG:
 
-#### Using `AutoGluonRAG` class
+### Using `AutoGluonRAG` class
 For a list of configurable parameters that can be passed into the `AutoGluonRAG` class, refer to the tutorial [here](general/code_parameters.md). 
 
-#### Using Configuration File
+### Using Configuration File
 You can also use a configuration file with `AutoGluonRAG`.
 The configuration file contains the specific parameters to use for each module in the RAG pipeline. For an example of a config file, please refer to `example_config.yaml` in `src/agrag/configs/`. For specific details about the parameters in each individual module, refer to the `README` files in each module in `src/agrag/modules/`.
 

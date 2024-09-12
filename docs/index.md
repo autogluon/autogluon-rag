@@ -77,7 +77,6 @@ maxdepth: 1
 hidden:
 ---
 
----
 List of common errors <common_errors/common_errors>
 ```
 
@@ -112,5 +111,6 @@ caption: Resources
 maxdepth: 2
 hidden:
 ---
+
 GitHub <https://github.com/autogluon/autogluon-rag>
 ```
