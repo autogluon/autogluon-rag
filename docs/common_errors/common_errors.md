@@ -1,4 +1,4 @@
-# Below is a list of common errors in AutoGluon-RAG
+# List of common errors in AutoGluon-RAG
 
 ### 1. Shape Mismatch / Shape Errors
 A common error you may encounter when setting up the RAG pipeline end-to-end is shape errors when creating embeddings or storing them in the database. Here are some quick fixes to this problem:

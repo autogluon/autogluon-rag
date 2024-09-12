@@ -52,7 +52,7 @@ if __name__ == "__main__":
 ### Configuring Parameters for AutoGluon-RAG:
 
 #### Using `AutoGluonRAG` class
-For a list of configurable parameters that can be passed into the `AutoGluonRAG` class, refer to the tutorial [here](tutorials/general/code_parameters.md). 
+For a list of configurable parameters that can be passed into the `AutoGluonRAG` class, refer to the tutorial [here](general/code_parameters.md). 
 
 #### Using Configuration File
 You can also use a configuration file with `AutoGluonRAG`.
