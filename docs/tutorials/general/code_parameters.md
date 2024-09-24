@@ -1,4 +1,4 @@
-# This is a tutorial on the optional parameters that can be passed into the `AutoGluonRAG` class when using the package through code. 
+# Tutorial on the optional parameters that can be passed into the `AutoGluonRAG` class when using the package through code. 
 
 These are the <b>optional</b> parameters that can be passed into the `AutoGluonRAG` class:
 ```python

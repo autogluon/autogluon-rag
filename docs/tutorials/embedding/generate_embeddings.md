@@ -1,4 +1,4 @@
-# This is a tutorial on using AutoGluon-RAG to generate embeddings.
+# Tutorial on using AutoGluon-RAG to generate embeddings.
 
 ```python
 agrag = AutoGluonRAG(
