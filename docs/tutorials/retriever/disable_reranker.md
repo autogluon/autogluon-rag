@@ -1,4 +1,4 @@
-# Tutorial on disabling the reranker and only use embedding model for retrieval.
+# Disabling the reranker and only use embedding model for retrieval.
 
 The reranker is an optional sub-module that can be used within the retriever module to rerank the retrieved text from the Vector DB.
 There are two ways to configure the reranker.

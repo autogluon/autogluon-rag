@@ -6,7 +6,7 @@
 :::{grid-item-card} AutoGluon-RAG
   :link: usage.html
 
-  A tutorial on using AutoGluon-RAG module to obtain a Retrieval-Augmented Generation pipeline, in 3 Lines of Code!
+  Tutorials on using AutoGluon-RAG module to obtain a Retrieval-Augmented Generation pipeline, in 3 Lines of Code!
 :::
 
 ```{toctree}

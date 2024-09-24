@@ -1,4 +1,4 @@
-# Tutorial on changing generator after initializing RAG pipeline.
+# Changing generator after initializing RAG pipeline.
 
 ```python
 agrag = AutoGluon()
