@@ -27,6 +27,7 @@ myst_enable_extensions = ["colon_fence", "deflist", "dollarmath", "html_image", 
 autosummary_generate = True
 numpydoc_show_class_members = False
 
+# TODO: this is the placeholder measurement used by autogluon.cloud, need to update it to the actual one
 googleanalytics_id = "UA-96378503-20"
 
 nb_execution_mode = "force"

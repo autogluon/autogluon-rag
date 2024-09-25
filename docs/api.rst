@@ -2,7 +2,7 @@ API
 ===
 
 
-.. currentmodule:: agrag.modules
+.. currentmodule:: agrag
 
 .. autosummary::
     :toctree: api
