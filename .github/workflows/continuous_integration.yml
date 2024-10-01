@@ -5,6 +5,10 @@ on:
   pull_request:
     types: [labeled, opened, synchronize]
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   lint_check:
     runs-on: ubuntu-latest
@@ -32,6 +36,7 @@ jobs:
       - name: Run AutoGluon-RAG Tests
         run: |
           chmod +x ./.github/workflow_scripts/test_agrag.sh && ./.github/workflow_scripts/test_agrag.sh
+
   build_doc:
     if: ${{ github.event_name != 'schedule' }}
     needs: [run_tests]

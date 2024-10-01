@@ -11,7 +11,7 @@ source $(dirname "$0")/env_setup.sh
 
 if [[ (-n $PR_NUMBER) || ($GIT_REPO != "autogluon/autogluon-rag") ]]
 then
-    # Put in cloud bucket for staging purpose
+    # Put in rag bucket for staging purpose
     BUCKET='autogluon-rag-doc-staging'
     if [[ -n $PR_NUMBER ]]; then path=$PR_NUMBER/$COMMIT_SHA; else path=$BRANCH/$COMMIT_SHA; fi
     site=d1at46xkvcde0c.cloudfront.net/$path
