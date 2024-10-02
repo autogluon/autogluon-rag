@@ -1,0 +1,10 @@
+awscli>=1.18.140
+furo
+myst_nb
+sphinx
+sphinx-copybutton
+sphinx-design
+sphinx-inline-tabs
+sphinx-togglebutton
+sphinxcontrib-googleanalytics
+ipython>7.16,<8.28  # IPython 8.13+ supports Python 3.9 and above; Python 3.7 is supported with IPython >7.16

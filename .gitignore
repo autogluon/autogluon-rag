@@ -1,7 +1,10 @@
 .DS_Store
 *venv/
-*docs/
+*test_docs/
 .vscode
+site/
+_build
+api/
 
 *save
 openai*
