@@ -19,7 +19,7 @@ def construct_faiss_index(
     Parameters:
     ----------
     index_type: str
-        Type of FAISS Index to use (IndexFlatL2, IndexFlatIP, IndexIVFFlat, IndexIVFPQ)
+        Type of FAISS Index to use (IndexFlatL2, IndexIVFFlat, IndexIVFPQ)
     embeddings : List[torch.Tensor]
         A list of embeddings to be stored in the FAISS index.
     embedding_dim: int
@@ -29,7 +29,7 @@ def construct_faiss_index(
 
     Returns:
     -------
-    Union[IndexFlatL2, IndexFlatIP, IndexIVFFlat, IndexIVFPQ]
+    Union[IndexFlatL2, IndexIVFFlat, IndexIVFPQ]
         The constructed FAISS index.
     """
     d = embeddings[0].shape[-1]
@@ -52,8 +52,6 @@ def construct_faiss_index(
         index = faiss.IndexIVFFlat(quantizer, d, **faiss_clustered_index_params)
     elif index_type == "IndexFlatL2":
         index = quantizer
-    elif index_type == "IndexFlatIP": # Exact Search for Inner Product
-        index = faiss.IndexFlatIP(d)
     else:
         raise ValueError(f"Unsupported FAISS index type {index_type}")
 
@@ -62,8 +60,6 @@ def construct_faiss_index(
         logger.info(f"Using FAISS GPU index on {num_gpus} GPUs")
 
     if index_type == "IndexFlatL2":
-        index.add(np.array(embeddings))
-    elif index_type == "IndexFlatIP":
         index.add(np.array(embeddings))
     elif index_type in ("IndexIVFPQ", "IndexIVFFlat"):
         index.train(np.array(embeddings))
