@@ -143,7 +143,7 @@ def save_index(
         with open(index_path, "w") as fp:
             pass
     if db_type == "faiss":
-        if not isinstance(index, (faiss.IndexFlatL2, faiss.IndexIVFFlat, faiss.IndexIVFPQ)):
+        if not isinstance(index, (faiss.IndexFlatL2, faiss.IndexFlatIP, faiss.IndexIVFFlat, faiss.IndexIVFPQ)):
             raise TypeError("Index for FAISS incorrectly created. Not of a valid FAISS index type.")
         success = save_faiss_index(index, index_path)
         if s3_bucket and success:

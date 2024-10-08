@@ -59,6 +59,7 @@ D, I = index.search(query_vectors, k)
 
 ## Choosing the Right Index
 * `IndexFlatL2`: Use when accuracy is the primary concern, and the dataset is relatively small.
+* `IndexFlatIP`: Use it if you use inner product or cosine for similarity measurement.
 * `IndexIVFFlat`: Use when dealing with large datasets and you need to speed up the search process while maintaining reasonable accuracy.
 * `IndexPQ`: Use when you need to optimize for memory usage and speed at the cost of some precision.
 
@@ -68,7 +69,7 @@ You must specify the values in your configuration file or after instantiating yo
 ```
 vector_db:
     db_type: faiss
-    faiss_index_type: IndexFlatL2, IndexIVFFlat, or IndexIVFPQ
+    faiss_index_type: IndexFlatL2, IndexFlatIP, IndexIVFFlat, or IndexIVFPQ
     faiss_quantized_index_params: Parameters to pass into IndexIVFPQ (d, nlist, m, bits)
     faiss_clustered_index_params: Parameters to pass into IndexIVFFlat (d, nlist)
     faiss_index_nprobe: Set nprobe value. This defines how many nearby cells to search. It is applicable for both IndexIVFFlat and IndexIVFPQ
