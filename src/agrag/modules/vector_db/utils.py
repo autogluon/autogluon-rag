@@ -2,19 +2,19 @@ import logging
 import os
 from typing import List, Tuple, Union
 
-from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
-
 import boto3
 import faiss
 import numpy as np
 import pandas as pd
 import torch
+from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
+from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances, manhattan_distances
+from tqdm import tqdm
+
 from agrag.constants import LOGGER_NAME
 from agrag.modules.vector_db.faiss.faiss_db import load_faiss_index, save_faiss_index
 from agrag.modules.vector_db.milvus.milvus_db import load_milvus_index, save_milvus_index
 from agrag.utils import parse_path
-from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances, manhattan_distances
-from tqdm import tqdm
 
 logger = logging.getLogger(LOGGER_NAME)
 
