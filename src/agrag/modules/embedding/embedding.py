@@ -38,6 +38,8 @@ class EmbeddingModule:
         Instruction for query when using embedding model.
     bedrock_aws_region: str
         AWS region where the model is hosted on Bedrock.
+    embedding_model_max_tokens: int
+        Max number of tokens to use for embedding model
 
     Methods:
     -------
@@ -65,6 +67,7 @@ class EmbeddingModule:
         self.query_instruction_for_retrieval = kwargs.get("query_instruction_for_retrieval", None)
         self.num_gpus = kwargs.get("num_gpus", 0)
         self.device = "cpu" if not self.num_gpus else torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.embedding_model_max_tokens = kwargs.get("embedding_model_max_tokens")
         if self.model_platform == "bedrock":
             if not "embed" in self.model_name:
                 raise ValueError(
@@ -129,6 +132,9 @@ class EmbeddingModule:
 
             logger.info("\nTokenizing text chunks")
             batch_texts = texts[i : i + batch_size]
+            if self.embedding_model_max_tokens:
+                logger.info(f"\nTruncating Text chunks to size {self.embedding_model_max_tokens}")
+                batch_texts = [text[: self.embedding_model_max_tokens] for text in batch_texts]
 
             logger.info("\nGenerating embeddings")
             if self.model_platform == "bedrock":

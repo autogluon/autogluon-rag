@@ -241,6 +241,14 @@ class Arguments:
         self.config["embedding"]["embedding_batch_size"] = value
 
     @property
+    def embedding_model_max_tokens(self):
+        return self.config.get("embedding", {}).get("embedding_model_max_tokens")
+
+    @embedding_model_max_tokens.setter
+    def embedding_model_max_tokens(self, value):
+        self.config["embedding"]["embedding_model_max_tokens"] = value
+
+    @property
     def vector_db_type(self):
         return self.config.get("vector_db", {}).get("db_type", self.vector_db_defaults.get("DB_TYPE"))
 

@@ -10,8 +10,6 @@ from agrag.constants import LOGGER_NAME
 logger = logging.getLogger(LOGGER_NAME)
 import json
 
-from agrag.modules.embedding.constants import COHERE_MAX_TOKENS, TITAN_MAX_TOKENS
-
 
 def pool(embeddings: List[torch.Tensor], pooling_strategy: str) -> List[torch.Tensor]:
     """
@@ -85,11 +83,13 @@ def normalize_embedding(embeddings, args=None):
 
 
 def get_embeddings_bedrock(
-    batch_texts: List[str], client: boto3.client, model_id: str, embedding_params: dict = {}
+    batch_texts: List[str],
+    client: boto3.client,
+    model_id: str,
+    embedding_params: dict = {},
 ) -> List[float]:
     embeddings = []
     if "titan" in model_id:
-        batch_texts = [text[:TITAN_MAX_TOKENS] for text in batch_texts]
         for text in batch_texts:
             body = json.dumps(
                 {
@@ -106,7 +106,6 @@ def get_embeddings_bedrock(
             outputs = json.loads(response["body"].read())
             embeddings.append(outputs.get("embedding"))
     elif "cohere" in model_id:
-        batch_texts = [text[:COHERE_MAX_TOKENS] for text in batch_texts]
         body = json.dumps(
             {
                 "texts": batch_texts,
