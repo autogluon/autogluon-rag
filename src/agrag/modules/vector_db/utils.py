@@ -102,16 +102,13 @@ def pad_embeddings(embeddings: List[torch.Tensor]) -> torch.Tensor:
     """
     max_len = max(embedding.shape[1] for embedding in embeddings)
     padded_embeddings = [
-        torch.nn.functional.pad(embedding, (0, 0, 0, max_len - embedding.shape[1])) for embedding in embeddings
+        torch.nn.functional.pad(embedding, (0, 0, 0, max_len - embedding.shape[1]))
+        for embedding in embeddings
     ]
     return torch.cat(padded_embeddings, dim=0)
 
 
-def save_index(
-    db_type: str,
-    index: Union[faiss.IndexFlatL2],
-    index_path: str,
-) -> None:
+def save_index(db_type: str, index: Union[faiss.IndexFlatL2], index_path: str) -> None:
     """
     Saves the Vector DB index to disk.
 
@@ -143,7 +140,19 @@ def save_index(
         with open(index_path, "w") as fp:
             pass
     if db_type == "faiss":
-        if not isinstance(index, (faiss.IndexFlatL2, faiss.IndexIVFFlat, faiss.IndexIVFPQ)):
+        if not isinstance(
+            index,
+            (
+                faiss.IndexFlatL2,
+                faiss.IndexFlatIP,
+                faiss.IndexHNSWFlat,
+                faiss.IndexLSH,
+                faiss.IndexPQ,
+                faiss.IndexIVFFlat,
+                faiss.IndexScalarQuantizer,
+                faiss.IndexIVFPQ,
+            ),
+        ):
             raise TypeError("Index for FAISS incorrectly created. Not of a valid FAISS index type.")
         success = save_faiss_index(index, index_path)
         if s3_bucket and success:
@@ -156,11 +165,7 @@ def save_index(
         logger.warning(f"Cannot save index. Unsupported Vector DB {db_type}.")
 
 
-def load_index(
-    db_type: str,
-    index_path: str,
-    pbar: tqdm = None,
-) -> Union[faiss.IndexFlatL2]:
+def load_index(db_type: str, index_path: str, pbar: tqdm = None) -> Union[faiss.IndexFlatL2]:
     """
     Loads the Vector DB index from disk.
 
@@ -200,10 +205,7 @@ def load_index(
     return index
 
 
-def save_metadata(
-    metadata: pd.DataFrame,
-    metadata_path: str,
-):
+def save_metadata(metadata: pd.DataFrame, metadata_path: str):
     """
     Saves metadata to file.
 
@@ -265,9 +267,7 @@ def save_metadata(
     return True
 
 
-def load_metadata(
-    metadata_path: str,
-) -> pd.DataFrame:
+def load_metadata(metadata_path: str,) -> pd.DataFrame:
     """
     Loads metadata from file.
 
@@ -316,11 +316,7 @@ def load_metadata(
     return metadata
 
 
-def save_index_s3(
-    index_path: str,
-    s3_bucket: str,
-    s3_client: boto3.session.Session.client,
-):
+def save_index_s3(index_path: str, s3_bucket: str, s3_client: boto3.session.Session.client):
     """
     Saves the index to S3.
 
@@ -356,11 +352,7 @@ def save_index_s3(
         s3_client.close()
 
 
-def load_index_s3(
-    index_path: str,
-    s3_bucket: str,
-    s3_client: boto3.session.Session.client,
-):
+def load_index_s3(index_path: str, s3_bucket: str, s3_client: boto3.session.Session.client):
     """
     Loads the index from S3.
 

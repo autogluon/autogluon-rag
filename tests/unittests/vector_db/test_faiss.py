@@ -29,19 +29,89 @@ class TestFaissDB(unittest.TestCase):
         )
         self.assertEqual(index, mock_index)
 
+    @patch("faiss.IndexFlatIP")
+    def test_construct_faiss_index_flat_ip(self, mock_index_flat_ip):
+        mock_index = MagicMock()
+        mock_index_flat_ip.return_value = mock_index
+        mock_index.ntotal = len(self.embeddings)
+        index = construct_faiss_index(
+            self.embeddings, embedding_dim=self.embeddings[0].shape[-1], num_gpus=0, index_type="IndexFlatIP"
+        )
+        self.assertEqual(index, mock_index)
+
+    @patch("faiss.IndexHNSWFlat")
+    def test_construct_faiss_index_hnsw_flat(self, mock_index_hnsw_flat):
+        mock_index = MagicMock()
+        mock_index_hnsw_flat.return_value = mock_index
+        mock_index.ntotal = len(self.embeddings)
+        faiss_index_params = {"m": 4}
+        index = construct_faiss_index(
+            self.embeddings,
+            embedding_dim=self.embeddings[0].shape[-1],
+            num_gpus=0,
+            index_type="IndexHNSWFlat",
+            faiss_index_params=faiss_index_params,
+        )
+        self.assertEqual(index, mock_index)
+
+    @patch("faiss.IndexLSH")
+    def test_construct_faiss_index_lsh(self, mock_index_lsh):
+        mock_index = MagicMock()
+        mock_index_lsh.return_value = mock_index
+        mock_index.ntotal = len(self.embeddings)
+        faiss_index_params = {"nbits": 4}
+        index = construct_faiss_index(
+            self.embeddings,
+            embedding_dim=self.embeddings[0].shape[-1],
+            num_gpus=0,
+            index_type="IndexLSH",
+            faiss_index_params=faiss_index_params,
+        )
+        self.assertEqual(index, mock_index)
+
+    @patch("faiss.IndexPQ")
+    def test_construct_faiss_index_lsh(self, mock_index_pq):
+        mock_index = MagicMock()
+        mock_index_pq.return_value = mock_index
+        mock_index.ntotal = len(self.embeddings)
+        faiss_index_params = {"quantizer": "IndexFlatL2", "m": 4, "nbits": 4}
+        index = construct_faiss_index(
+            self.embeddings,
+            embedding_dim=self.embeddings[0].shape[-1],
+            num_gpus=0,
+            index_type="IndexPQ",
+            faiss_index_params=faiss_index_params,
+        )
+        self.assertEqual(index, mock_index)
+
+    @patch("faiss.IndexScalarQuantizer")
+    def test_construct_faiss_index_lsh(self, mock_index_scalar_quantizer):
+        mock_index = MagicMock()
+        mock_index_scalar_quantizer.return_value = mock_index
+        mock_index.ntotal = len(self.embeddings)
+        faiss_index_params = {"quantizer": "QT_8bit"}
+        index = construct_faiss_index(
+            self.embeddings,
+            embedding_dim=self.embeddings[0].shape[-1],
+            num_gpus=0,
+            index_type="IndexScalarQuantizer",
+            faiss_index_params=faiss_index_params,
+        )
+        self.assertEqual(index, mock_index)
+
     @patch("faiss.IndexIVFPQ")
     def test_construct_faiss_index_ivfpq(self, mock_index_ivfpq):
         mock_index = MagicMock()
         mock_index_ivfpq.return_value = mock_index
         mock_index.ntotal = len(self.embeddings)
         mock_index.is_trained = True
-        quantized_params = {"nlist": 10, "m": 8, "nbits": 8}
+        faiss_index_params = {"quantizer": "IndexFlatL2", "nlist": 10, "m": 8, "nbits": 8}
         index = construct_faiss_index(
             self.embeddings,
             embedding_dim=self.embeddings[0].shape[-1],
             num_gpus=0,
             index_type="IndexIVFPQ",
-            faiss_quantized_index_params=quantized_params,
+            faiss_index_params=faiss_index_params,
         )
         self.assertEqual(index, mock_index)
 
@@ -51,13 +121,13 @@ class TestFaissDB(unittest.TestCase):
         mock_index_ivfflat.return_value = mock_index
         mock_index.ntotal = len(self.embeddings)
         mock_index.is_trained = True
-        clustered_params = {"nlist": 10}
+        faiss_index_params = {"quantizer": "IndexFlatL2", "nlist": 10}
         index = construct_faiss_index(
             self.embeddings,
             embedding_dim=self.embeddings[0].shape[-1],
             num_gpus=0,
             index_type="IndexIVFFlat",
-            faiss_clustered_index_params=clustered_params,
+            faiss_index_params=faiss_index_params,
         )
         self.assertEqual(index, mock_index)
 

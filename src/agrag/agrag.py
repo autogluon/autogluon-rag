@@ -205,9 +205,8 @@ class AutoGluonRAG:
             similarity_fn=self.args.vector_db_sim_fn,
             num_gpus=num_gpus,
             faiss_index_type=self.args.faiss_index_type,
-            faiss_quantized_index_params=self.args.faiss_quantized_index_params,
-            faiss_clustered_index_params=self.args.faiss_clustered_index_params,
-            faiss_index_nprobe=self.args.faiss_index_nprobe,
+            faiss_index_params=self.args.faiss_index_params,
+            faiss_search_params=self.args.faiss_search_params,
             milvus_db_name=self.args.milvus_db_name,
             milvus_search_params=self.args.milvus_search_params,
             milvus_collection_name=self.args.milvus_collection_name,
@@ -381,16 +380,9 @@ class AutoGluonRAG:
         agrag.save_index_and_metadata()
         """
         logger.info(f"\nSaving Vector DB at {index_path}")
-        save_index(
-            self.vector_db_module.db_type,
-            self.vector_db_module.index,
-            index_path,
-        )
+        save_index(self.vector_db_module.db_type, self.vector_db_module.index, index_path)
         logger.info(f"\nSaving Metadata at {metadata_path}")
-        save_metadata(
-            self.vector_db_module.metadata,
-            metadata_path,
-        )
+        save_metadata(self.vector_db_module.metadata, metadata_path)
 
     def retrieve_context_for_query(self, query: str) -> List[Dict[str, Any]]:
         """
@@ -465,7 +457,9 @@ class AutoGluonRAG:
 
         """
 
-        file_paths = get_all_file_paths(self.data_processing_module.data_dir, self.data_processing_module.file_exts)
+        file_paths = get_all_file_paths(
+            self.data_processing_module.data_dir, self.data_processing_module.file_exts
+        )
 
         web_urls = []
         if self.parse_urls_recursive:
@@ -543,7 +537,9 @@ class AutoGluonRAG:
         load_index = self.args.use_existing_vector_db_index
         load_index_successful = False
         if load_index:
-            self.load_existing_vector_db(self.args.vector_db_index_load_path, self.args.metadata_index_load_path)
+            self.load_existing_vector_db(
+                self.args.vector_db_index_load_path, self.args.metadata_index_load_path
+            )
             load_index_successful = (
                 True if self.vector_db_module.index and self.vector_db_module.metadata is not None else False
             )
@@ -563,6 +559,8 @@ class AutoGluonRAG:
                 self.batched_processing()
 
             if self.args.save_vector_db_index:
-                self.save_index_and_metadata(self.args.vector_db_index_save_path, self.args.metadata_index_save_path)
+                self.save_index_and_metadata(
+                    self.args.vector_db_index_save_path, self.args.metadata_index_save_path
+                )
 
         self.pipeline_initialized = True

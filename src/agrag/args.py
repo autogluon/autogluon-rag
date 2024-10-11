@@ -38,21 +38,29 @@ class Arguments:
             # Use through command-line
             self.args = self._parse_args()
             self.config = self._load_config(self.args.config_file)
-        self.data_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/data_processing/default.yaml"))
-        self.embedding_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/embedding/default.yaml"))
-        self.vector_db_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/vector_db/default.yaml"))
-        self.retriever_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/retriever/default.yaml"))
-        self.generator_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/generator/default.yaml"))
+        self.data_defaults = self._load_defaults(
+            os.path.join(CURRENT_DIR, "configs/data_processing/default.yaml")
+        )
+        self.embedding_defaults = self._load_defaults(
+            os.path.join(CURRENT_DIR, "configs/embedding/default.yaml")
+        )
+        self.vector_db_defaults = self._load_defaults(
+            os.path.join(CURRENT_DIR, "configs/vector_db/default.yaml")
+        )
+        self.retriever_defaults = self._load_defaults(
+            os.path.join(CURRENT_DIR, "configs/retriever/default.yaml")
+        )
+        self.generator_defaults = self._load_defaults(
+            os.path.join(CURRENT_DIR, "configs/generator/default.yaml")
+        )
         self.shared_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/shared/default.yaml"))
 
     def _parse_args(self) -> argparse.Namespace:
-        parser = argparse.ArgumentParser(description="AutoGluon-RAG - Retrieval-Augmented Generation Pipeline")
+        parser = argparse.ArgumentParser(
+            description="AutoGluon-RAG - Retrieval-Augmented Generation Pipeline"
+        )
         parser.add_argument(
-            "--config_file",
-            type=str,
-            help="Path to the configuration file",
-            metavar="",
-            required=True,
+            "--config_file", type=str, help="Path to the configuration file", metavar="", required=True
         )
         return parser.parse_args()
 
@@ -120,7 +128,9 @@ class Arguments:
 
     @property
     def html_tags_to_extract(self):
-        return self.config.get("data", {}).get("html_tags_to_extract", self.data_defaults.get("SUPPORTED_HTML_TAGS"))
+        return self.config.get("data", {}).get(
+            "html_tags_to_extract", self.data_defaults.get("SUPPORTED_HTML_TAGS")
+        )
 
     @html_tags_to_extract.setter
     def html_tags_to_extract(self, value):
@@ -136,7 +146,9 @@ class Arguments:
 
     @property
     def parse_urls_recursive(self):
-        return self.config.get("data", {}).get("parse_urls_recursive", self.data_defaults.get("PARSE_URLS_RECURSIVE"))
+        return self.config.get("data", {}).get(
+            "parse_urls_recursive", self.data_defaults.get("PARSE_URLS_RECURSIVE")
+        )
 
     @parse_urls_recursive.setter
     def parse_urls_recursive(self, value):
@@ -160,7 +172,9 @@ class Arguments:
 
     @property
     def data_file_extns(self):
-        return self.config.get("data", {}).get("file_extns", self.data_defaults.get("SUPPORTED_FILE_EXTENSIONS"))
+        return self.config.get("data", {}).get(
+            "file_extns", self.data_defaults.get("SUPPORTED_FILE_EXTENSIONS")
+        )
 
     @data_file_extns.setter
     def data_file_extns(self, value):
@@ -268,7 +282,9 @@ class Arguments:
 
     @property
     def vector_db_sim_fn(self):
-        return self.config.get("vector_db", {}).get("similarity_fn", self.vector_db_defaults.get("SIMILARITY_FN"))
+        return self.config.get("vector_db", {}).get(
+            "similarity_fn", self.vector_db_defaults.get("SIMILARITY_FN")
+        )
 
     @vector_db_sim_fn.setter
     def vector_db_sim_fn(self, value):
@@ -351,32 +367,24 @@ class Arguments:
         self.config["vector_db"]["faiss_index_type"] = value
 
     @property
-    def faiss_quantized_index_params(self):
+    def faiss_index_params(self):
         return self.config.get("vector_db", {}).get(
-            "faiss_quantized_index_params", self.vector_db_defaults.get("FAISS_QUANTIZED_PARAMS")
+            "faiss_index_params", self.vector_db_defaults.get("FAISS_INDEX_PARAMS")
         )
 
-    @faiss_quantized_index_params.setter
-    def faiss_quantized_index_params(self, value):
-        self.config["vector_db"]["faiss_quantized_index_params"] = value
+    @faiss_index_params.setter
+    def faiss_index_params(self, value):
+        self.config["vector_db"]["faiss_index_params"] = value
 
     @property
-    def faiss_clustered_index_params(self):
+    def faiss_search_params(self):
         return self.config.get("vector_db", {}).get(
-            "faiss_clustered_index_params", self.vector_db_defaults.get("FAISS_CLUSTERED_PARAMS")
+            "faiss_search_params", self.vector_db_defaults.get("FAISS_SEARCH_PARAMS")
         )
 
-    @faiss_clustered_index_params.setter
-    def faiss_clustered_index_params(self, value):
-        self.config["vector_db"]["faiss_clustered_index_params"] = value
-
-    @property
-    def faiss_index_nprobe(self):
-        return self.config.get("vector_db", {}).get("faiss_index_nprobe", self.vector_db_defaults.get("FAISS_NPROBE"))
-
-    @faiss_index_nprobe.setter
-    def faiss_index_nprobe(self, value):
-        self.config["vector_db"]["faiss_index_nprobe"] = value
+    @faiss_search_params.setter
+    def faiss_search_params(self, value):
+        self.config["vector_db"]["faiss_search_params"] = value
 
     @property
     def milvus_search_params(self):
@@ -400,7 +408,9 @@ class Arguments:
 
     @property
     def milvus_db_name(self):
-        return self.config.get("vector_db", {}).get("milvus_db_name", self.vector_db_defaults.get("MILVUS_DB_NAME"))
+        return self.config.get("vector_db", {}).get(
+            "milvus_db_name", self.vector_db_defaults.get("MILVUS_DB_NAME")
+        )
 
     @milvus_db_name.setter
     def milvus_db_name(self, value):
@@ -428,7 +438,9 @@ class Arguments:
 
     @property
     def retriever_top_k(self):
-        return self.config.get("retriever", {}).get("retriever_top_k", self.retriever_defaults.get("RETRIEVER_TOP_K"))
+        return self.config.get("retriever", {}).get(
+            "retriever_top_k", self.retriever_defaults.get("RETRIEVER_TOP_K")
+        )
 
     @retriever_top_k.setter
     def retriever_top_k(self, value):
@@ -436,7 +448,9 @@ class Arguments:
 
     @property
     def reranker_top_k(self):
-        return self.config.get("retriever", {}).get("reranker_top_k", self.retriever_defaults.get("RERANKER_TOP_K"))
+        return self.config.get("retriever", {}).get(
+            "reranker_top_k", self.retriever_defaults.get("RERANKER_TOP_K")
+        )
 
     @reranker_top_k.setter
     def reranker_top_k(self, value):
@@ -444,7 +458,9 @@ class Arguments:
 
     @property
     def use_reranker(self):
-        return self.config.get("retriever", {}).get("use_reranker", self.retriever_defaults.get("USE_RERANKER"))
+        return self.config.get("retriever", {}).get(
+            "use_reranker", self.retriever_defaults.get("USE_RERANKER")
+        )
 
     @use_reranker.setter
     def use_reranker(self, value):
