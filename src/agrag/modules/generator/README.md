@@ -16,31 +16,60 @@ Here are the configurable parameters for this module:
 ```
 generator:
   generator_model_name: The name of the model to use for generating responses. Supported models include Huggingface models, GPT-2, GPT-3 and higher via OpenAI API, and AWS Bedrock models.
+
+  generator_model_platform: The name of the platform where the model is hosted
+      Currently the following models are supported.
+        - GPTGenerator for GPT-3 and GPT-4 models. Platform is "openai".
+        - BedrockGenerator for AWS Bedrock models. Platform is "bedrock".
+        - VLLMGenerator for vLLM models. Platform is "vllm".
+        - HFGenerator for HuggingFace models. Platform is "huggingface".
+
+  generator_model_platform_args: Additional platform-specific parameters to use when initializing the model, generating text, etc.
   
   num_gpus: Number of GPUs to use for generating responses (default is 0).
-  
-  generator_hf_model_params: Additional parameters to pass to the Huggingface model's `from_pretrained` initializer method.
-  
-  generator_hf_tokenizer_params: Additional parameters to pass to the `tokenizer` method for the Huggingface model.
-  
-  generator_hf_tokenizer_init_params: Additional parameters to pass to the Huggingface tokenizer's `from_pretrained` initializer method.
-  
-  generator_hf_forward_params: Additional parameters to pass to the Huggingface model's `forward` method.
-  
-  generator_hf_generate_params: Additional parameters to pass to the Huggingface model's `generate` method.
-  
-  gpt_generate_params: Additional parameters to pass to the OpenAI GPT model's `create` method.
-  
-  use_vllm: Whether to use the vLLM library for generating responses (default is False).
-  
-  vllm_sampling_params: Parameters to pass to the vLLM library's `SamplingParams` method.
-  
-  openai_key_file: The path to the file containing the OpenAI API key.
-  
-  use_bedrock: Whether to use AWS Bedrock for generating responses (default is False).
-  
-  bedrock_generate_params: Additional parameters to pass to the AWS Bedrock generate API method.
 
-  local_model_path: Path to a local model to use for generation.
-
+  generator_query_prefix: Prefix to add to each query that will be passed into the generator.
 ```
+
+#### `generator_model_platform_args` structure
+If you are using `huggingface` platform, the arguments must be structured as:
+  ```python
+  generator_model_platform_args = {
+      "gpt_generate_params": {}, #Additional parameters to pass to the OpenAI GPT model's `create` method.
+  }
+  ```
+
+If you are using `vllm` platform, the arguments must be structured as:
+  ```python
+  generator_model_platform_args = {
+      "vllm_sampling_params": {}, # Parameters to pass to the vLLM library's `SamplingParams` method.
+  }
+  ```
+
+  If you are using `huggingface` platform, the arguments must be structured as:
+  ```python
+  generator_model_platform_args = {
+      "hf_model_params": {}, # Additional parameters to pass to the Huggingface model's `from_pretrained` initializer method.
+  
+      "hf_tokenizer_init_params": {}, # Additional parameters to pass to the Huggingface tokenizer's `from_pretrained` initializer method.
+      
+      "hf_tokenizer_params": {}, # Additional parameters to pass to the `tokenizer` method for the Huggingface model.
+      
+      "hf_forward_params": {}, # Additional parameters to pass to the Huggingface model's `forward` method.
+
+      "hf_generate_params": {}, # Additional parameters to pass to the Huggingface model's `generate` method.
+
+      "local_model_path": "path/to/local_model" , # Path to a local model to use for generation.
+  }
+  ```
+
+  If you are using `bedrock` platform, the arguments must be structured as:
+  ```python
+  generator_model_platform_args = {
+      "bedrock_generate_params": {}, # Additional parameters to pass to the AWS Bedrock generate API method.
+
+      "openai_key_file": "path/to/txt_file", # The path to the file containing the OpenAI API key.
+      
+      "bedrock_aws_region": "us-west-2" # AWS region where the model is hosted on Bedrock.
+  }
+  ```

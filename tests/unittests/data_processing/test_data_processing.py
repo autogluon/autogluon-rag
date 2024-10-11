@@ -181,7 +181,7 @@ class TestDataProcessingModule(unittest.TestCase):
             pd.DataFrame([{DOC_ID_KEY: 0, CHUNK_ID_KEY: 0, DOC_TEXT_KEY: "This is a test page from a URL."}]),
         ]
 
-        data = data_processing_module.process_urls(data_processing_module.web_urls, start_doc_id=0)
+        data = data_processing_module.process_urls(data_processing_module.web_urls, start_doc_id=0)[0]
 
         expected_data = pd.DataFrame(
             [{DOC_ID_KEY: 0, CHUNK_ID_KEY: 0, DOC_TEXT_KEY: "This is a test page from a URL."}]

@@ -5,14 +5,18 @@ on:
   pull_request:
     types: [labeled, opened, synchronize]
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   lint_check:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
       - name: Lint Check
@@ -24,11 +28,58 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
       - name: Run AutoGluon-RAG Tests
         run: |
           chmod +x ./.github/workflow_scripts/test_agrag.sh && ./.github/workflow_scripts/test_agrag.sh
+
+  build_doc:
+    if: ${{ github.event_name != 'schedule' }}
+    needs: [run_tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        if: ${{ github.event_name != 'pull_request_target' }}
+        uses: actions/checkout@v4
+      - name: Checkout repository(Pull Request Target)
+        if: ${{ github.event_name == 'pull_request_target' }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Setup Env Vars
+        uses: ./.github/actions/setup-env-vars
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - uses: r-lib/actions/setup-pandoc@v2
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::369469875935:role/AutoGluonRAGCIDocRole
+          role-duration-seconds: 3600
+          aws-region: us-east-1
+      - name: Build Doc(For push)
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          chmod +x ./.github/workflow_scripts/build_doc.sh
+          ./.github/workflow_scripts/build_doc.sh '${{ github.ref }}' '${{ github.repository }}' '${{ env.SHORT_SHA }}'
+      - name: Build Doc(For pull request)
+        if: ${{ github.event_name == 'pull_request_target' }}
+        env:
+          branch: ${{ github.event.pull_request.head.ref }}
+        run: |
+          chmod +x ./.github/workflow_scripts/build_doc.sh
+          ./.github/workflow_scripts/build_doc.sh "$branch" '${{ github.event.pull_request.head.repo.full_name }}' '${{ env.SHORT_SHA }}' PR-'${{ github.event.number }}'
+      - name: Comment on PR
+        if: ${{ github.event_name == 'pull_request_target' }}
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          issue-number: ${{ github.event.number }}
+          body: |
+            Job PR-${{ github.event.number }}-${{ env.SHORT_SHA }} is done.
+            Docs are uploaded to https://d1at46xkvcde0c.cloudfront.net/PR-${{ github.event.number }}/${{ env.SHORT_SHA }}/index.html
+

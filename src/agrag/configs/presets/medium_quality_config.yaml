@@ -10,8 +10,9 @@ data:
 
 embedding:
   embedding_model: cohere.embed-english-v3
-  use_bedrock: true
-  bedrock_aws_region: us-west-2
+  embedding_model_platform: bedrock
+  embedding_model_platform_args:
+    bedrock_aws_region: us-west-2
   normalize_embeddings: false
   hf_tokenizer_params: 
     truncation: true
@@ -37,21 +38,24 @@ retriever:
   use_reranker: true
   reranker_top_k: 10
   reranker_model_name: BAAI/bge-large-en
+  reranker_model_platform: huggingface
   reranker_batch_size: 32
   num_gpus: 0
-  reranker_hf_tokenizer_params:
-    padding: true
-    truncation: true
-    max_length: 512
-    return_tensors: pt
+  reranker_model_platform_args:
+    hf_tokenizer_params:
+      padding: true
+      truncation: true
+      max_length: 512
+      return_tensors: pt
 
 generator:
   generator_model_name: anthropic.claude-3-sonnet-20240229-v1:0
-  use_bedrock: true
-  bedrock_aws_region: us-west-2
-  bedrock_generate_params:
-    max_tokens: 512
-    anthropic_version: "bedrock-2023-05-31"
+  generator_model_platform: bedrock
+  generator_model_platform_args:
+    bedrock_aws_region: us-west-2
+    bedrock_generate_params:
+      max_tokens: 512
+      anthropic_version: "bedrock-2023-05-31"
   generator_hf_generate_params:
     max_new_tokens: 1024
   generator_query_prefix: You are a helpful chat assistant. You will be provided with a query and you must answer it to the best of your abilities. You will be provided with some additional context that is related to the query and will help you answer the question.
