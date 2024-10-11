@@ -457,9 +457,7 @@ class AutoGluonRAG:
 
         """
 
-        file_paths = get_all_file_paths(
-            self.data_processing_module.data_dir, self.data_processing_module.file_exts
-        )
+        file_paths = get_all_file_paths(self.data_processing_module.data_dir, self.data_processing_module.file_exts)
 
         web_urls = []
         if self.parse_urls_recursive:
@@ -467,10 +465,7 @@ class AutoGluonRAG:
                 loader = RecursiveUrlLoader(url=url, max_depth=1)
                 docs = loader.load()
                 urls = extract_sub_links(
-                    raw_html=docs[0].page_content,
-                    url=url,
-                    base_url=self.base_urls[idx],
-                    continue_on_failure=True,
+                    raw_html=docs[0].page_content, url=url, base_url=self.base_urls[idx], continue_on_failure=True
                 )
                 urls = [url] + urls
                 logger.info(
@@ -537,9 +532,7 @@ class AutoGluonRAG:
         load_index = self.args.use_existing_vector_db_index
         load_index_successful = False
         if load_index:
-            self.load_existing_vector_db(
-                self.args.vector_db_index_load_path, self.args.metadata_index_load_path
-            )
+            self.load_existing_vector_db(self.args.vector_db_index_load_path, self.args.metadata_index_load_path)
             load_index_successful = (
                 True if self.vector_db_module.index and self.vector_db_module.metadata is not None else False
             )
@@ -559,8 +552,6 @@ class AutoGluonRAG:
                 self.batched_processing()
 
             if self.args.save_vector_db_index:
-                self.save_index_and_metadata(
-                    self.args.vector_db_index_save_path, self.args.metadata_index_save_path
-                )
+                self.save_index_and_metadata(self.args.vector_db_index_save_path, self.args.metadata_index_save_path)
 
         self.pipeline_initialized = True

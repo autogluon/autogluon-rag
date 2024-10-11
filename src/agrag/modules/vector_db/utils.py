@@ -102,8 +102,7 @@ def pad_embeddings(embeddings: List[torch.Tensor]) -> torch.Tensor:
     """
     max_len = max(embedding.shape[1] for embedding in embeddings)
     padded_embeddings = [
-        torch.nn.functional.pad(embedding, (0, 0, 0, max_len - embedding.shape[1]))
-        for embedding in embeddings
+        torch.nn.functional.pad(embedding, (0, 0, 0, max_len - embedding.shape[1])) for embedding in embeddings
     ]
     return torch.cat(padded_embeddings, dim=0)
 
