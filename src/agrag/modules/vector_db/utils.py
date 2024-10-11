@@ -164,7 +164,11 @@ def save_index(db_type: str, index: Union[faiss.IndexFlatL2], index_path: str) -
         logger.warning(f"Cannot save index. Unsupported Vector DB {db_type}.")
 
 
-def load_index(db_type: str, index_path: str, pbar: tqdm = None) -> Union[faiss.IndexFlatL2]:
+def load_index(
+    db_type: str,
+    index_path: str,
+    pbar: tqdm = None,
+) -> Union[faiss.IndexFlatL2]:
     """
     Loads the Vector DB index from disk.
 
@@ -204,7 +208,10 @@ def load_index(db_type: str, index_path: str, pbar: tqdm = None) -> Union[faiss.
     return index
 
 
-def save_metadata(metadata: pd.DataFrame, metadata_path: str):
+def save_metadata(
+    metadata: pd.DataFrame,
+    metadata_path: str,
+):
     """
     Saves metadata to file.
 
@@ -266,7 +273,9 @@ def save_metadata(metadata: pd.DataFrame, metadata_path: str):
     return True
 
 
-def load_metadata(metadata_path: str,) -> pd.DataFrame:
+def load_metadata(
+    metadata_path: str,
+) -> pd.DataFrame:
     """
     Loads metadata from file.
 
@@ -315,7 +324,11 @@ def load_metadata(metadata_path: str,) -> pd.DataFrame:
     return metadata
 
 
-def save_index_s3(index_path: str, s3_bucket: str, s3_client: boto3.session.Session.client):
+def save_index_s3(
+    index_path: str,
+    s3_bucket: str,
+    s3_client: boto3.session.Session.client,
+):
     """
     Saves the index to S3.
 
@@ -351,7 +364,11 @@ def save_index_s3(index_path: str, s3_bucket: str, s3_client: boto3.session.Sess
         s3_client.close()
 
 
-def load_index_s3(index_path: str, s3_bucket: str, s3_client: boto3.session.Session.client):
+def load_index_s3(
+    index_path: str,
+    s3_bucket: str,
+    s3_client: boto3.session.Session.client,
+):
     """
     Loads the index from S3.
 
