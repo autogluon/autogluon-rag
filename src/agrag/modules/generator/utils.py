@@ -19,20 +19,31 @@ def format_query(model_name: str, query: str, context: List[str]) -> str:
     str
         The formatted query.
     """
-    final_query = f"{query}\n\nHere is some useful context:\n{context}"
+    final_query = f"{query}\n"
+    if context:
+        final_query += f"\nHere is some useful context:\n{context}"
 
     model_name = model_name.lower()
 
     if "mistral" in model_name:
         formatted_query = f"[INST] {final_query} [/INST]"
     elif "llama" in model_name:
-        formatted_query = f"<s>[INST] <<SYS>> {context} <</SYS>> \n\n {query} [/INST]"
+        if context:
+            formatted_query = f"<s>[INST] <<SYS>> {context} <</SYS>> \n\n {query} [/INST]"
+        else:
+            formatted_query = f"<s>[INST] {query} [/INST]"
     elif "anthropic" in model_name:
-        formatted_query = f"\n\nHuman: {query}\n\nAssistant: Here is some useful context:\n{context}\n\nAssistant:"
+        if context:
+            formatted_query = f"\n\nHuman: {query}\n\nAssistant: Here is some useful context:\n{context}\n\nAssistant:"
+        else:
+            formatted_query = f"\n\nHuman: {query}\n\nAssistant:"
     elif "gpt-" in model_name:
         formatted_query = final_query
     else:
         # Default formatting for other HuggingFace models
-        formatted_query = f"User: {query}\n\nContext:\n{context}\n\nResponse:"
+        if context:
+            formatted_query = f"User: {query}\n\nContext:\n{context}\n\nResponse:"
+        else:
+            formatted_query = f"User: {query}\n\nResponse:"
 
     return formatted_query
