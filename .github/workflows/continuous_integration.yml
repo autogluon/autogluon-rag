@@ -2,8 +2,8 @@ name: Continuous Integration
 
 on:
   push:
-  pull_request:
-    types: [labeled, opened, synchronize]
+  pull_request_target:
+    types: [opened, synchronize, reopened, labeled]
 
 permissions:
   id-token: write
