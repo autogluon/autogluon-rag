@@ -107,11 +107,7 @@ def pad_embeddings(embeddings: List[torch.Tensor]) -> torch.Tensor:
     return torch.cat(padded_embeddings, dim=0)
 
 
-def save_index(
-    db_type: str,
-    index: Union[faiss.IndexFlatL2],
-    index_path: str,
-) -> None:
+def save_index(db_type: str, index: Union[faiss.IndexFlatL2], index_path: str) -> None:
     """
     Saves the Vector DB index to disk.
 
@@ -143,7 +139,19 @@ def save_index(
         with open(index_path, "w") as fp:
             pass
     if db_type == "faiss":
-        if not isinstance(index, (faiss.IndexFlatL2, faiss.IndexIVFFlat, faiss.IndexIVFPQ)):
+        if not isinstance(
+            index,
+            (
+                faiss.IndexFlatL2,
+                faiss.IndexFlatIP,
+                faiss.IndexHNSWFlat,
+                faiss.IndexLSH,
+                faiss.IndexPQ,
+                faiss.IndexIVFFlat,
+                faiss.IndexScalarQuantizer,
+                faiss.IndexIVFPQ,
+            ),
+        ):
             raise TypeError("Index for FAISS incorrectly created. Not of a valid FAISS index type.")
         success = save_faiss_index(index, index_path)
         if s3_bucket and success:

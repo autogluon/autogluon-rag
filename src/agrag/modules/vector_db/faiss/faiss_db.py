@@ -11,7 +11,11 @@ logger = logging.getLogger(LOGGER_NAME)
 
 
 def construct_faiss_index(
-    embeddings: List[torch.Tensor], embedding_dim: int, num_gpus: int = 1, index_type: str = "IndexFlatL2", **kwargs
+    embeddings: List[torch.Tensor],
+    embedding_dim: int,
+    num_gpus: int = 1,
+    index_type: str = "IndexFlatL2",
+    **kwargs,
 ) -> faiss.IndexFlatL2:
     """
     Constructs a FAISS index and stores the embeddings.
@@ -29,29 +33,76 @@ def construct_faiss_index(
 
     Returns:
     -------
-    Union[IndexFlatL2, IndexIVFFlat, IndexIVFPQ]
+    Union[faiss.IndexFlatL2,
+        faiss.IndexFlatIP,
+        faiss.IndexHNSWFlat,
+        faiss.IndexLSH,
+        faiss.IndexPQ,
+        faiss.IndexIVFFlat,
+        faiss.IndexScalarQuantizer,
+        faiss.IndexIVFPQ,]
         The constructed FAISS index.
     """
     d = embeddings[0].shape[-1]
     assert d == embedding_dim, f"Dimension of embeddings is incorrect {embedding_dim}"
     logger.info(f"Constructing FAISS index with dimension: {d}")
 
-    faiss_quantized_index_params = kwargs.get("faiss_quantized_index_params", {})
-    faiss_clustered_index_params = kwargs.get("faiss_clustered_index_params", {})
-    faiss_index_nprobe = kwargs.get("faiss_index_nprobe")
-
+    faiss_index_params = kwargs.get("faiss_index_params", {})
+    faiss_search_params = kwargs.get("faiss_search_params", {})
+    faiss_index_nprobe = faiss_search_params.get("nprobe")
     index = None
-    quantizer = faiss.IndexFlatL2(d)  # Flat (CPU) index, L2 distance
+
+    # Define a mapping of quantizer names to FAISS index classes
+    quantizer_mapping = {
+        "IndexFlatL2": lambda d: faiss.IndexFlatL2(d),
+        "IndexFlatIP": lambda d: faiss.IndexFlatIP(d),
+        "IndexHNSWFlat": lambda d: faiss.IndexHNSWFlat(d),
+        # Add more quantizers as needed
+    }
+
+    # Define a mapping for scalar quantizers (these are not callable)
+    scalar_quantizer_mapping = {
+        "QT_8bit": faiss.ScalarQuantizer.QT_8bit,
+        # Add more quantizer types as needed
+    }
+
+    # Initialize quantizer based on the given string
+    def get_quantizer(quantizer_name, d):
+        if quantizer_name in quantizer_mapping:
+            return quantizer_mapping[quantizer_name](d)  # Call the index classes
+        elif quantizer_name in scalar_quantizer_mapping:
+            return scalar_quantizer_mapping[quantizer_name]  # Return the scalar quantizer type
+        else:
+            raise ValueError(f"Unsupported quantizer: {quantizer_name}")
+
     logger.info(f"Using FAISS Index {index_type}")
     if index_type == "IndexIVFPQ":
-        nlist = faiss_quantized_index_params.get("nlist")
-        m = faiss_quantized_index_params.get("m")
-        bits = faiss_quantized_index_params.get("bits")
+        nlist = faiss_index_params.get("nlist")
+        m = faiss_index_params.get("m")
+        bits = faiss_index_params.get("nbits")
+        quantizer = get_quantizer(faiss_index_params.get("quantizer"), d)
         index = faiss.IndexIVFPQ(quantizer, d, nlist, m, bits)
     elif index_type == "IndexIVFFlat":
-        index = faiss.IndexIVFFlat(quantizer, d, **faiss_clustered_index_params)
+        quantizer = get_quantizer(faiss_index_params.get("quantizer"), d)
+        nlist = faiss_index_params.get("nlist")
+        index = faiss.IndexIVFFlat(quantizer, d, nlist)
     elif index_type == "IndexFlatL2":
-        index = quantizer
+        index = faiss.IndexFlatL2(d)
+    elif index_type == "IndexFlatIP":
+        index = faiss.IndexFlatIP(d)
+    elif index_type == "IndexHNSWFlat":
+        m = faiss_index_params.get("m")
+        index = faiss.IndexHNSWFlat(d, m)
+    elif index_type == "IndexLSH":
+        bits = faiss_index_params.get("nbits")
+        index = faiss.IndexLSH(d, bits)
+    elif index_type == "IndexPQ":
+        m = faiss_index_params.get("m")
+        bits = faiss_index_params.get("nbits")
+        index = faiss.IndexPQ(d, m, bits)
+    elif index_type == "IndexScalarQuantizer":
+        quantizer = get_quantizer(faiss_index_params.get("quantizer"), d)
+        index = faiss.IndexScalarQuantizer(d, quantizer)
     else:
         raise ValueError(f"Unsupported FAISS index type {index_type}")
 
@@ -59,9 +110,9 @@ def construct_faiss_index(
         index = faiss.index_cpu_to_gpus_list(index=index, ngpu=num_gpus)
         logger.info(f"Using FAISS GPU index on {num_gpus} GPUs")
 
-    if index_type == "IndexFlatL2":
+    if index_type in ("IndexFlatL2", "IndexFlatIP", "IndexHNSWFlat", "IndexLSH"):
         index.add(np.array(embeddings))
-    elif index_type in ("IndexIVFPQ", "IndexIVFFlat"):
+    elif index_type in ("IndexIVFPQ", "IndexIVFFlat", "IndexPQ", "IndexScalarQuantizer"):
         index.train(np.array(embeddings))
         assert (
             index.is_trained

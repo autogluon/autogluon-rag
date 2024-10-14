@@ -48,11 +48,7 @@ class Arguments:
     def _parse_args(self) -> argparse.Namespace:
         parser = argparse.ArgumentParser(description="AutoGluon-RAG - Retrieval-Augmented Generation Pipeline")
         parser.add_argument(
-            "--config_file",
-            type=str,
-            help="Path to the configuration file",
-            metavar="",
-            required=True,
+            "--config_file", type=str, help="Path to the configuration file", metavar="", required=True
         )
         return parser.parse_args()
 
@@ -351,32 +347,24 @@ class Arguments:
         self.config["vector_db"]["faiss_index_type"] = value
 
     @property
-    def faiss_quantized_index_params(self):
+    def faiss_index_params(self):
         return self.config.get("vector_db", {}).get(
-            "faiss_quantized_index_params", self.vector_db_defaults.get("FAISS_QUANTIZED_PARAMS")
+            "faiss_index_params", self.vector_db_defaults.get("FAISS_INDEX_PARAMS")
         )
 
-    @faiss_quantized_index_params.setter
-    def faiss_quantized_index_params(self, value):
-        self.config["vector_db"]["faiss_quantized_index_params"] = value
+    @faiss_index_params.setter
+    def faiss_index_params(self, value):
+        self.config["vector_db"]["faiss_index_params"] = value
 
     @property
-    def faiss_clustered_index_params(self):
+    def faiss_search_params(self):
         return self.config.get("vector_db", {}).get(
-            "faiss_clustered_index_params", self.vector_db_defaults.get("FAISS_CLUSTERED_PARAMS")
+            "faiss_search_params", self.vector_db_defaults.get("FAISS_SEARCH_PARAMS")
         )
 
-    @faiss_clustered_index_params.setter
-    def faiss_clustered_index_params(self, value):
-        self.config["vector_db"]["faiss_clustered_index_params"] = value
-
-    @property
-    def faiss_index_nprobe(self):
-        return self.config.get("vector_db", {}).get("faiss_index_nprobe", self.vector_db_defaults.get("FAISS_NPROBE"))
-
-    @faiss_index_nprobe.setter
-    def faiss_index_nprobe(self, value):
-        self.config["vector_db"]["faiss_index_nprobe"] = value
+    @faiss_search_params.setter
+    def faiss_search_params(self, value):
+        self.config["vector_db"]["faiss_search_params"] = value
 
     @property
     def milvus_search_params(self):

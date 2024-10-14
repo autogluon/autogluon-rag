@@ -7,13 +7,13 @@ SIMILARITY_FN: cosine
 METADATA_PATH: vectorDB_metadata_save/
 SAVE_INDEX: false
 FAISS_INDEX_TYPE: IndexFlatL2
-FAISS_QUANTIZED_PARAMS:
-  nlist: 3
+FAISS_INDEX_PARAMS:
+  quantizer: IndexFlatL2
   m: 4
-  bits: 4 
-FAISS_CLUSTERED_PARAMS:
+  nbits: 4
   nlist: 3
-FAISS_NPROBE: 5
+FAISS_SEARCH_PARAMS:
+  nprobe: 5
 MILVUS_DB_NAME: rag_milvus_db.db
 MILVUS_DB_NAME: milvus/rag_milvus_db.db
 MILVUS_DB_COLLECTION_NAME: AutoGluonRAG_Milvus_DB_Collection
