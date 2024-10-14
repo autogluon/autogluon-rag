@@ -205,9 +205,8 @@ class AutoGluonRAG:
             similarity_fn=self.args.vector_db_sim_fn,
             num_gpus=num_gpus,
             faiss_index_type=self.args.faiss_index_type,
-            faiss_quantized_index_params=self.args.faiss_quantized_index_params,
-            faiss_clustered_index_params=self.args.faiss_clustered_index_params,
-            faiss_index_nprobe=self.args.faiss_index_nprobe,
+            faiss_index_params=self.args.faiss_index_params,
+            faiss_search_params=self.args.faiss_search_params,
             milvus_db_name=self.args.milvus_db_name,
             milvus_search_params=self.args.milvus_search_params,
             milvus_collection_name=self.args.milvus_collection_name,
@@ -381,16 +380,9 @@ class AutoGluonRAG:
         agrag.save_index_and_metadata()
         """
         logger.info(f"\nSaving Vector DB at {index_path}")
-        save_index(
-            self.vector_db_module.db_type,
-            self.vector_db_module.index,
-            index_path,
-        )
+        save_index(self.vector_db_module.db_type, self.vector_db_module.index, index_path)
         logger.info(f"\nSaving Metadata at {metadata_path}")
-        save_metadata(
-            self.vector_db_module.metadata,
-            metadata_path,
-        )
+        save_metadata(self.vector_db_module.metadata, metadata_path)
 
     def retrieve_context_for_query(self, query: str) -> List[Dict[str, Any]]:
         """
@@ -475,10 +467,7 @@ class AutoGluonRAG:
                 loader = RecursiveUrlLoader(url=url, max_depth=1)
                 docs = loader.load()
                 urls = extract_sub_links(
-                    raw_html=docs[0].page_content,
-                    url=url,
-                    base_url=self.base_urls[idx],
-                    continue_on_failure=True,
+                    raw_html=docs[0].page_content, url=url, base_url=self.base_urls[idx], continue_on_failure=True
                 )
                 urls = [url] + urls
                 logger.info(

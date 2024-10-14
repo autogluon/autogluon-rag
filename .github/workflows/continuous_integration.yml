@@ -2,12 +2,14 @@ name: Continuous Integration
 
 on:
   push:
-  pull_request:
-    types: [labeled, opened, synchronize]
+  pull_request_target:
+    types: [opened, synchronize, reopened, labeled]
 
 permissions:
   id-token: write
   contents: read
+  issues: write # for peter-evans/create-or-update-comment on the PR
+  pull-requests: write # for peter-evans/create-or-update-comment on the PR
 
 jobs:
   lint_check:
@@ -76,7 +78,7 @@ jobs:
           ./.github/workflow_scripts/build_doc.sh "$branch" '${{ github.event.pull_request.head.repo.full_name }}' '${{ env.SHORT_SHA }}' PR-'${{ github.event.number }}'
       - name: Comment on PR
         if: ${{ github.event_name == 'pull_request_target' }}
-        uses: peter-evans/create-or-update-comment@v3
+        uses: peter-evans/create-or-update-comment@v4
         with:
           issue-number: ${{ github.event.number }}
           body: |

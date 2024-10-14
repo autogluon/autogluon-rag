@@ -44,7 +44,11 @@ class VectorDatabaseModule:
     """
 
     def __init__(
-        self, db_type: str = "milvus", similarity_threshold: float = 0.95, similarity_fn: str = "cosine", **kwargs
+        self,
+        db_type: str = "milvus",
+        similarity_threshold: float = 0.95,
+        similarity_fn: str = "cosine",
+        **kwargs,
     ) -> None:
         self.db_type = db_type.lower()
         self.params = kwargs.get("params", {})
@@ -57,10 +61,9 @@ class VectorDatabaseModule:
         self.num_gpus = kwargs.get("num_gpus", 0)
 
         # FAISS params
-        self.faiss_index_type = kwargs.get("faiss_index_type", "IndexFlatL2")
-        self.faiss_quantized_index_params = kwargs.get("faiss_quantized_index_params", {})
-        self.faiss_clustered_index_params = kwargs.get("faiss_clustered_index_params", {})
-        self.faiss_index_nprobe = kwargs.get("faiss_index_nprobe")
+        self.faiss_index_type = kwargs.get("faiss_index_type", {})
+        self.faiss_index_params = kwargs.get("faiss_index_params", {})
+        self.faiss_search_params = kwargs.get("faiss_search_params", {})
 
         # Milvus params
         self.milvus_search_params = kwargs.get("milvus_search_params", {})
@@ -72,9 +75,7 @@ class VectorDatabaseModule:
         self.index = None
 
     def construct_vector_database(
-        self,
-        embeddings: pd.DataFrame,
-        pbar: tqdm = None,
+        self, embeddings: pd.DataFrame, pbar: tqdm = None
     ) -> Union[faiss.IndexFlatL2,]:
         """
         Constructs the vector database and stores the embeddings.
@@ -113,12 +114,11 @@ class VectorDatabaseModule:
                 logger.info("Constructing FAISS Index")
                 self.index = construct_faiss_index(
                     index_type=self.faiss_index_type,
+                    faiss_index_params=self.faiss_index_params,
                     embeddings=vectors,
                     num_gpus=self.num_gpus,
                     embedding_dim=embeddings_hidden_dim,
-                    faiss_quantized_index_params=self.faiss_quantized_index_params,
-                    faiss_clustered_index_params=self.faiss_clustered_index_params,
-                    faiss_index_nprobe=self.faiss_index_nprobe,
+                    faiss_search_params=self.faiss_search_params,
                 )
         elif self.db_type == "milvus":
             if self.index:
