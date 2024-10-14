@@ -8,6 +8,8 @@ on:
 permissions:
   id-token: write
   contents: read
+  issues: write # for peter-evans/create-or-update-comment on the PR
+  pull-requests: write # for peter-evans/create-or-update-comment on the PR
 
 jobs:
   lint_check:
