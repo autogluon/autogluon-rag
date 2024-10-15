@@ -429,7 +429,9 @@ class AutoGluonRAG:
         response = agrag.generate_response("What is AutoGluon?")
         """
 
-        retrieved_context = self.retrieve_context_for_query(query)
+        retrieved_context = ""
+        if self.retriever_module.top_k > 0:
+            retrieved_context = self.retrieve_context_for_query(query)
 
         query_prefix = self.args.generator_query_prefix
         if query_prefix:

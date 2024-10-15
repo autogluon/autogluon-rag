@@ -24,6 +24,7 @@ class RetrieverModule:
         The module for generating embeddings.
     top_k: int
         The top-k documents to retrieve (default is 50).
+        If this is set to 0, no documents will be retrieved and the generator will be used without providing additional context.
     reranker: Reranker
         Optional Reranker object to use for reranking
     use_reranker: bool

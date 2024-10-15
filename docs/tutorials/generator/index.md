@@ -1,6 +1,7 @@
 # List of tutorials for the Generator Module in AutoGluon-RAG
 
 1. [Change generator after initializing RAG pipeline](change_generator)
+2. [Using generator directly without retrieved context](generator_only)
 
 
 ```{toctree}
@@ -10,4 +11,5 @@ hidden: true
 ---
 
 Change generator after initializing RAG pipeline <change_generator>
+Using generator directly without retrieved context<generator_only>
 ```
