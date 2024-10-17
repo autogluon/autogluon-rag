@@ -6,7 +6,7 @@ Here are the configurable parameters for this module:
 
 ```
 retriever:
-  retriever_top_k: The top-k documents to retrieve (default is 50).
+  retriever_top_k: The top-k documents to retrieve (default is 50). If this is set to 0, no documents will be retrieved and the generator will be used without providing additional context.
   
   reranker_top_k: The top-k documents to use as context for generation (default is 10).
   
