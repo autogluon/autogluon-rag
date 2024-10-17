@@ -57,6 +57,7 @@ class GeneratorModule:
         elif self.model_platform == "vllm":
             self.generator = VLLMGenerator(
                 model_name=self.model_name,
+                vllm_init_params=self.platform_args.get("vllm_init_params", {}),
                 vllm_sampling_params=self.platform_args.get("vllm_sampling_params", {}),
             )
         elif self.model_platform == "huggingface":
