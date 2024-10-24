@@ -2,6 +2,7 @@
 
 1. [Change generator after initializing RAG pipeline](change_generator)
 2. [Using generator directly without retrieved context](generator_only)
+3. [Use speculative decoding for inference](speculative_decoding)
 
 
 ```{toctree}
@@ -12,4 +13,5 @@ hidden: true
 
 Change generator after initializing RAG pipeline <change_generator>
 Using generator directly without retrieved context<generator_only>
+Use speculative decoding for inference<speculative_decoding>
 ```
