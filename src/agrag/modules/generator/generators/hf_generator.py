@@ -81,7 +81,7 @@ class HFGenerator:
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, **self.hf_tokenizer_init_params)
         self.assistant_model_name = self.hf_generate_params.get("assistant_model", None)
 
-        logger.info(f"Using Huggingface Model {self.assistant_model_name} as assistant model")
+        logger.info(f"Using Huggingface Model {self.assistant_model_name} as the Assistant Model")
         if self.assistant_model_name:
             assistant_model = AutoModelForCausalLM.from_pretrained(self.assistant_model_name).to(self.device)
             self.hf_generate_params["assistant_model"] = assistant_model
