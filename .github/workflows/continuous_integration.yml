@@ -16,7 +16,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
+        if: ${{ github.event_name != 'pull_request_target' }}
         uses: actions/checkout@v4
+      - name: Checkout repository(Pull Request Target)
+        if: ${{ github.event_name == 'pull_request_target' }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -30,7 +36,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
+        if: ${{ github.event_name != 'pull_request_target' }}
         uses: actions/checkout@v4
+      - name: Checkout repository(Pull Request Target)
+        if: ${{ github.event_name == 'pull_request_target' }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
