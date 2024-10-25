@@ -2,9 +2,9 @@
 # Use speculative decoding for inference
 
 ## What is Speculative Decoding?
-Decoding is often a time-consuming step in large autoregressive models like Transformers. Common decoding strategies, such as greedy decoding or beam search, require running the model multiple times—generating `K` tokens can take `n*K` serial runs, where `n` is the size of the beam. Given the high cost of running large models, speculative decoding (also called assisted decoding) offers a more efficient alternative.
+Decoding is often a time-consuming step in large autoregressive models like Transformers. Common decoding strategies, such as greedy decoding or beam search, require running the model multiple times — generating `K` tokens can take `n*K` serial runs, where `n` is the size of the beam. Given the high cost of running large models, speculative decoding (also called assisted decoding) offers a more efficient alternative.
 
-The key idea behind speculative decoding is to use a smaller, approximate model (called the draft or assistant model) to generate candidate tokens. These tokens are then validated in a single forward pass by the larger model, speeding up the overall decoding process. This approach achieves the same sampling quality as autoregressive decoding but with significantly reduced computation time—up to 2x faster for large models.
+The key idea behind speculative decoding is to use a smaller, approximate model (called the draft or assistant model) to generate candidate tokens. These tokens are then validated in a single forward pass by the larger model, speeding up the overall decoding process. This approach achieves the same sampling quality as autoregressive decoding but with significantly reduced computation time — up to 2x faster for large models.
 
 ### How Speculative Decoding Works:
 1. **Draft Model**: A smaller, more efficient model proposes tokens one at a time.
