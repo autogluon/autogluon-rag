@@ -7,4 +7,4 @@ sphinx-design
 sphinx-inline-tabs
 sphinx-togglebutton
 sphinxcontrib-googleanalytics
-ipython>7.16,<8.29  # IPython 8.13+ supports Python 3.9 and above; Python 3.7 is supported with IPython >7.16
+ipython>7.16,<8.30  # IPython 8.13+ supports Python 3.9 and above; Python 3.7 is supported with IPython >7.16
