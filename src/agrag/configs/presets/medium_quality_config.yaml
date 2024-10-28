@@ -54,8 +54,8 @@ generator:
   generator_model_platform_args:
     bedrock_aws_region: us-west-2
     bedrock_generate_params:
-      max_tokens: 512
+      max_tokens: 1024
       anthropic_version: "bedrock-2023-05-31"
-  generator_hf_generate_params:
-    max_new_tokens: 1024
+    hf_generate_params:
+      max_new_tokens: 1024
   generator_query_prefix: You are a helpful chat assistant. You will be provided with a query and you must answer it to the best of your abilities. You will be provided with some additional context that is related to the query and will help you answer the question.
