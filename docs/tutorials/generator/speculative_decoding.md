@@ -33,6 +33,21 @@ generator_model_platform_args:
     assistant_model: meta-llama/Llama-3.2-1B
 ```
 
+### Universal Assisted Decoding
+You may also use assistant model with different tokeniers from the target model. All you need to do is to explicitly specify the assistant tokenizer:
+
+```yaml
+generator_model_name: google/gemma-2-9b
+generator_model_platform: huggingface
+generator_model_platform_args:
+  hf_generate_params:
+    assistant_model: double7/vicuna-68m
+    assistant_tokenizer: double7/vicuna-68m
+```
+
+Note:  Transformers `v4.46.0` or above is required to support universal assisted decoding.
+
+
 ## Speculative Decoding with vLLM Models
 
 Speculative decoding with vLLM is also straightforward. Here is an example configuration that sets up vLLM in offline mode to use speculative decoding with a draft model, speculating 5 tokens at a time:

@@ -80,10 +80,17 @@ class HFGenerator:
 
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, **self.hf_tokenizer_init_params)
         self.assistant_model_name = self.hf_generate_params.get("assistant_model", None)
+        self.assistant_tokenizer_name = self.hf_generate_params.get("assistant_tokenizer", None)
         logger.info(f"Using Huggingface Model {self.assistant_model_name} as the Assistant Model")
         if self.assistant_model_name:
             assistant_model = AutoModelForCausalLM.from_pretrained(self.assistant_model_name).to(self.device)
             self.hf_generate_params["assistant_model"] = assistant_model
+            # To support Universal Assisted Decoding
+            # See https://huggingface.co/docs/transformers/main/en/generation_strategies#universal-assisted-decoding
+            if self.assistant_tokenizer_name:
+                assistant_tokenizer = AutoTokenizer.from_pretrained(self.assistant_tokenizer_name)
+                self.hf_generate_params["assistant_tokenizer"] = assistant_tokenizer
+                self.hf_generate_params["tokenizer"] = self.tokenizer
         self.model = AutoModelForCausalLM.from_pretrained(self.model_name, **self.hf_model_params).to(self.device)
 
         if self.num_gpus > 1:
