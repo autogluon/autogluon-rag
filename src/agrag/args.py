@@ -47,9 +47,37 @@ class Arguments:
 
     def _parse_args(self) -> argparse.Namespace:
         parser = argparse.ArgumentParser(description="AutoGluon-RAG - Retrieval-Augmented Generation Pipeline")
+
+        parser.add_argument("--config_file", type=str, help="Path to the configuration file", metavar="")
+
         parser.add_argument(
-            "--config_file", type=str, help="Path to the configuration file", metavar="", required=True
+            "--preset_quality",
+            type=str,
+            choices=["low_quality", "medium_quality", "high_quality"],
+            default="medium_quality",
+            help="Preset quality settings for the RAG pipeline (default: medium_quality)",
+            metavar="",
         )
+        parser.add_argument("--web_urls", type=str, nargs="*", help="List of URLs to use for RAG", metavar="")
+        parser.add_argument(
+            "--base_urls",
+            type=str,
+            nargs="*",
+            help="List of base URLs to restrict web URL parsing. Only URLs stemming from a base URL will be processed.",
+            metavar="",
+        )
+        parser.add_argument(
+            "--parse_urls_recursive",
+            action="store_true",
+            help="Enable recursive parsing of all URLs from the provided web URL list",
+        )
+        parser.add_argument(
+            "--data_dir",
+            type=str,
+            help="Directory containing files to use for RAG. Supports local or S3 paths.",
+            metavar="",
+        )
+
         return parser.parse_args()
 
     def _load_config(self, config_file: str) -> dict:
