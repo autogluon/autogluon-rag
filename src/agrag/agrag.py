@@ -120,12 +120,13 @@ class AutoGluonRAG:
         """
         logger.info("\n\nAutoGluon-RAG\n\n")
 
+        self.args = Arguments(config_file)
+
         self.preset_quality = preset_quality
         self.model_ids = model_ids
 
         self.config = config_file or self._load_preset()
-
-        self.args = Arguments(self.config)
+        self.args = Arguments(self.config) if not self.args else self.args
 
         # will short-circuit to provided data_dir if config value also provided
         self.data_dir = data_dir or self.args.data_dir
