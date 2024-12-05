@@ -5,7 +5,7 @@ To use this framework, you must first install AutoGluon RAG:
 git clone https://github.com/autogluon/autogluon-rag
 cd autogluon-rag
 
-# Create a Virtual Environment (using Python, or conda if you prefer)
+# Create a virtual environment (using Python, or conda if you prefer)
 python3 -m virtualenv venv
 source venv/bin/activate
 
