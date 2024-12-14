@@ -35,7 +35,7 @@ generator:
 If you are using `openai` platform, the arguments must be structured as:
   ```python
   generator_model_platform_args = {
-      "gpt_generate_params": {}, #Additional parameters to pass to the OpenAI GPT model's `create` method.
+      "gpt_generate_params": {}, # Additional parameters to pass to the OpenAI GPT model's `create` method.
   }
   ```
 
