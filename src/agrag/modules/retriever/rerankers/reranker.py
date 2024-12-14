@@ -25,7 +25,8 @@ class Reranker:
     batch_size : int
         The size of the batch. If you have limited CUDA memory, decrease the size of the batch (default is 64).
     num_gpus: int
-        Number of GPUs to use for reranking.
+        Number of GPUs to use for generating responses. If no value is provided, the maximum available GPUs will be used. 
+        Otherwise, the minimum of the provided value and maximum available GPUs will be used.
     top_k: int,
         The top-k documents to use as context for generation (default is 10).
     **kwargs : dict
