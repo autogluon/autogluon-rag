@@ -3,7 +3,7 @@
 This module is responsible for generating responses based on a query and a given context using various models and libraries such as Huggingface, vLLM,  OpenAI (GPT), and AWS Bedrock.
 
 Refer to https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html for supported models in Bedrock.\
-Refer to https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html for `model_id`s to pass into the Bedrock API.
+Refer to https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html for `model_id`s to pass into the Bedrock API. 
 
 Refer to https://docs.vllm.ai/en/latest/ for more information on vLLM usage.
 
