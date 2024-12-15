@@ -3,7 +3,7 @@
 This module is responsible for generating responses based on a query and a given context using various models and libraries such as Huggingface, vLLM,  OpenAI (GPT), and AWS Bedrock.
 
 Refer to https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html for supported models in Bedrock.\
-Refer to https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html for `model_id`s to pass into the Bedrock API. 
+Refer to https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html for `model_id`s to pass into the Bedrock API.
 
 Refer to https://docs.vllm.ai/en/latest/ for more information on vLLM usage.
 
@@ -35,7 +35,7 @@ generator:
 If you are using `openai` platform, the arguments must be structured as:
   ```python
   generator_model_platform_args = {
-      "gpt_generate_params": {}, # Additional parameters to pass to the OpenAI GPT model's `create` method.
+      "gpt_generate_params": {}, #Additional parameters to pass to the OpenAI GPT model's `create` method.
   }
   ```
 
