@@ -35,7 +35,7 @@ vector_db:
   metadata_index_load_path:  The path to an existing, stored Metadata JSON file. This can be a local path or an S3 path.
   Note that we do not support using an existing Milvus database
 
-  num_gpus: Number of GPUs to use when building the index
+  num_gpus: Number of GPUs to use for generating responses. If no value is provided, the maximum available GPUs will be used. Otherwise, the minimum of the provided value and maximum available GPUs will be used.
   
   metadata: Metadata for each embedding stored in the database
 

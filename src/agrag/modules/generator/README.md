@@ -26,13 +26,13 @@ generator:
 
   generator_model_platform_args: Additional platform-specific parameters to use when initializing the model, generating text, etc.
   
-  num_gpus: Number of GPUs to use for generating responses (default is 0).
+  num_gpus: Number of GPUs to use for generating responses. If no value is provided, the maximum available GPUs will be used. Otherwise, the minimum of the provided value and maximum available GPUs will be used.
 
-  generator_query_prefix: Prefix to add to each query that will be passed into the generator.
+  generator_query_prefix: Prefix to be added to each query that will be passed into the generator.
 ```
 
 #### `generator_model_platform_args` structure
-If you are using `huggingface` platform, the arguments must be structured as:
+If you are using `openai` platform, the arguments must be structured as:
   ```python
   generator_model_platform_args = {
       "gpt_generate_params": {}, #Additional parameters to pass to the OpenAI GPT model's `create` method.
