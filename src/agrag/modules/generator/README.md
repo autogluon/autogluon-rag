@@ -28,7 +28,7 @@ generator:
   
   num_gpus: Number of GPUs to use for generating responses. If no value is provided, the maximum available GPUs will be used. Otherwise, the minimum of the provided value and maximum available GPUs will be used.
 
-  generator_query_prefix: Prefix to add to each query that will be passed into the generator.
+  generator_query_prefix: Prefix to be added to each query that will be passed into the generator.
 ```
 
 #### `generator_model_platform_args` structure
