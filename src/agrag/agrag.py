@@ -126,7 +126,7 @@ class AutoGluonRAG:
         self.model_ids = model_ids
 
         self.config = config_file or self._load_preset()
-        self.args = Arguments(self.config) if not self.args else self.args
+        self.args = Arguments(self.config) if self.config else self.args
 
         # will short-circuit to provided data_dir if config value also provided
         self.data_dir = data_dir or self.args.data_dir

@@ -13,10 +13,10 @@ embedding:
   embedding_model_platform: bedrock
   embedding_model_platform_args:
     bedrock_aws_region: us-west-2
+    hf_tokenizer_params: 
+      truncation: true
+      padding: true
   normalize_embeddings: false
-  hf_tokenizer_params: 
-    truncation: true
-    padding: true
   normalization_params: {'p': 2, 'dim': 1, 'eps': 1e-12}
   embedding_batch_size: 64
 
