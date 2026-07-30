@@ -1,0 +1,126 @@
+# Qwen3-Embedding-0.6B Configuration - No Pruning Baseline
+# This config uses default finetuning WITHOUT any pruning (offline or online)
+
+# General
+seed: 42
+save_path: null
+architecture: "qwen"
+pairwise: False
+
+# Data
+data:
+  train_data: null
+  val_data: null
+  test_data: null
+  train_group_size: 2
+  query_max_len: 512
+  passage_max_len: 512
+  max_example_num_per_dataset: 100000000
+  query_instruction_for_retrieval: "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery: "
+  passage_instruction_for_retrieval: null
+  pos_threshold: 0
+
+corpus:
+  train_corpus: null
+  val_corpus: null
+  test_corpus: null
+
+# Pretrain
+pretrain:
+  tokenizer_name: null
+  model_name_or_path: "Qwen/Qwen3-Embedding-0.6B"
+  config_name: null
+  cache_dir: ""
+  padding_side: "left"
+
+# Offline Pruning - DISABLED (keep all data)
+offline_pruning:
+  model: null
+  kept_pct: 1.0  # Keep 100% of data (no pruning)
+  mode: "ep"
+  enable_cache: False
+
+# Online Pruning - Disabled
+opera:
+  level: "none"  # No online pruning
+  query_selection:
+    criteria: "sim"
+    pooling: "mean"
+    cutoff_ratio_start: 0.25
+    sampling_strength_start: 2
+    sampling_strength_end: 5
+    scheduler: "cosine"
+    delta: 1.
+    reset_interval: 1
+    keep_higher: True
+  positive_selection:
+    cutoff_ratio_start: 0.25
+    cutoff_ratio_end: 0.5
+    sampling_strength: 5
+    scheduler: "cosine"
+    delta: 1.
+    reset_interval: 1
+    keep_higher: True
+
+# Negative Mining
+mining:
+  model_name_or_path: null
+  mode: "hard"
+  range_for_sampling: "50-500"
+  negative_number: 200
+  overwrite_neg: False
+  enable_cache: False
+
+# Finetune
+optimization:
+  output_dir: null
+  learning_rate: 1e-5
+  num_train_epochs: 3
+  max_steps: 4000
+  per_device_train_batch_size: 16
+  max_grad_norm: 1.0
+  save_steps: 10000
+  fp16: False
+  bf16: True
+  warmup_ratio: 0.05
+  weight_decay: 0.01
+  lr_scheduler_type: "linear"
+  dataloader_drop_last: True
+  disable_tqdm: False
+  full_determinism: False
+  logging_steps: 10
+  temperature: 0.02
+  negatives_cross_device: True
+  fix_position_embedding: False
+  sentence_pooling_method: "last"
+  normalized: True
+  use_inbatch_neg: True
+  gradient_checkpointing: True
+  local_rank: null
+
+# Test
+evaluate:
+  criteria: "text_based"
+  add_instruction: True
+  k: 100
+  eval_modes:
+    - "finetune"
+  cutoffs:
+    - 1
+    - 5
+    - 10
+    - 20
+    - 50
+    - 100
+  index_factory: "Flat"
+  save_path: "embeddings.memmap"
+  save_embedding: False
+  load_embedding: False
+  bs_multiplier: 1
+  main_metrics:
+    - "Recall@100"
+    - "NDCG@100"
+    - "Recall@20"
+    - "NDCG@20"
+    - "Recall@10"
+    - "NDCG@10"

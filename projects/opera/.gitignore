@@ -1,0 +1,40 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Local model and dataset caches
+models--*/
+.locks/
+
+# Experiment tracking and outputs
+wandb/
+logs/
+*.log
+
+# Pipeline data and results
+*.parquet
+*.npy
+*.memmap
+results.json
+*-results.json
+*_per_query.jsonl
+
+# Dataset caches
+.ir_datasets/
+
+# Environments
+*venv/
+.venv/
+
+# Editor and OS cruft
+.ipynb_checkpoints/
+.DS_Store
+*.swp
+*~
