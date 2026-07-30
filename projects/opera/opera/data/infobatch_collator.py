@@ -1,19 +1,18 @@
 import math
 import os.path
 import random
-from dataclasses import dataclass
-from typing import List, Tuple, Optional, Iterator
-import numpy as np
-import torch
-from torch.utils.data.dataloader import _BaseDataLoaderIter
-import torch.distributed as dist
-from torch.utils.data import Dataset, _DatasetKind
-from torch.utils.data.distributed import DistributedSampler
-from operator import itemgetter
 import warnings
+from dataclasses import dataclass
+from operator import itemgetter
+from typing import Iterator, List, Optional, Tuple
 
 import datasets
-from torch.utils.data import Dataset
+import numpy as np
+import torch
+import torch.distributed as dist
+from torch.utils.data import Dataset, _DatasetKind
+from torch.utils.data.dataloader import _BaseDataLoaderIter
+from torch.utils.data.distributed import DistributedSampler
 from transformers import DataCollatorWithPadding, PreTrainedTokenizer
 
 
@@ -24,6 +23,7 @@ class InfoBatchCollator(DataCollatorWithPadding):
     and pass batch separately to the actual collator.
     Abstract out data detail for the model.
     """
+
     query_max_len: int = 32
     passage_max_len: int = 128
 

@@ -19,20 +19,20 @@ def get_save_path(save_name):
     save_path = os.path.join(OPERA_WORK_ROOT, save_name)
     os.makedirs(save_path, exist_ok=True)
     return save_path
- 
- 
+
+
 def get_data(save_path, df_type, split=None, fallback=False, dataset_name=None):
     assert df_type in DF_TYPES, f"Not supported dataframe type: {df_type}. All supported types are: {DF_TYPES}."
     assert split in SPLITS, f"Not supported split type: {split}. All supported types are: {SPLITS}."
 
     data_dir = os.path.join(save_path, split)
-    
+
     if df_type == DIR:
         return data_dir
     else:
         os.makedirs(data_dir, exist_ok=True)
         dataframe_path = os.path.join(data_dir, f"{df_type}.parquet")
- 
+
     if not os.path.exists(dataframe_path) and fallback:
         return get_raw_data(dataset_name=dataset_name, df_type=df_type)
     else:

@@ -1,26 +1,23 @@
 import math
+import os
 import os.path
 import random
-from typing import List, Tuple
-import os
 from dataclasses import dataclass, field
-from typing import Optional
-
-from transformers import TrainingArguments
+from typing import List, Optional, Tuple
 
 import datasets
 from torch.utils.data import Dataset
-from transformers import DataCollatorWithPadding, PreTrainedTokenizer
+from transformers import DataCollatorWithPadding, PreTrainedTokenizer, TrainingArguments
 
 from .utils import load_train_data
 
 
 class BaseDataset(Dataset):
     def __init__(
-            self,
-            args,
-            tokenizer: PreTrainedTokenizer,
-            config,
+        self,
+        args,
+        tokenizer: PreTrainedTokenizer,
+        config,
     ):
         self.dataset, self.neg_dict = load_train_data(config=config)
 
@@ -34,22 +31,22 @@ class BaseDataset(Dataset):
         return self.total_len
 
     def __getitem__(self, item) -> Tuple[str, List[str]]:
-        query = self.dataset[item]['query_text']
+        query = self.dataset[item]["query_text"]
         # TODO: test query_instruction_for_retrieval in training
         if self.args.query_instruction_for_retrieval is not None:
             query = self.args.query_instruction_for_retrieval + query
 
         passages = []
 
-        assert self.dataset[item]['doc_text']
+        assert self.dataset[item]["doc_text"]
         if self.pairwise:
-            pos = self.dataset[item]['doc_text']
+            pos = self.dataset[item]["doc_text"]
         else:  # if is not pairwise, it's a list
-            pos = random.choice(self.dataset[item]['doc_text'])
+            pos = random.choice(self.dataset[item]["doc_text"])
         passages.append(pos)
 
-        query_id = self.dataset[item]['query_id']
-        
+        query_id = self.dataset[item]["query_id"]
+
         if len(self.neg_dict[query_id]["doc_text"]) < self.args.train_group_size - 1:
             num = math.ceil((self.args.train_group_size - 1) / len(self.neg_dict[query_id]["doc_text"]))
             negs = random.sample(self.neg_dict[query_id]["doc_text"] * num, self.args.train_group_size - 1)
@@ -58,7 +55,7 @@ class BaseDataset(Dataset):
         passages.extend(negs)
 
         if self.args.passage_instruction_for_retrieval is not None:
-            passages = [self.args.passage_instruction_for_retrieval+p for p in passages]
+            passages = [self.args.passage_instruction_for_retrieval + p for p in passages]
         return query, passages
 
 
@@ -69,6 +66,7 @@ class BaseCollator(DataCollatorWithPadding):
     and pass batch separately to the actual collator.
     Abstract out data detail for the model.
     """
+
     query_max_len: int = 32
     passage_max_len: int = 128
 
@@ -114,4 +112,3 @@ class BaseCollator(DataCollatorWithPadding):
             return_tensors="pt",
         )
         return {"query": q_collated, "passage": d_collated}
-    

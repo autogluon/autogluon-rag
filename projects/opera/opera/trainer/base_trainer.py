@@ -9,12 +9,12 @@ from transformers import Trainer
 logger = logging.getLogger(__name__)
 
 
-def save_ckpt_for_sentence_transformers(ckpt_dir, pooling_mode: str = 'cls', normalized: bool=True):
+def save_ckpt_for_sentence_transformers(ckpt_dir, pooling_mode: str = "cls", normalized: bool = True):
     # Map OPERA pooling mode names to sentence-transformers names
     pooling_mode_map = {
-        'last': 'lasttoken',  # sentence-transformers uses 'lasttoken'
-        'cls': 'cls',
-        'mean': 'mean',
+        "last": "lasttoken",  # sentence-transformers uses 'lasttoken'
+        "cls": "cls",
+        "mean": "mean",
     }
     st_pooling_mode = pooling_mode_map.get(pooling_mode, pooling_mode)
 
@@ -22,9 +22,9 @@ def save_ckpt_for_sentence_transformers(ckpt_dir, pooling_mode: str = 'cls', nor
     pooling_model = models.Pooling(word_embedding_model.get_word_embedding_dimension(), pooling_mode=st_pooling_mode)
     if normalized:
         normalize_layer = models.Normalize()
-        model = SentenceTransformer(modules=[word_embedding_model, pooling_model, normalize_layer], device='cpu')
+        model = SentenceTransformer(modules=[word_embedding_model, pooling_model, normalize_layer], device="cpu")
     else:
-        model = SentenceTransformer(modules=[word_embedding_model, pooling_model], device='cpu')
+        model = SentenceTransformer(modules=[word_embedding_model, pooling_model], device="cpu")
     model.save(ckpt_dir)
 
 
@@ -39,10 +39,8 @@ class BaseTrainer(Trainer):
         logger.info("Saving model checkpoint to %s", output_dir)
         # Save a trained model and configuration using `save_pretrained()`.
         # They can then be reloaded using `from_pretrained()`
-        if not hasattr(self.model, 'save'):
-            raise NotImplementedError(
-                f'MODEL {self.model.__class__.__name__} '
-                f'does not support save interface')
+        if not hasattr(self.model, "save"):
+            raise NotImplementedError(f"MODEL {self.model.__class__.__name__} " f"does not support save interface")
         else:
             self.model.save(output_dir)
         if self.tokenizer is not None and self.is_world_process_zero():
@@ -53,9 +51,9 @@ class BaseTrainer(Trainer):
         # save the checkpoint for sentence-transformers library
         if self.is_world_process_zero():
             try:
-                save_ckpt_for_sentence_transformers(output_dir,
-                                                    pooling_mode=self.args.sentence_pooling_method,
-                                                    normalized=self.args.normalized)
+                save_ckpt_for_sentence_transformers(
+                    output_dir, pooling_mode=self.args.sentence_pooling_method, normalized=self.args.normalized
+                )
             except Exception as e:
                 logger.warning("Could not save sentence-transformers format: %s", e)
 

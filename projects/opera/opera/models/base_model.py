@@ -4,7 +4,7 @@ from typing import Dict, Optional
 
 import torch
 import torch.distributed as dist
-from torch import nn, Tensor
+from torch import Tensor, nn
 from transformers import AutoModel
 from transformers.file_utils import ModelOutput
 
@@ -22,17 +22,18 @@ class BaseEncoderOutput(ModelOutput):
 class BaseModel(nn.Module):
     TRANSFORMER_CLS = AutoModel
 
-    def __init__(self,
-                 model_name: str = None,
-                 normalized: bool = False,
-                 sentence_pooling_method: str = 'cls',
-                 negatives_cross_device: bool = False,
-                 temperature: float = 1.0,
-                 use_inbatch_neg: bool = True
-                 ):
+    def __init__(
+        self,
+        model_name: str = None,
+        normalized: bool = False,
+        sentence_pooling_method: str = "cls",
+        negatives_cross_device: bool = False,
+        temperature: float = 1.0,
+        use_inbatch_neg: bool = True,
+    ):
         super().__init__()
         self.model = AutoModel.from_pretrained(model_name)
-        self.cross_entropy = nn.CrossEntropyLoss(reduction='mean')
+        self.cross_entropy = nn.CrossEntropyLoss(reduction="mean")
 
         self.normalized = normalized
         self.sentence_pooling_method = sentence_pooling_method
@@ -47,7 +48,7 @@ class BaseModel(nn.Module):
         self.negatives_cross_device = negatives_cross_device
         if self.negatives_cross_device:
             if not dist.is_initialized():
-                raise ValueError('Distributed training has not been initialized for representation all gather.')
+                raise ValueError("Distributed training has not been initialized for representation all gather.")
             #     logger.info("Run in a single GPU, set negatives_cross_device=False")
             #     self.negatives_cross_device = False
             # else:
@@ -58,16 +59,16 @@ class BaseModel(nn.Module):
         self.model.gradient_checkpointing_enable(**kwargs)
 
     def sentence_embedding(self, hidden_state, mask):
-        if self.sentence_pooling_method == 'mean':
+        if self.sentence_pooling_method == "mean":
             s = torch.sum(hidden_state * mask.unsqueeze(-1).float(), dim=1)
             d = mask.sum(axis=1, keepdim=True).float()
             return s / d
-        elif self.sentence_pooling_method == 'cls':
+        elif self.sentence_pooling_method == "cls":
             return hidden_state[:, 0]
-        elif self.sentence_pooling_method == 'last':
+        elif self.sentence_pooling_method == "last":
             # Last token pooling (used by Qwen3-Embedding and similar models)
             # Handle both left and right padding
-            left_padding = (mask[:, -1].sum() == mask.shape[0])
+            left_padding = mask[:, -1].sum() == mask.shape[0]
             if left_padding:
                 return hidden_state[:, -1]
             else:
@@ -79,7 +80,7 @@ class BaseModel(nn.Module):
         if features is None:
             return None
         psg_out = self.model(**features, return_dict=True)
-        p_reps = self.sentence_embedding(psg_out.last_hidden_state, features['attention_mask'])
+        p_reps = self.sentence_embedding(psg_out.last_hidden_state, features["attention_mask"])
         if self.normalized:
             p_reps = torch.nn.functional.normalize(p_reps, dim=-1)
         return p_reps.contiguous()
@@ -89,7 +90,9 @@ class BaseModel(nn.Module):
             return torch.matmul(q_reps, p_reps.transpose(0, 1))
         return torch.matmul(q_reps, p_reps.transpose(-2, -1))
 
-    def forward(self, query: Dict[str, Tensor] = None, passage: Dict[str, Tensor] = None, teacher_score: Tensor = None):
+    def forward(
+        self, query: Dict[str, Tensor] = None, passage: Dict[str, Tensor] = None, teacher_score: Tensor = None
+    ):
         q_reps = self.encode(query)
         p_reps = self.encode(passage)
 
@@ -100,14 +103,24 @@ class BaseModel(nn.Module):
 
             group_size = p_reps.size(0) // q_reps.size(0)
             if self.use_inbatch_neg:
-                scores = self.compute_similarity(q_reps, p_reps) / self.temperature # B B*G
+                scores = self.compute_similarity(q_reps, p_reps) / self.temperature  # B B*G
                 scores = scores.view(q_reps.size(0), -1)
 
                 target = torch.arange(scores.size(0), device=scores.device, dtype=torch.long)
                 target = target * group_size
                 loss = self.compute_loss(scores, target)
             else:
-                scores = self.compute_similarity(q_reps[:, None, :,], p_reps.view(q_reps.size(0), group_size, -1)).squeeze(1) / self.temperature # B G
+                scores = (
+                    self.compute_similarity(
+                        q_reps[
+                            :,
+                            None,
+                            :,
+                        ],
+                        p_reps.view(q_reps.size(0), group_size, -1),
+                    ).squeeze(1)
+                    / self.temperature
+                )  # B G
 
                 scores = scores.view(q_reps.size(0), -1)
                 target = torch.zeros(scores.size(0), device=scores.device, dtype=torch.long)
@@ -141,8 +154,5 @@ class BaseModel(nn.Module):
 
     def save(self, output_dir: str):
         state_dict = self.model.state_dict()
-        state_dict = type(state_dict)(
-            {k: v.clone().cpu()
-             for k,
-                 v in state_dict.items()})
+        state_dict = type(state_dict)({k: v.clone().cpu() for k, v in state_dict.items()})
         self.model.save_pretrained(output_dir, state_dict=state_dict)

@@ -1,24 +1,34 @@
-import faiss
 import json
 import logging
 import os
+
 import datasets
+import faiss
 import numpy as np
-from tqdm import tqdm
 from datasets import load_dataset
 from sklearn.metrics import ndcg_score
+from tqdm import tqdm
 
-from .utils import load_eval_data
 from ..models import build_model
 from ..utils import get_model_save_path, get_result_path, save_result
+from .utils import load_eval_data
 
 logger = logging.getLogger(__name__)
 
 
-def index(model, corpus: datasets.Dataset, batch_size: int = 256, max_length: int=512, index_factory: str = "Flat", save_path: str = None, save_embedding: bool = False, load_embedding: bool = False):
+def index(
+    model,
+    corpus: datasets.Dataset,
+    batch_size: int = 256,
+    max_length: int = 512,
+    index_factory: str = "Flat",
+    save_path: str = None,
+    save_embedding: bool = False,
+    load_embedding: bool = False,
+):
     """
-    1. Encode the entire corpus into dense embeddings; 
-    2. Create faiss index; 
+    1. Encode the entire corpus into dense embeddings;
+    2. Create faiss index;
     3. Optionally save embeddings.
     """
     if load_embedding:
@@ -26,24 +36,15 @@ def index(model, corpus: datasets.Dataset, batch_size: int = 256, max_length: in
         dtype = test.dtype
         dim = len(test)
 
-        corpus_embeddings = np.memmap(
-            save_path,
-            mode="r",
-            dtype=dtype
-        ).reshape(-1, dim)
-    
+        corpus_embeddings = np.memmap(save_path, mode="r", dtype=dtype).reshape(-1, dim)
+
     else:
         corpus_embeddings = model.encode_corpus(corpus["doc_text"], batch_size=batch_size, max_length=max_length)
         dim = corpus_embeddings.shape[-1]
-        
+
         if save_embedding:
             logger.info(f"saving embeddings at {save_path}...")
-            memmap = np.memmap(
-                save_path,
-                shape=corpus_embeddings.shape,
-                mode="w+",
-                dtype=corpus_embeddings.dtype
-            )
+            memmap = np.memmap(save_path, shape=corpus_embeddings.shape, mode="w+", dtype=corpus_embeddings.dtype)
 
             length = corpus_embeddings.shape[0]
             # add in batch
@@ -51,14 +52,14 @@ def index(model, corpus: datasets.Dataset, batch_size: int = 256, max_length: in
             if length > save_batch_size:
                 for i in tqdm(range(0, length, save_batch_size), leave=False, desc="Saving Embeddings"):
                     j = min(i + save_batch_size, length)
-                    memmap[i: j] = corpus_embeddings[i: j]
+                    memmap[i:j] = corpus_embeddings[i:j]
             else:
                 memmap[:] = corpus_embeddings
-    
+
     # create faiss index
     faiss_index = faiss.index_factory(dim, index_factory, faiss.METRIC_INNER_PRODUCT)
 
-    #if model.device == torch.device("cuda"):
+    # if model.device == torch.device("cuda"):
     #    # co = faiss.GpuClonerOptions()
     #    co = faiss.GpuMultipleClonerOptions()
     #    co.useFloat16 = True
@@ -73,29 +74,31 @@ def index(model, corpus: datasets.Dataset, batch_size: int = 256, max_length: in
     return faiss_index
 
 
-def search(model, queries: datasets, faiss_index: faiss.Index, k:int = 100, batch_size: int = 256, max_length: int=512):
+def search(
+    model, queries: datasets, faiss_index: faiss.Index, k: int = 100, batch_size: int = 256, max_length: int = 512
+):
     """
     1. Encode queries into dense embeddings;
     2. Search through faiss index
     """
     query_embeddings = model.encode_queries(queries["query_text"], batch_size=batch_size, max_length=max_length)
     query_size = len(query_embeddings)
-    
+
     all_scores = []
     all_indices = []
-    
+
     for i in tqdm(range(0, query_size, batch_size), desc="Searching"):
         j = min(i + batch_size, query_size)
-        query_embedding = query_embeddings[i: j]
+        query_embedding = query_embeddings[i:j]
         score, indice = faiss_index.search(query_embedding.astype(np.float32), k=k)
         all_scores.append(score)
         all_indices.append(indice)
-    
+
     all_scores = np.concatenate(all_scores, axis=0)
     all_indices = np.concatenate(all_indices, axis=0)
     return all_scores, all_indices
-    
-    
+
+
 def compute_metric(preds, labels, scores, cutoffs):
     """
     Evaluate MRR and Recall at cutoffs.
@@ -113,7 +116,7 @@ def compute_metric(preds, labels, scores, cutoffs):
     assert len(scores[0]) == max_cutoff, f"shape {len(scores[0])} and shape {max_cutoff}"
 
     metrics = {}
-    
+
     # MRR
     mrrs = np.zeros(len(cutoffs))
     for pred, label in zip(preds, labels):
@@ -149,10 +152,10 @@ def compute_metric(preds, labels, scores, cutoffs):
                 true_labels_per_query.append(0)
         true_labels.append(true_labels_per_query)
     for k, cutoff in enumerate(cutoffs):
-            if cutoff <= 1:
-                ndcgs[k] = -1
-            else:
-                ndcgs[k] = ndcg_score(true_labels, scores, k=cutoff)
+        if cutoff <= 1:
+            ndcgs[k] = -1
+        else:
+            ndcgs[k] = ndcg_score(true_labels, scores, k=cutoff)
 
     recalls /= len(preds)
     successes /= len(preds)
@@ -174,17 +177,19 @@ def evaluate(encoder_name, config):
         evaluation_key = "doc_text"
     elif config.evaluate.criteria == "id_based":
         evaluation_key = "doc_id"
-        print(f"Use id-based evaluation (use doc id to see if matched). Please make sure THERE ARE NO DUPLICATE DOCUMENTS.")
+        print(
+            f"Use id-based evaluation (use doc id to see if matched). Please make sure THERE ARE NO DUPLICATE DOCUMENTS."
+        )
     else:
         raise ValueError(f"Invalid evaluation criteria: {config.evaluate.criteria}")
 
     pos_dataset, corpus_dataset = load_eval_data(config)
 
     model = build_model(encoder_name, config)
-    
+
     faiss_index = index(
-        model=model, 
-        corpus=corpus_dataset, 
+        model=model,
+        corpus=corpus_dataset,
         batch_size=test_bs,
         max_length=config.data.passage_max_len,
         index_factory=config.evaluate.index_factory,
@@ -192,16 +197,16 @@ def evaluate(encoder_name, config):
         save_embedding=config.evaluate.save_embedding,
         load_embedding=config.evaluate.load_embedding,
     )
-    
+
     scores, indices = search(
-        model=model, 
-        queries=pos_dataset, 
-        faiss_index=faiss_index, 
-        k=config.evaluate.k, 
-        batch_size=test_bs, 
-        max_length=config.data.query_max_len
+        model=model,
+        queries=pos_dataset,
+        faiss_index=faiss_index,
+        k=config.evaluate.k,
+        batch_size=test_bs,
+        max_length=config.data.query_max_len,
     )
-    
+
     retrieval_results = []
     for indice in indices:
         # filter invalid indices
@@ -211,12 +216,12 @@ def evaluate(encoder_name, config):
     ground_truths = []
     for sample in pos_dataset:
         ground_truths.append(sample[evaluation_key])
-        
+
     metrics = compute_metric(retrieval_results, ground_truths, scores, cutoffs=cutoffs)
 
     print(metrics)
-    print('\n'.join([str(k) for k in metrics.keys()]))
-    print('\n'.join([str(v) for v in metrics.values()]))
+    print("\n".join([str(k) for k in metrics.keys()]))
+    print("\n".join([str(v) for v in metrics.values()]))
     print(encoder_name)
 
     result_path = get_result_path(encoder_name, config)
@@ -226,7 +231,9 @@ def evaluate(encoder_name, config):
     query_ids = list(pos_dataset["query_id"])
     query_texts = list(pos_dataset["query_text"])
     with open(per_query_path, "w") as f:
-        for qid, qtext, retrieved, gt, qscores in zip(query_ids, query_texts, retrieval_results, ground_truths, scores):
+        for qid, qtext, retrieved, gt, qscores in zip(
+            query_ids, query_texts, retrieval_results, ground_truths, scores
+        ):
             record = {
                 "query_id": qid,
                 "query_text": qtext,
@@ -251,7 +258,7 @@ def run_evaluations(config):
             encoder_names.append(get_model_save_path(config))
         else:
             raise ValueError(f"Invalid eval_mode: {eval_mode}")
-        
+
     results = {}
     for encoder_name in encoder_names:
         results[encoder_name] = evaluate(encoder_name, config)

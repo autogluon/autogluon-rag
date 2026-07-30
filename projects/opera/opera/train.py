@@ -6,7 +6,7 @@ from omegaconf import OmegaConf
 from transformers import AutoConfig, AutoTokenizer
 
 from .arguments import OperaTrainingArguments
-from .data import BaseCollator, BaseDataset, InfoBatchCollator, InfoBatchDataset, OperaQueryDataset, OperaCollator
+from .data import BaseCollator, BaseDataset, InfoBatchCollator, InfoBatchDataset, OperaCollator, OperaQueryDataset
 from .models import BaseModel, InfoBatchModel, OperaModel
 from .trainer import BaseTrainer, InfoBatchTrainer, OperaTrainer
 from .utils import get_model_save_path, save_config
@@ -48,15 +48,15 @@ def finetune(config):
 
     # data_args
     data_args = config.data
-    #data_args.query_instruction_for_retrieval = ""  # instruction is only used in evaluation
+    # data_args.query_instruction_for_retrieval = ""  # instruction is only used in evaluation
 
     # model_args
     model_args = config.pretrain
 
     if (
-            os.path.exists(training_args.output_dir)
-            and os.listdir(training_args.output_dir)
-            and not training_args.overwrite_output_dir
+        os.path.exists(training_args.output_dir)
+        and os.listdir(training_args.output_dir)
+        and not training_args.overwrite_output_dir
     ):
         raise ValueError(
             f"Output directory ({training_args.output_dir}) already exists and is not empty. Use --overwrite_output_dir to overcome."
@@ -89,7 +89,7 @@ def finetune(config):
     )
 
     # Set padding side if specified (e.g., "left" for Qwen3-Embedding)
-    if hasattr(model_args, 'padding_side') and model_args.padding_side:
+    if hasattr(model_args, "padding_side") and model_args.padding_side:
         tokenizer.padding_side = model_args.padding_side
         logger.info(f"Set tokenizer padding_side to: {model_args.padding_side}")
 
@@ -98,7 +98,7 @@ def finetune(config):
         num_labels=num_labels,
         cache_dir=model_args.cache_dir,
     )
-    logger.info('Model Config: %s', model_config)
+    logger.info("Model Config: %s", model_config)
 
     model = MODEL(
         model_name=model_args.model_name_or_path,
@@ -116,15 +116,15 @@ def finetune(config):
                 v.requires_grad = False
 
     train_dataset = DATASET(
-        args=data_args, 
+        args=data_args,
         tokenizer=tokenizer,
         config=config,
-        #max_steps=config.optimization.max_steps,
-        #prune_pct=config.opera.prune_pct,
-        #prune_prob=config.opera.prune_prob,
-        #delta=config.opera.delta,
-        #seed=config.seed,
-        #dynamic_weights=config.opera.dynamic_weights
+        # max_steps=config.optimization.max_steps,
+        # prune_pct=config.opera.prune_pct,
+        # prune_prob=config.opera.prune_prob,
+        # delta=config.opera.delta,
+        # seed=config.seed,
+        # dynamic_weights=config.opera.dynamic_weights
     )
 
     trainer = TRAINER(
@@ -132,9 +132,7 @@ def finetune(config):
         args=training_args,
         train_dataset=train_dataset,
         data_collator=COLLATOR(
-            tokenizer,
-            query_max_len=data_args.query_max_len,
-            passage_max_len=data_args.passage_max_len
+            tokenizer, query_max_len=data_args.query_max_len, passage_max_len=data_args.passage_max_len
         ),
         tokenizer=tokenizer,
         opera_config=config,

@@ -4,7 +4,7 @@ from typing import Dict, Optional
 
 import torch
 import torch.distributed as dist
-from torch import nn, Tensor
+from torch import Tensor, nn
 from transformers import AutoModel
 from transformers.file_utils import ModelOutput
 
@@ -27,32 +27,33 @@ class OperaEncoderOutput(BaseEncoderOutput):
 class OperaModel(BaseModel):
     TRANSFORMER_CLS = AutoModel
 
-    def __init__(self,
-                 model_name: str = None,
-                 normalized: bool = False,
-                 sentence_pooling_method: str = 'cls',
-                 negatives_cross_device: bool = False,
-                 temperature: float = 1.0,
-                 use_inbatch_neg: bool = True
-                 ):
+    def __init__(
+        self,
+        model_name: str = None,
+        normalized: bool = False,
+        sentence_pooling_method: str = "cls",
+        negatives_cross_device: bool = False,
+        temperature: float = 1.0,
+        use_inbatch_neg: bool = True,
+    ):
         super().__init__(
             model_name=model_name,
             normalized=normalized,
             sentence_pooling_method=sentence_pooling_method,
-            negatives_cross_device=negatives_cross_device, 
+            negatives_cross_device=negatives_cross_device,
             temperature=temperature,
-            use_inbatch_neg=use_inbatch_neg, 
+            use_inbatch_neg=use_inbatch_neg,
         )
-        self.cross_entropy = nn.CrossEntropyLoss(reduction='none')
+        self.cross_entropy = nn.CrossEntropyLoss(reduction="none")
 
     def forward(
-            self, 
-            query: Dict[str, Tensor] = None, 
-            passage: Dict[str, Tensor] = None, 
-            loss_indices: Dict[str, Tensor] = None, 
-            sim_indices: Dict[str, Tensor] = None, 
-            teacher_score: Tensor = None
-        ):
+        self,
+        query: Dict[str, Tensor] = None,
+        passage: Dict[str, Tensor] = None,
+        loss_indices: Dict[str, Tensor] = None,
+        sim_indices: Dict[str, Tensor] = None,
+        teacher_score: Tensor = None,
+    ):
         q_reps = self.encode(query)
         p_reps = self.encode(passage)
 
@@ -70,7 +71,17 @@ class OperaModel(BaseModel):
                 target = target * group_size
                 loss = self.compute_loss(scores, target)
             else:
-                scores = self.compute_similarity(q_reps[:, None, :,], p_reps.view(q_reps.size(0), group_size, -1)).squeeze(1) / self.temperature  # B G
+                scores = (
+                    self.compute_similarity(
+                        q_reps[
+                            :,
+                            None,
+                            :,
+                        ],
+                        p_reps.view(q_reps.size(0), group_size, -1),
+                    ).squeeze(1)
+                    / self.temperature
+                )  # B G
 
                 scores = scores.view(q_reps.size(0), -1)
                 target = torch.zeros(scores.size(0), device=scores.device, dtype=torch.long)
@@ -82,7 +93,7 @@ class OperaModel(BaseModel):
             scores = self.compute_similarity(q_reps, p_reps)
             loss = None
             normalized_scores = None
-        
+
         loss_indices = self._dist_gather_tensor(loss_indices)
         sim_indices = self._dist_gather_tensor(sim_indices)
 

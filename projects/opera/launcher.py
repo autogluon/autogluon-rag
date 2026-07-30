@@ -1,33 +1,33 @@
 import argparse
 import copy
 import os
-import wandb
 
-from opera.preprocess import prepare_ir_all_splits
-from opera.pruning import offline_pruning
-from opera.mining import mining
-from opera.train import finetune
+import wandb
 from opera.eval import run_evaluations
 from opera.gather_results import gather_results
+from opera.mining import mining
+from opera.preprocess import prepare_ir_all_splits
+from opera.pruning import offline_pruning
+from opera.train import finetune
 from opera.utils import get_save_path, load_config, save_config, seed_everything
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Opera Launcher')
-    parser.add_argument('-c', '--basecfg', type=str, help='The base configuration file for the Opera run.')
-    parser.add_argument('-t', '--task', type=str, help='The task to run.')
-    parser.add_argument('-s', '--save_name', type=str, help='The save path for the Opera run.')
-    parser.add_argument('--train_data', default=None, type=str, help='Path to train_data.')
-    parser.add_argument('--val_data', default=None, type=str, help='Path to val_data.')
-    parser.add_argument('--test_data', default=None, type=str, help='Path to test_data.')
-    parser.add_argument('--train_corpus', default=None, type=str, help='Path to train_data corpus.')
-    parser.add_argument('--val_corpus', default=None, type=str, help='Path to val_data corpus.')
-    parser.add_argument('--test_corpus', default=None, type=str, help='Path to test_data corpus.')
+    parser = argparse.ArgumentParser(description="Opera Launcher")
+    parser.add_argument("-c", "--basecfg", type=str, help="The base configuration file for the Opera run.")
+    parser.add_argument("-t", "--task", type=str, help="The task to run.")
+    parser.add_argument("-s", "--save_name", type=str, help="The save path for the Opera run.")
+    parser.add_argument("--train_data", default=None, type=str, help="Path to train_data.")
+    parser.add_argument("--val_data", default=None, type=str, help="Path to val_data.")
+    parser.add_argument("--test_data", default=None, type=str, help="Path to test_data.")
+    parser.add_argument("--train_corpus", default=None, type=str, help="Path to train_data corpus.")
+    parser.add_argument("--val_corpus", default=None, type=str, help="Path to val_data corpus.")
+    parser.add_argument("--test_corpus", default=None, type=str, help="Path to test_data corpus.")
     # general
-    parser.add_argument('--seed', type=int, default=42, help='Seed.')
+    parser.add_argument("--seed", type=int, default=42, help="Seed.")
     # model
-    parser.add_argument('--model_name_or_path', default=None, type=str, help='Override pretrained model path.')
+    parser.add_argument("--model_name_or_path", default=None, type=str, help="Override pretrained model path.")
     # task: finetune
-    parser.add_argument('--max_steps', type=int, default=None, help='Max training steps.')
+    parser.add_argument("--max_steps", type=int, default=None, help="Max training steps.")
     args = parser.parse_args()
 
     if args.max_steps is not None:
@@ -91,5 +91,5 @@ if __name__ == "__main__":
     else:
         raise ValueError(f"Task {task} is not supported.")
 
-    if experiment_config_path and int(os.environ.get('LOCAL_RANK', -1)) <= 0:
+    if experiment_config_path and int(os.environ.get("LOCAL_RANK", -1)) <= 0:
         save_config(config, experiment_config_path)

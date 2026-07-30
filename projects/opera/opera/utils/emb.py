@@ -1,8 +1,9 @@
-import numpy as np
 import os
 
-from .paths import get_emb_cache_files
+import numpy as np
+
 from ..constants import DOC, QUERY
+from .paths import get_emb_cache_files
 
 
 def compute_emb(input_texts, input_ids, data_type, dataset_name, model_name, use_cache, save_cache, config):
@@ -22,21 +23,20 @@ def compute_emb(input_texts, input_ids, data_type, dataset_name, model_name, use
         print(f"use_cache disabled. Computing embedding...")
 
     from ..models import build_model
+
     model = build_model(model_name, config)
 
     if data_type == DOC:
         output_emb = model.encode_corpus(
-            input_texts, 
-            batch_size=config.optimization.per_device_train_batch_size * config.evaluate.bs_multiplier
+            input_texts, batch_size=config.optimization.per_device_train_batch_size * config.evaluate.bs_multiplier
         )
     elif data_type == QUERY:
         output_emb = model.encode_queries(
-            input_texts, 
-            batch_size=config.optimization.per_device_train_batch_size * config.evaluate.bs_multiplier
+            input_texts, batch_size=config.optimization.per_device_train_batch_size * config.evaluate.bs_multiplier
         )
     else:
         raise ValueError(f"Invalid data_type: {data_type}")
-    
+
     if save_cache:
         print(f"saving {output_emb.shape} embedding to {emb_file}...")
         np.save(emb_file, output_emb)

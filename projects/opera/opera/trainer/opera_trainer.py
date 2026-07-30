@@ -16,7 +16,7 @@ class OperaTrainer(BaseTrainer):
             return None
         else:
             return dataset.sampler
-        
+
     def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
         """
         How the loss is computed by Trainer. By default, all models return the loss in the first element.
@@ -35,7 +35,9 @@ class OperaTrainer(BaseTrainer):
         M = N // B
         assert M * B == N, f"M {M}, B: {B}, N: {N}"
         positive_scores = scores[torch.LongTensor(range(B)), torch.LongTensor(range(B)) * M].clone().detach()
-        self.train_dataset.get_query_scores_from_trainer(losses=loss, positive_scores=positive_scores, indices=sim_indices)  # visualize = self.is_world_process_zero()
+        self.train_dataset.get_query_scores_from_trainer(
+            losses=loss, positive_scores=positive_scores, indices=sim_indices
+        )  # visualize = self.is_world_process_zero()
         self.train_dataset.get_positive_scores_from_trainer(positive_scores=positive_scores, indices=sim_indices)
         self.train_dataset.set_global_step(self.global_step)
 

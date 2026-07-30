@@ -1,11 +1,12 @@
-import torch
 import numpy as np
+import torch
+
 
 def score_to_weights(scores, mode, params, use_reciprocal=False):
     """
     scores: torch tensor
-    use_reciprocal: 
-    mode: softmax, or 
+    use_reciprocal:
+    mode: softmax, or
     params: a dict with hyperparameters
 
     return weights: numpy array
@@ -44,18 +45,18 @@ def _softmax_weights(scores, params):
 def _thresholded_weights(scores, params):
     threshold = get_param(params=params, key="threshold")
     keep_higher = get_param(params=params, key="keep_higher")
-    #print(f"threshold: {threshold}")
-    #print(f"scores: {scores}")
-    #print(f"threshold.item: {threshold.item()}")
+    # print(f"threshold: {threshold}")
+    # print(f"scores: {scores}")
+    # print(f"threshold.item: {threshold.item()}")
     if keep_higher:
         weights = scores > threshold.item()
     else:
         weights = scores < threshold.item()
-    #print(f"bool weights: {weights}")
+    # print(f"bool weights: {weights}")
     weights = weights + 1e-6  # avoid all zeros
-    #print(f"eps weights: {weights}")
+    # print(f"eps weights: {weights}")
     weights = weights / np.sum(weights)
-    #print(f"normed weights: {weights}")
+    # print(f"normed weights: {weights}")
 
     return weights
 
@@ -64,18 +65,17 @@ def _soft_thresholded_weights(scores, params):
     threshold = get_param(params=params, key="threshold")
     keep_higher = get_param(params=params, key="keep_higher")
     sampling_strength = get_param(params=params, key="sampling_strength")
-    #print(f"threshold: {threshold}")
-    #print(f"scores: {scores}")
-    #print(f"threshold.item: {threshold.item()}")
+    # print(f"threshold: {threshold}")
+    # print(f"scores: {scores}")
+    # print(f"threshold.item: {threshold.item()}")
     if keep_higher:
         weights = scores > threshold.item()
     else:
         weights = scores < threshold.item()
-    #print(f"bool weights: {weights}")
-    weights = weights * (sampling_strength - 1.) + 1.
-    #print(f"eps weights: {weights}")
+    # print(f"bool weights: {weights}")
+    weights = weights * (sampling_strength - 1.0) + 1.0
+    # print(f"eps weights: {weights}")
     weights = weights / np.sum(weights)
-    #print(f"normed weights: {weights}")
+    # print(f"normed weights: {weights}")
 
     return weights
-
