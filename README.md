@@ -4,6 +4,9 @@
 
 # AutoGluon-RAG
 
+## News
+- 2026/07: OPERA, our data pruning framework for efficient retrieval model finetuning, is accepted at COLM 2026 and released under [`projects/opera`](projects/opera).
+
 ## Overview
 AutoGluon-RAG is a framework designed to streamline the development of RAG (Retrieval-Augmented Generation) pipelines. RAG has emerged as a crucial approach for tailoring large language models (LLMs) to address domain-specific queries. However, constructing RAG pipelines traditionally involves navigating through a complex array of modules and functionalities, including retrievers, generators, vector database construction, fast semantic search, and handling long-context inputs, among others.
 
@@ -78,3 +81,14 @@ For more information about the evaluation module, refer to the code in `src/agra
 
 ## Tutorials
 For a list of tutorials on using AutoGluon-RAG in different scenarios, refer to the documentation [here](https://github.com/autogluon/autogluon-rag/tree/main/documentation/tutorial.md)
+
+## Citation
+If you use OPERA in your research, please cite:
+```bibtex
+@article{fang2026opera,
+  title={OPERA: Online Data Pruning for Efficient Retrieval Model Adaptation},
+  author={Fang, Haoyang and Zhang, Shuai and Ma, Yifei and Wang, Hengyi and Hu, Cuixiong and Kirchhoff, Katrin and Wang, Bernie and Karypis, George},
+  journal={arXiv preprint arXiv:2603.17205},
+  year={2026}
+}
+```
