@@ -92,3 +92,6 @@ If you use OPERA in your research, please cite:
   year={2026}
 }
 ```
+
+## Research code
+This repository contains research code intended for academic research and experimentation. It is not production-ready and should be reviewed, tested, and secured before use in production.
