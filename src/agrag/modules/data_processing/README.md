@@ -18,7 +18,7 @@ data:
 
   chunk_overlap : The overlap between consecutive chunks of text (default is 128).
 
-  file_exts: List of file extensions to support. Default is [".pdf", ".txt", ".docx", ".doc", ".rtf", ".csv", ".md", ".py", ".log"]
+  file_extns: List of file extensions to support. Default is [".pdf", ".txt", ".docx", ".doc", ".rtf", ".csv", ".md", ".py", ".log"]
   
   html_tags_to_extract: List of HTML tags to extract text from. Default is ["p", "table"]. We support ["p", "table", "li", "div", "span", "<h_tags>"]  currently.
 

@@ -62,11 +62,12 @@ For large datasets, a naive version of AutoGluon-RAG may not be sufficient. Here
         vector_db:
         db_type: faiss
         faiss_index_type: IndexIVFPQ
-        faiss_quantized_index_params:
+        faiss_index_params:
             nlist: 50
             m: 8
-            bits: 8
-        faiss_index_nprobe: 15
+            nbits: 8
+        faiss_search_params:
+            nprobe: 15
 
 2. Use GPUs: Make sure to use GPUs appropriately in each module (wherever applicable). You can set the `num_gpus` parameter in the configuration file under each module.
 

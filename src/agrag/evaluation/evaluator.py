@@ -15,6 +15,7 @@ from agrag.evaluation.utils import (
     calculate_exact_match_score,
     inclusive_exact_match_metric,
     qa_metric_score,
+    rouge_geometric_mean,
     save_responses_to_csv,
 )
 
@@ -59,6 +60,8 @@ class EvaluationModule:
                     metric_instances[metric] = evaluate.load("exact_match", **self.metric_init_params)
                 elif metric == "inclusive_exact_match":
                     metric_instances[metric] = inclusive_exact_match_metric
+                elif metric == "rouge_gm":
+                    metric_instances[metric] = rouge_geometric_mean
                 elif metric == "pedant":
                     metric_instances[metric] = PEDANT(**self.metric_init_params)
                 elif metric == "transformer_matcher":
@@ -117,7 +120,7 @@ class EvaluationModule:
 
         current_file.close()
 
-    def get_queries_and_responses(self, query_fn: Callable, response_fn: Callable):
+    def get_queries_and_responses(self, query_fn: Callable, response_fn: Callable, mode: str = None):
         """
         Obtains the queries and responses from the dataset.
 
@@ -127,6 +130,10 @@ class EvaluationModule:
             A function to extract the query from the dataset row.
         response_fn : Callable
             A function to extract the expected responses from the dataset row.
+        mode : str, optional
+            Answering mode passed through to ``generate_response``. ``None``
+            (default) preserves the standard RAG path; pass ``"agentic"`` to
+            evaluate the Agentic RAG path over the same dataset and settings.
 
         Returns:
         -------
@@ -146,7 +153,7 @@ class EvaluationModule:
             if not expected_responses:
                 continue
 
-            generated_response = self.agrag.generate_response(query)
+            generated_response = self.agrag.generate_response(query, mode=mode)
             references.append(expected_responses)
             predictions.append(generated_response)
             queries.append(query)
@@ -210,6 +217,14 @@ class EvaluationModule:
                     )
                     result = calculate_exact_match_score(exact_matches=exact_matches)
                     logger.info(f"Inclusive Exact Match Score: {result}")
+
+                elif metric == "rouge_gm":
+                    result = metric_instance(
+                        predictions=predictions,
+                        references=references,
+                        **self.metric_score_params,
+                    )
+                    logger.info(f"ROUGE geometric mean (F, no stemmer): {result}")
 
                 elif metric == "hf_exact_match":
                     result = metric_instance.compute(
@@ -277,6 +292,7 @@ class EvaluationModule:
         evaluation_dir: str = EVALUATION_DIR,
         save_csv_path: str = None,
         max_eval_size: int = None,
+        mode: str = None,
     ):
         """
         Runs the evaluation process.
@@ -298,7 +314,9 @@ class EvaluationModule:
                 1. From HuggingFace: ["bertscore", "hf_exact_match", "bleu"]
                 2. Inclusive Exact Match: ["exact_match"]
                 3. QA Metrics from https://github.com/zli12321/qa_metrics ("pedant", "transformer_matcher")
-                4. Custom Metric Function: This can either be a callable Python function or a function from a Python package
+                4. ROUGE geometric mean: ["rouge_gm"] -- (ROUGE-1 x ROUGE-2 x ROUGE-L)^(1/3), F-measure, no stemmer.
+                   Returns a dict {"rouge1", "rouge2", "rougeL", "rouge_gm"}.
+                5. Custom Metric Function: This can either be a callable Python function or a function from a Python package
         metric_score_params: dict
             Optional, additional parameters to pass into evaluation metric functions when computing scores.
         metric_init_params: dict
@@ -323,6 +341,10 @@ class EvaluationModule:
         max_eval_size : int, optional
             The maximum number of datapoints to process for evaluation (default is None).
             This value should be less than the total number of datapoints.
+        mode : str, optional
+            Answering mode forwarded to ``generate_response``. ``None`` (default)
+            uses the standard RAG path; ``"agentic"`` routes to the Agentic RAG
+            path so both systems can be benchmarked on the same dataset/settings.
         """
         self.dataset_name = dataset_name
         self.metrics = metrics
@@ -331,13 +353,16 @@ class EvaluationModule:
         self.save_evaluation_data = save_evaluation_data
         self.evaluation_dir = evaluation_dir
         self.save_csv_path = save_csv_path
-        self.max_eval_size = None
         self.metric_score_params = metric_score_params
         self.metric_init_params = metric_init_params
-        if max_eval_size >= self.dataset.num_rows:
+        # ``max_eval_size=None`` (the documented default) means "process the whole
+        # dataset". Only clamp when a concrete size was given that is >= the number
+        # of rows; otherwise honor the requested size.
+        if max_eval_size is not None and max_eval_size >= self.dataset.num_rows:
             logger.warning(
                 f"\nProvided `max_eval_size` ({max_eval_size}) >= Number of rows in the dataset ({self.dataset.num_rows}). Entire dataset will be processed for evaluation."
             )
+            self.max_eval_size = None
         else:
             self.max_eval_size = max_eval_size
         self.preprocessing_fn = preprocessing_fn
@@ -353,8 +378,16 @@ class EvaluationModule:
             logger.info("\nAutoGluon-RAG pipeline already initialized...Skipping")
 
         queries, expected_repsonses, generated_responses = self.get_queries_and_responses(
-            query_fn=self.query_fn, response_fn=self.response_fn
+            query_fn=self.query_fn, response_fn=self.response_fn, mode=mode
         )
-        self.evaluate_responses(predictions=generated_responses, references=expected_repsonses, queries=queries)
+        results = self.evaluate_responses(
+            predictions=generated_responses, references=expected_repsonses, queries=queries
+        )
         if self.save_csv_path:
-            self.save_evaluation_results(output_csv=self.save_csv_path, references=expected_repsonses, queries=queries)
+            self.save_evaluation_results(
+                output_csv=self.save_csv_path,
+                predictions=generated_responses,
+                references=expected_repsonses,
+                queries=queries,
+            )
+        return results

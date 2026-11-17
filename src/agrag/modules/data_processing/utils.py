@@ -10,7 +10,7 @@ from langchain_community.document_loaders import PyPDFLoader, RecursiveUrlLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from requests.sessions import Session
 
-from agrag.constants import CHUNK_ID_KEY, DOC_ID_KEY, DOC_TEXT_KEY, LOGGER_NAME, SUPPORTED_FILE_EXTENSIONS
+from agrag.constants import CHUNK_ID_KEY, DOC_ID_KEY, DOC_TEXT_KEY, LOGGER_NAME, SOURCE_KEY, SUPPORTED_FILE_EXTENSIONS
 
 logger = logging.getLogger(LOGGER_NAME)
 
@@ -114,7 +114,9 @@ def process_pdf(file_path: str, chunk_size: int, chunk_overlap: int, doc_id: int
     pages = pdf_loader.load_and_split(text_splitter=text_splitter)
     for chunk_id, page in enumerate(pages):
         page_content = "".join(page.page_content)
-        processed_data.append({DOC_ID_KEY: doc_id, CHUNK_ID_KEY: chunk_id, DOC_TEXT_KEY: page_content})
+        processed_data.append(
+            {DOC_ID_KEY: doc_id, CHUNK_ID_KEY: chunk_id, DOC_TEXT_KEY: page_content, SOURCE_KEY: file_path}
+        )
     return pd.DataFrame(processed_data)
 
 
@@ -140,7 +142,9 @@ def process_txt_md_py_log(file_path: str, chunk_data, doc_id: int) -> pd.DataFra
     with open(file_path, "r", encoding="utf-8") as f:
         text = f.read()
     for chunk_id, chunk in enumerate(chunk_data(text)):
-        processed_data.append({DOC_ID_KEY: doc_id, CHUNK_ID_KEY: chunk_id, DOC_TEXT_KEY: chunk})
+        processed_data.append(
+            {DOC_ID_KEY: doc_id, CHUNK_ID_KEY: chunk_id, DOC_TEXT_KEY: chunk, SOURCE_KEY: file_path}
+        )
     return pd.DataFrame(processed_data)
 
 
@@ -166,7 +170,9 @@ def process_docx_doc(file_path: str, chunk_data, doc_id: int) -> pd.DataFrame:
     doc = Document(file_path)
     text = "\n".join(paragraph.text for paragraph in doc.paragraphs)
     for chunk_id, chunk in enumerate(chunk_data(text)):
-        processed_data.append({DOC_ID_KEY: doc_id, CHUNK_ID_KEY: chunk_id, DOC_TEXT_KEY: chunk})
+        processed_data.append(
+            {DOC_ID_KEY: doc_id, CHUNK_ID_KEY: chunk_id, DOC_TEXT_KEY: chunk, SOURCE_KEY: file_path}
+        )
     return pd.DataFrame(processed_data)
 
 
@@ -192,7 +198,9 @@ def process_rtf(file_path: str, chunk_data, doc_id: int) -> pd.DataFrame:
     with open(file_path, "r") as f:
         text = f.read()
     for chunk_id, chunk in enumerate(chunk_data(text)):
-        processed_data.append({DOC_ID_KEY: doc_id, CHUNK_ID_KEY: chunk_id, DOC_TEXT_KEY: chunk})
+        processed_data.append(
+            {DOC_ID_KEY: doc_id, CHUNK_ID_KEY: chunk_id, DOC_TEXT_KEY: chunk, SOURCE_KEY: file_path}
+        )
     return pd.DataFrame(processed_data)
 
 
@@ -218,7 +226,9 @@ def process_csv(file_path: str, chunk_data, doc_id: int) -> pd.DataFrame:
     df = pd.read_csv(file_path)
     text = df.to_string(index=False)
     for chunk_id, chunk in enumerate(chunk_data(text)):
-        processed_data.append({DOC_ID_KEY: doc_id, CHUNK_ID_KEY: chunk_id, DOC_TEXT_KEY: chunk})
+        processed_data.append(
+            {DOC_ID_KEY: doc_id, CHUNK_ID_KEY: chunk_id, DOC_TEXT_KEY: chunk, SOURCE_KEY: file_path}
+        )
     return pd.DataFrame(processed_data)
 
 

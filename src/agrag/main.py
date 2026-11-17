@@ -1,7 +1,24 @@
+import argparse
+
 from agrag.agrag import AutoGluonRAG
 
 
 def ag_rag():
+    # Only the answering mode is parsed here; the demo pipeline config is
+    # hardcoded below. Pass --mode agentic to route queries through the agentic
+    # RAG path (otherwise the agent.* config values decide, defaulting to
+    # standard single-pass RAG).
+    parser = argparse.ArgumentParser(description="AutoGluon-RAG interactive demo")
+    parser.add_argument(
+        "--mode",
+        type=str,
+        choices=["standard", "agentic"],
+        default=None,
+        help="Answering mode: 'standard' (single-pass RAG) or 'agentic' (multi-step "
+        "planning/verification/abstention). If omitted, the config decides.",
+    )
+    cli_args, _ = parser.parse_known_args()
+
     agrag = AutoGluonRAG(
         preset_quality="medium_quality",  # or path to config file
         web_urls=["https://auto.gluon.ai/stable/index.html"],  # List of URLs to use for RAG
@@ -20,7 +37,8 @@ def ag_rag():
         if query_text == "q":
             break
 
-        agrag.generate_response(query_text)
+        response = agrag.generate_response(query_text, mode=cli_args.mode)
+        print(response)
 
 
 if __name__ == "__main__":

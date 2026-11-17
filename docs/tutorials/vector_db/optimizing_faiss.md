@@ -64,13 +64,12 @@ D, I = index.search(query_vectors, k)
 You can also use `IndexFlatIP`, `IndexHNSWFlat`, `IndexLSH`, `IndexScalarQuantizer`, or `IndexIVFPQ`. For more information, refer to [Faiss indexes wiki](https://github.com/facebookresearch/faiss/wiki/Faiss-indexes).
 
 ## Integration into AutoGluon-RAG
-You must specify the values in your configuration file or after instantiating your `AutoGluonRAG` object. Refer to [this](https://github.com/autogluon/autogluon-rag/tree/main/documentation/tutorials/general/setting_parameters.md) tutorial on how to modify arguments through code after instantiating an  `AutoGluonRAG` object.
+You must specify the values in your configuration file or after instantiating your `AutoGluonRAG` object. Refer to [this](https://github.com/autogluon/autogluon-rag/tree/main/docs/tutorials/general/setting_parameters.md) tutorial on how to modify arguments through code after instantiating an  `AutoGluonRAG` object.
 
 ```
 vector_db:
     db_type: faiss
     faiss_index_type: IndexFlatL2, IndexFlatIP, IndexIVFFlat, IndexHNSWFlat, IndexLSH, IndexPQ, IndexScalarQuantizer, or IndexIVFPQ
-    faiss_quantized_index_params: Parameters to pass into IndexIVFPQ (d, nlist, m, bits)
-    faiss_clustered_index_params: Parameters to pass into IndexIVFFlat (d, nlist)
-    faiss_index_nprobe: Set nprobe value. This defines how many nearby cells to search. It is applicable for both IndexIVFFlat and IndexIVFPQ
+    faiss_index_params: Parameters used to build the index. Sub-keys: quantizer (index type used as the quantizer), nlist (number of clusters, for IVF indexes), m (number of subquantizers, for PQ indexes), nbits (bits per subquantizer, for PQ indexes)
+    faiss_search_params: Parameters used at search time. Sub-key: nprobe (how many nearby cells to search; applicable to IndexIVFFlat and IndexIVFPQ)
 ```

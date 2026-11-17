@@ -97,12 +97,25 @@ class TestEmbeddingModule(unittest.TestCase):
 
     def test_normalize_embedding(self):
         embedding = torch.rand((10, 100))
-        normalized_embedding = normalize_embedding(embedding, {})
+        # New signature forwards **kwargs straight to F.normalize (the caller passes
+        # the pipeline's normalization_params as keywords). Defaults (p=2, dim=1)
+        # still yield unit-norm rows.
+        normalized_embedding = normalize_embedding(embedding, p=2, dim=1, eps=1e-12)
 
         expected_norm = torch.ones((10,))
         actual_norm = torch.norm(normalized_embedding, p=2, dim=1)
 
         self.assertTrue(torch.allclose(expected_norm, actual_norm, atol=1e-6))
+
+    def test_normalize_embedding_accepts_list(self):
+        # Bedrock (e.g. Cohere) returns already-pooled sentence embeddings as a
+        # plain Python list; normalize_embedding must handle that and return an
+        # ndarray of unit-norm rows (regression for the old args=dict signature that
+        # raised TypeError on the keyword call site).
+        embeddings = [[3.0, 4.0], [0.0, 5.0]]
+        normalized = normalize_embedding(embeddings, p=2, dim=1, eps=1e-12)
+        norms = np.linalg.norm(normalized, ord=2, axis=1)
+        self.assertTrue(np.allclose(norms, np.ones(2), atol=1e-6))
 
     @patch.object(EmbeddingModule, "encode")
     def test_encode_queries_with_instruction(self, mock_encode):

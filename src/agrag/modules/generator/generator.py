@@ -32,8 +32,8 @@ class GeneratorModule:
 
     def __init__(
         self,
-        model_name: str = "mistralai/Mistral-7B-Instruct-v0.2",
-        model_platform: str = "huggingface",
+        model_name: str = "us.anthropic.claude-sonnet-4-6",
+        model_platform: str = "bedrock",
         platform_args: dict = {},
         **kwargs,
     ):
@@ -73,7 +73,7 @@ class GeneratorModule:
         else:
             raise NotImplementedError(f"Unsupported platform type: {model_platform}")
 
-    def generate_response(self, query: str) -> str:
+    def generate_response(self, query: str, temperature: float = None) -> str:
         """
         Generates a response based on the provided query.
 
@@ -81,10 +81,17 @@ class GeneratorModule:
         ----------
         query : str
             The user query for which a response is to be generated.
+        temperature : float, optional
+            Per-call sampling temperature override (e.g. for self-consistency
+            sampling). Only honored on the Bedrock platform; ignored for other
+            platforms so their ``generate_response(query)`` contract is unchanged.
+            ``None`` -> use the model's configured params (prior behavior).
 
         Returns:
         -------
         str
             The generated response.
         """
+        if temperature is not None and self.model_platform == "bedrock":
+            return self.generator.generate_response(query, temperature=temperature)
         return self.generator.generate_response(query)

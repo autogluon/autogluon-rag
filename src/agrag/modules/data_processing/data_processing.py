@@ -6,7 +6,16 @@ from typing import List, Tuple
 import boto3
 import pandas as pd
 
-from agrag.constants import LOGGER_NAME, SUPPORTED_FILE_EXTENSIONS, SUPPORTED_HTML_TAGS
+from agrag.constants import (
+    CHUNK_ID_KEY,
+    DOC_ID_KEY,
+    DOC_TEXT_KEY,
+    LOGGER_NAME,
+    PARENT_ID_KEY,
+    SOURCE_KEY,
+    SUPPORTED_FILE_EXTENSIONS,
+    SUPPORTED_HTML_TAGS,
+)
 from agrag.modules.data_processing.utils import (
     download_directory_from_s3,
     get_all_file_paths,
@@ -74,6 +83,8 @@ class DataProcessingModule:
         web_urls: List[str],
         chunk_size: int,
         chunk_overlap: int,
+        chunking_strategy: str = "legacy",
+        children_per_parent: int = 4,
         **kwargs,
     ):
         if not data_dir:
@@ -82,6 +93,14 @@ class DataProcessingModule:
         self.data_dir = data_dir
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
+        self.chunking_strategy = chunking_strategy
+        self.children_per_parent = children_per_parent
+        # Populated by ``process_data``/``build_parent_child`` when parent-child
+        # chunking is enabled. A DataFrame with columns [parent_id, doc_id, text];
+        # None otherwise. It accumulates across batches so a single store spans the
+        # whole corpus, and ``_next_parent_id`` keeps parent_id globally unique.
+        self.parent_store = None
+        self._next_parent_id = 0
         self.s3_bucket = data_s3_bucket
         self.s3_client = boto3.client("s3") if self.s3_bucket else None
         self.file_exts = kwargs.get("file_exts", SUPPORTED_FILE_EXTENSIONS)
@@ -238,6 +257,7 @@ class DataProcessingModule:
             "doc_id": [doc_id] * len(chunked_text_content),
             "chunk_id": list(range(len(chunked_text_content))),
             "text": chunked_text_content,
+            "source": [url] * len(chunked_text_content),
         }
 
         return pd.DataFrame(data)
@@ -294,8 +314,68 @@ class DataProcessingModule:
             processed_files_data, last_doc_id = self.process_files(file_paths, start_doc_id=0)
 
         if self.web_urls:
-            processed_urls_data = self.process_urls(
+            # process_urls returns (dataframe, last_doc_id); unpack so only the
+            # DataFrame is concatenated and doc IDs stay continuous with files.
+            processed_urls_data, last_doc_id = self.process_urls(
                 self.web_urls, login_info=self.login_info, start_doc_id=last_doc_id
             )
 
-        return pd.concat([processed_files_data, processed_urls_data]).reset_index(drop=True)
+        processed_data = pd.concat([processed_files_data, processed_urls_data]).reset_index(drop=True)
+
+        if self.chunking_strategy == "parent_child" and not processed_data.empty:
+            processed_data = self.build_parent_child(processed_data)
+
+        return processed_data
+
+    def build_parent_child(self, processed_data: pd.DataFrame) -> pd.DataFrame:
+        """Group consecutive child chunks into parents (small-to-big retrieval).
+
+        Every ``children_per_parent`` consecutive child chunks within a document
+        become one parent chunk. Each child row is tagged with a ``parent_id``
+        that is globally unique across the whole corpus, including across batches:
+        the counter (``self._next_parent_id``) and the parent store
+        (``self.parent_store``) both persist between calls, so batched ingestion
+        keeps assigning fresh IDs and appends new parents rather than restarting.
+
+        The parent store has columns [parent_id, doc_id, text]; the retriever uses
+        it to expand a matched child into its parent context. The returned child
+        DataFrame keeps the original flat chunks plus the ``parent_id`` column, so
+        dense/sparse indexing is unchanged. Callable directly by the batched path.
+        """
+        n = max(1, int(self.children_per_parent))
+        parent_rows = []
+        parent_ids = []
+
+        # Assign parent_id per child, grouping within each document in chunk order.
+        # Start from the running counter so IDs stay unique across batches.
+        for doc_id, group in processed_data.groupby(DOC_ID_KEY, sort=False):
+            group = group.sort_values(CHUNK_ID_KEY) if CHUNK_ID_KEY in group.columns else group
+            for offset, (idx, row) in enumerate(group.iterrows()):
+                if offset % n == 0:
+                    current_parent_id = self._next_parent_id
+                    self._next_parent_id += 1
+                parent_ids.append((idx, current_parent_id))
+
+        parent_id_map = dict(parent_ids)
+        processed_data[PARENT_ID_KEY] = processed_data.index.map(parent_id_map)
+
+        # Build this batch's parent rows by concatenating each group's child texts.
+        for parent_id, group in processed_data.groupby(PARENT_ID_KEY, sort=True):
+            text = "\n".join(str(t) for t in group[DOC_TEXT_KEY].tolist())
+            doc_id = group[DOC_ID_KEY].iloc[0]
+            parent_rows.append({PARENT_ID_KEY: parent_id, DOC_ID_KEY: doc_id, DOC_TEXT_KEY: text})
+
+        batch_store = pd.DataFrame(parent_rows)
+        # Accumulate across batches: append to the existing store rather than
+        # replacing it, so the final store spans the entire corpus.
+        if self.parent_store is None or self.parent_store.empty:
+            self.parent_store = batch_store
+        else:
+            self.parent_store = pd.concat([self.parent_store, batch_store], ignore_index=True)
+        logger.info(
+            "Parent-child chunking: %d child chunks grouped into %d parents (%d total)",
+            len(processed_data),
+            len(batch_store),
+            len(self.parent_store),
+        )
+        return processed_data

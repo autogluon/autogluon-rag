@@ -6,7 +6,7 @@ Here are the configurable parameters for this module:
 
 ```
 embedding:
-  embedding_model: The name of theEmbedding model to use for generating embeddings (default is "BAAI/bge-large-en" from Huggingface). 
+  embedding_model: The name of theEmbedding model to use for generating embeddings (default is "cohere.embed-english-v3" from Bedrock). 
 
   embedding_model_platform: The name of the platform where the model is hosted. Currently only Huggingface ("huggingface") and Bedrock ("bedrock") models are supported. 
   Currently only Cohere (https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-embed.html) and Amazon Titan (https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-titan.html) embedding models are supported on Bedrock.

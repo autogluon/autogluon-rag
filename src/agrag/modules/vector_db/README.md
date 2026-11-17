@@ -14,7 +14,7 @@ We identify and remove duplicate embeddings based on a configurable similarity t
 Here are the configurable parameters for this module:
 ```
 vector_db:
-  db_type: The type of Vector DB (Currently, only 'faiss' and 'milvus' are supported). Default is 'milvus'. 
+  db_type: The type of Vector DB (Currently, only 'faiss' and 'milvus' are supported). Default is 'faiss'. 
 
   params: What parameters to use for the Vector DB. For example, `{gpu: False}`.
 
@@ -43,11 +43,9 @@ vector_db:
 
   faiss_index_type: Type of FAISS Index to use (IndexFlatL2, IndexIVFFlat, IndexIVFPQ). For IndexIVFFlat, and IndexIVFPQ, we use the quantizer IndexFlatL2 by default.
 
-  faiss_quantized_index_params: Additional parameters to pass into IndexIVFPQ
+  faiss_index_params: Parameters used to build the index. Sub-keys: `quantizer` (index type used as the quantizer, e.g. IndexFlatL2), `nlist` (number of clusters for IVF indexes), `m` (number of subquantizers for PQ indexes), `nbits` (bits per subquantizer for PQ indexes).
 
-  faiss_clustered_index_params: Additional parameters to pass into IndexIVFFlat
-
-  faiss_index_nprobe: Value to set FAISS index nprobe to
+  faiss_search_params: Parameters used at search time. Sub-key: `nprobe` (number of clusters to probe for IVF indexes).
   
   milvus_db_name: Name of the Milvus DB Client
 

@@ -1,7 +1,7 @@
 # Changing generator after initializing RAG pipeline.
 
 ```python
-agrag = AutoGluon()
+agrag = AutoGluonRAG(preset_quality="medium_quality")
 agrag.initialize_rag_pipeline()
 
 # Change Generator Model Configuration

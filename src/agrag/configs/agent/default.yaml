@@ -1,0 +1,175 @@
+# Default configuration for the optional Agentic RAG path.
+# The agentic path is OFF by default; the standard RAG path remains the default
+# behavior of generate_response(query). Agentic behavior runs only when enabled
+# here or when generate_response is called with mode="agentic".
+AGENT_ENABLED: false
+AGENT_DEFAULT_MODE: standard
+AGENT_MAX_ITERATIONS: 5
+AGENT_MAX_SUBQUERIES: 4
+AGENT_RETRIEVE_TOP_K_PER_QUERY: 8
+AGENT_MAX_CONTEXT_TOKENS: 6000
+AGENT_USE_QUERY_REWRITE: true
+AGENT_USE_CONTEXT_COMPRESSION: false
+AGENT_USE_VERIFICATION: true
+# Never-refuse is the default (AGENT_ALLOW_ABSTENTION: false). On weak/failed
+# verification the agent iterates (rewrite + retrieve more); when iteration is
+# exhausted it returns a best-effort, evidence-grounded answer instead of the
+# canned abstention. Verification still runs and steers those rewrites. Set true
+# to restore the ability to refuse (abstain) when a question is unanswerable.
+AGENT_ALLOW_ABSTENTION: false
+# Maximum query rewrites per run. Only a rewrite (a new query) surfaces new
+# evidence -- re-retrieving the same query is deduped away -- so this is the main
+# lever on how hard the agent iterates for evidence before drafting a best effort.
+AGENT_MAX_REWRITES: 2
+AGENT_MIN_EVIDENCE_COUNT: 2
+# Minimum fraction of planned subqueries that must have supporting evidence before
+# drafting is the preferred action. When coverage is below this (and a rewrite is
+# still in budget) the policy prefers a rewrite to fill the gap. Only bites when
+# the plan has subqueries; drafting is never removed, so the loop still terminates.
+AGENT_MIN_SUBGOAL_COVERAGE: 0.5
+# Minimum best-evidence relevance score below which the policy prefers a rewrite
+# over drafting. null disables the relevance gate. Scores are only compared when
+# the evidence actually carries them, so a score-less retriever never blocks.
+AGENT_MIN_RELEVANCE: null
+AGENT_RETURN_TRACE: false
+# When true, the QueryPlanner uses the shared generator to decompose the query
+# into retrieval subqueries (validated back into the same list contract), instead
+# of the deterministic regex split. Adds one LLM call per run. Off by default.
+AGENT_USE_LLM_PLANNER: false
+# When true, the DecisionPolicy lets the shared generator choose the next action
+# from the set of currently-legal actions (args are still assembled
+# deterministically). The LLM is consulted only at genuine forks, not every
+# iteration. Off by default.
+AGENT_USE_LLM_POLICY: false
+# When true, the QueryPlanner uses a Strands agent (Bedrock Sonnet 4.6) to emit
+# retrieval subqueries as Pydantic-validated structured output, instead of the
+# raw-generator LLM path or the regex split. Takes precedence over
+# AGENT_USE_LLM_PLANNER when both are set. Requires the optional `strands-agents`
+# dependency; if it or Bedrock is unavailable the planner falls back to the LLM
+# path then the rule-based split. Off by default.
+AGENT_USE_STRANDS_PLANNER: false
+# When true, the DecisionPolicy uses a Strands agent (Bedrock Sonnet 4.6) to
+# choose the next action from the currently-legal set, constrained to that set by
+# a JSON-schema enum (args are still assembled deterministically). Takes
+# precedence over AGENT_USE_LLM_POLICY at forks. Requires `strands-agents`; falls
+# back to the LLM path then the deterministic choice when unavailable. Off by
+# default.
+AGENT_USE_STRANDS_POLICY: false
+# When true, MultiQueryRetrieveTool runs one genuinely global multi-query
+# pipeline instead of concatenating per-subquery results: it collects raw dense
+# (and, when retriever.USE_HYBRID is on, sparse) candidates for every subquery
+# with no per-query reranking/MMR/expansion/truncation, runs a single RRF across
+# all (subquery x signal) ranked lists, dedups by chunk identity while preserving
+# every retrieval_query and source_signal, runs the cross-encoder exactly once
+# against the original user query, applies MMR once (when retriever.USE_MMR),
+# selects the final top-k, and only then expands parent/neighbor context. It
+# reuses RRF_K and the fusion/MMR/expansion settings from the retriever config.
+# Off by default so the standard agentic behavior (and its evidence counts) is
+# unchanged.
+AGENT_USE_FUSED_RETRIEVAL: false
+# When true, the executor resolves the plan's subqueries SEQUENTIALLY instead of
+# retrieving them all in one up-front parallel MULTI_RETRIEVE. Per hop it builds a
+# self-contained query (substituting prior hops' resolved answers into pronouns /
+# vague references via the shared generator), retrieves, ingests evidence, and
+# extracts that hop's intermediate answer to thread into the next hop; the final
+# answer is synthesized + verified against the original question exactly as before.
+# This targets multi-hop questions whose later hops depend on an earlier hop's
+# answer. Only engages when the plan produced >=2 subqueries; otherwise the
+# standard loop runs unchanged. Off by default (pure opt-in, no behavior change).
+AGENT_USE_ITERATIVE_PLANNER: false
+# When true, a verbose/reasoning-style synthesis draft is distilled into the
+# shortest answer span via one extra generator call (only when the draft actually
+# looks verbose, so short answers pay nothing). Targets datasets scored on short
+# answer spans (e.g. MuSiQue) where the model over-explains or leaks reasoning.
+# Off by default -> the raw draft is returned unchanged.
+AGENT_EXTRACT_ANSWER: false
+# When true, if the final answer fails verification and rewrite budget remains,
+# the sequential-hop path issues one targeted rewrite+retrieve pass on the original
+# question and re-drafts once (bounded by AGENT_MAX_REWRITES). Lets a discriminative
+# verifier actually correct a wrong answer. Off by default -> single draft as before.
+AGENT_VERIFY_RETRY: false
+# Multi-hop recovery for the sequential-hop path (both off by default).
+# AGENT_USE_HOP_RECOVERY: when a hop's grounded extraction returns UNKNOWN, the
+# executor hypothesizes a best-guess candidate and uses it ONLY as an extra search
+# query to try to surface confirming evidence, then re-extracts from the augmented
+# evidence -- the guess is never stored as the hop answer, so a still-UNKNOWN hop
+# stays UNKNOWN rather than being fabricated (adds at most one retrieval per hop).
+AGENT_USE_HOP_RECOVERY: false
+# AGENT_USE_REPLAN_RECOVERY: when the FINAL answer fails verification, discard the
+# plan and re-decompose the question into a different, finer-grained plan, then
+# re-run the hop loop over it. Targets the dominant multi-hop failure (a wrong or
+# under-granular decomposition) rather than a retrieval miss. Bounded by
+# AGENT_MAX_RECOVERY_ATTEMPTS (tracked separately from AGENT_MAX_ITERATIONS).
+AGENT_USE_REPLAN_RECOVERY: false
+AGENT_MAX_RECOVERY_ATTEMPTS: 2
+# AGENT_MAX_TOTAL_HOPS: global cap on the total number of hop retrievals across ALL
+# passes (initial plan + every replan) for a single sequential run. Unlike
+# AGENT_MAX_ITERATIONS -- which the sequential hop loop does NOT consult -- this
+# bounds the worst case where replan recovery multiplies out (replans x plan
+# length) and one question fires a dozen-plus retrievals. null -> unbounded.
+AGENT_MAX_TOTAL_HOPS: null
+# Deep-hop retrieval widening (sequential-hop path only). A "deep" hop is one that
+# depends on an earlier hop (carries a #n back-reference) or sits at/after
+# AGENT_DEEP_HOP_THRESHOLD (0-based hop index). For such hops the executor requests
+# AGENT_DEEP_HOP_TOP_K chunks instead of the base AGENT_RETRIEVE_TOP_K_PER_QUERY, so
+# a resolved bridge entity has more candidates to rank against in a large/pooled
+# corpus. null -> disabled (every hop uses the base per-query top_k).
+AGENT_DEEP_HOP_TOP_K: null
+AGENT_DEEP_HOP_THRESHOLD: 2
+# When true, a hop's grounded extraction is rejected (treated like UNKNOWN, routing
+# it through hop recovery if enabled, else the UNKNOWN sentinel) when the extracted
+# answer shares NO content token with that hop's own retrieved evidence -- a
+# deterministic, reject-only gate mirroring the verifier's ungrounded-number gate.
+# Catches parametric leaks (an entity answered from the model's memory that the
+# evidence never names). Best paired with AGENT_USE_HOP_RECOVERY so a gated hop can
+# re-retrieve rather than only drop to UNKNOWN. Off by default.
+AGENT_USE_ENTITY_GROUNDING: false
+# When true, the FINAL multi-hop synthesis drops the single-word ``generator_query_prefix``
+# so the full-answer directive keeps answer-bearing qualifiers ("75% of the world's
+# teak", not "teak"; "1981", not "early 1980s"). Applies only to the final answer,
+# never to hop answering. Trades some strict exact-match for higher F1/LLM-judge on
+# multi-hop. Off by default -> prefix applied as before.
+AGENT_FINAL_ANSWER_DROP_PREFIX: false
+# When true, the sequential path adds a final "direct-answer" recovery pass: if the
+# draft is still rejected after replan/verify-retry AND is itself a non-answer/abstention
+# (empty, UNKNOWN, or "INSUFFICIENT EVIDENCE"), it re-synthesizes ONCE with the resolved
+# hop chain dropped (so a single UNKNOWN intermediate hop no longer forces a refusal) and
+# answers directly from the ranked evidence, then re-verifies. Recovers false abstentions
+# where the answer is present in the evidence but a broken hop poisoned the chain. Fires
+# only on drafts already guaranteed wrong, so it cannot lower exact-match/judge. Off by default.
+AGENT_USE_DIRECT_ANSWER_FALLBACK: false
+# Independent verifier model. By default the AnswerVerifier reuses the single
+# configured generator (so the same model both drafts AND judges the answer --
+# correlated errors: a plausible-but-wrong entity the drafter misreads, the
+# same-model judge misreads the same way and accepts it). Set this to a DIFFERENT
+# (ideally stronger) Bedrock model id to break that correlation and catch the
+# "silent wrong answer" bucket. null -> reuse the generator (prior behavior). The
+# verifier runs at temperature 0 (deterministic); models that reject the temperature
+# param, e.g. Opus 4.8, drop it automatically.
+AGENT_VERIFIER_MODEL: null
+# Dual-candidate synthesis + arbitration (sequential-hop path). When true, after the
+# chain-conditioned draft is verified the executor ALSO synthesizes a chain-free
+# candidate (hop chain dropped, answered directly from the ranked evidence) and
+# reconciles the two: if they agree, accept; if exactly one verifies, take it; if
+# both verify but differ, an arbitration call on the verifier model picks the
+# better-grounded one; if neither verifies, prefer the chain-free candidate when the
+# chain has a broken/UNKNOWN hop, else the chain draft (best-effort, never a canned
+# abstention). Generalizes (and supersedes) AGENT_USE_DIRECT_ANSWER_FALLBACK, which
+# only fired when the chain draft was itself a non-answer. Targets false abstentions,
+# broken-hop chain poisoning, and final-selection errors. Off by default.
+AGENT_DUAL_SYNTHESIS: false
+# Self-consistency on the final synthesis. When > 1, the final answer is drafted K
+# times at a small sampling temperature and the majority (normalized) answer is kept,
+# then verified once -- damping one-off misreads (e.g. drafting "half" for gold "30% to
+# 65%"). Adds K-1 synthesis calls per final draft. 1 -> disabled (single greedy draft;
+# prior behavior). Only engages on the sequential-hop path.
+AGENT_SELF_CONSISTENCY: 1
+# Real cost budgets for a single agentic run. Each caps a different resource:
+# AGENT_MAX_WALL_CLOCK_S -> wall-clock seconds, AGENT_MAX_LLM_CALLS -> total
+# generator (LLM) calls, AGENT_MAX_RETRIEVAL_CALLS -> total retrieval-tool calls.
+# Each null -> unbounded. When any budget trips, the run returns its best-effort
+# answer tagged ANSWERED_UNVERIFIED with reason ``budget_exhausted`` (the
+# never-refuse contract is preserved). All null by default -> no budget enforced.
+AGENT_MAX_WALL_CLOCK_S: null
+AGENT_MAX_LLM_CALLS: null
+AGENT_MAX_RETRIEVAL_CALLS: null

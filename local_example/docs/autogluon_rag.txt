@@ -1,0 +1,15 @@
+AutoGluon-RAG
+
+AutoGluon-RAG is a framework for building Retrieval-Augmented Generation (RAG)
+pipelines with minimal code. It follows the AutoML philosophy of AutoGluon by
+abstracting away the technical complexity of retrievers, generators, vector
+databases, semantic search, and long-context handling.
+
+A RAG pipeline in AutoGluon-RAG has several stages: data processing (ingesting and
+chunking documents), embedding (turning chunks into vectors), a vector database
+(storing and indexing those vectors), retrieval (finding relevant chunks for a query),
+and generation (an LLM writing the final answer from the retrieved context).
+
+Users can either choose a preset quality setting such as medium_quality, or supply a
+configuration file that specifies parameters for each module. Supported generator
+platforms include HuggingFace, vLLM, OpenAI, and AWS Bedrock.

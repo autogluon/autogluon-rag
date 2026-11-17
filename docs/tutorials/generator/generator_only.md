@@ -6,7 +6,7 @@ If you want to use the generator model directly without retrieving any context f
 
 ```python
 retriever:
-  retriever_top_k: 20
+  retriever_top_k: 0
 ```
 
 ### Using code

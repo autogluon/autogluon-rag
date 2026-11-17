@@ -1,0 +1,15 @@
+AutoGluon Overview
+
+AutoGluon is an open-source AutoML library developed by Amazon. It enables developers
+to train highly accurate machine learning models with just a few lines of code.
+AutoGluon automates feature preprocessing, model selection, hyperparameter tuning,
+and model ensembling.
+
+The flagship module is AutoGluon Tabular, which handles classification and regression
+on structured, spreadsheet-style data. Instead of searching for a single best model,
+AutoGluon trains many diverse models such as LightGBM, XGBoost, CatBoost, random
+forests, and neural networks, and then combines them using multi-layer stack ensembling.
+
+AutoGluon also supports multimodal data through AutoGluon Multimodal, which can handle
+combinations of text, images, and tabular features. For forecasting problems, AutoGluon
+TimeSeries provides automatic model selection and ensembling for time series data.

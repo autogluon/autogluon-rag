@@ -59,7 +59,7 @@ If you are using `vllm` platform, the arguments must be structured as:
 
       "hf_generate_params": {}, # Additional parameters to pass to the Huggingface model's `generate` method.
 
-      "local_model_path": "path/to/local_model" , # Path to a local model to use for generation.
+      "hf_local_model_path": "path/to/local_model" , # Path to a local model to use for generation.
   }
   ```
 
@@ -68,8 +68,6 @@ If you are using `vllm` platform, the arguments must be structured as:
   generator_model_platform_args = {
       "bedrock_generate_params": {}, # Additional parameters to pass to the AWS Bedrock generate API method.
 
-      "openai_key_file": "path/to/txt_file", # The path to the file containing the OpenAI API key.
-      
       "bedrock_aws_region": "us-west-2" # AWS region where the model is hosted on Bedrock.
   }
   ```

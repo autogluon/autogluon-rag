@@ -4,3 +4,30 @@ RERANKER_MODEL: BAAI/bge-reranker-large
 DEFAULT_RERANKER_MODEL_PLATFORM: huggingface
 RERANKER_BATCH_SIZE: 64
 USE_RERANKER: false
+
+# Hybrid + hierarchical retrieval. All default OFF so the legacy dense-only path
+# is unchanged unless a config opts in.
+# USE_HYBRID adds a BM25 sparse signal alongside the dense retriever; when on, the
+# dense and sparse ranked lists are fused with Reciprocal Rank Fusion (RRF).
+# USE_RRF turns on RRF fusion for the standard single-query retrieve() path even
+# when hybrid is off (dense-only RRF is an order-preserving no-op, but it makes
+# the fused code path and rrf_score available). It does NOT control the agentic
+# multi-query path: that is gated solely by agent.USE_FUSED_RETRIEVAL, which,
+# when on, always fuses subqueries globally with RRF and reuses RRF_K,
+# DENSE_WEIGHT, SPARSE_WEIGHT, USE_MMR, MMR_LAMBDA, and CHUNK_READ from here.
+# RRF_K is the RRF constant; DENSE_WEIGHT/SPARSE_WEIGHT weight each ranked list.
+# USE_MMR applies Maximal Marginal Relevance for diversity after reranking
+# (MMR_LAMBDA trades relevance vs. diversity). CHUNK_READ expands each retrieved
+# child chunk by +/- N neighbor chunks (and to its parent chunk when a parent
+# store is present). BM25_K1/BM25_B are the BM25 term-saturation and
+# length-normalization parameters.
+USE_HYBRID: false
+USE_RRF: false
+RRF_K: 60
+DENSE_WEIGHT: 1.0
+SPARSE_WEIGHT: 1.0
+USE_MMR: false
+MMR_LAMBDA: 0.5
+CHUNK_READ: 0
+BM25_K1: 1.5
+BM25_B: 0.75

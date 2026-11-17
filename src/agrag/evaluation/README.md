@@ -61,11 +61,12 @@ For large datasets, a naive version of AutoGluon-RAG may not be sufficient. Here
         vector_db:
         db_type: faiss
         faiss_index_type: IndexIVFPQ
-        faiss_quantized_index_params:
+        faiss_index_params:
             nlist: 50
             m: 8
-            bits: 8
-        faiss_index_nprobe: 15
+            nbits: 8
+        faiss_search_params:
+            nprobe: 15
     ```
 2. Use GPUs: Make sure to use GPUs appropriately in each module (wherever applicable). You can set the `num_gpus` parameter in the configuration file under each module.
 
@@ -98,6 +99,7 @@ Alternatively, you can index all your evaluation datasets at once, or create mul
   - `ignore_numbers` (bool, optional): If `True`, removes all digits before comparing strings. Defaults to `False`.
 - `"pedant"`: Uses the PEDANT metric from [QA Metrics](https://github.com/zli12321/qa_metrics).
 - `"transformer_matcher"`: Uses the Transformer Matcher metric from [QA Metrics](https://github.com/zli12321/qa_metrics).
+- `"rouge_gm"`: ROUGE geometric mean, a custom pure-Python metric defined in this module (no extra dependencies, no stemmer). It computes the ROUGE-1, ROUGE-2, and ROUGE-L **F-measures** (best over the reference answers/aliases per example, using the same lowercase + punctuation-stripped tokenization as the other metrics), averages each across the dataset, and reports their geometric mean `(ROUGE-1 × ROUGE-2 × ROUGE-L)^(1/3)`. Returns a dict `{"rouge1", "rouge2", "rougeL", "rouge_gm"}`.
 - `<callable_custom_metric>`: Any callable Python function or a function from a Python package. It must take in at least the arguments `predictions` and `references`, where `predictions` is a `List` of generated responses and `references` is a `List[List]` of expected responses.
 
 ### metric_score_params

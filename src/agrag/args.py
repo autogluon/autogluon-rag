@@ -44,6 +44,7 @@ class Arguments:
         self.retriever_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/retriever/default.yaml"))
         self.generator_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/generator/default.yaml"))
         self.shared_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/shared/default.yaml"))
+        self.agent_defaults = self._load_defaults(os.path.join(CURRENT_DIR, "configs/agent/default.yaml"))
 
     def _parse_args(self) -> argparse.Namespace:
         parser = argparse.ArgumentParser(description="AutoGluon-RAG - Retrieval-Augmented Generation Pipeline")
@@ -75,6 +76,17 @@ class Arguments:
             "--data_dir",
             type=str,
             help="Directory containing files to use for RAG. Supports local or S3 paths.",
+            metavar="",
+        )
+        parser.add_argument(
+            "--mode",
+            type=str,
+            choices=["standard", "agentic"],
+            default=None,
+            help="Answering mode. 'standard' (default) uses the single-pass RAG path; "
+            "'agentic' uses the multi-step agentic RAG path (planning, multi-query "
+            "retrieval, verification, abstention). If omitted, the agent.default_mode / "
+            "agent.enabled config values decide.",
             metavar="",
         )
 
@@ -155,7 +167,7 @@ class Arguments:
         return self.config.get("data", {}).get("login_info", {})
 
     @login_info.setter
-    def web_urls(self, value):
+    def login_info(self, value):
         self.config["data"]["login_info"] = value
 
     @property
@@ -181,6 +193,22 @@ class Arguments:
     @chunk_overlap.setter
     def chunk_overlap(self, value):
         self.config["data"]["chunk_overlap"] = value
+
+    @property
+    def chunking_strategy(self):
+        return self.config.get("data", {}).get("chunking_strategy", self.data_defaults.get("CHUNKING_STRATEGY"))
+
+    @chunking_strategy.setter
+    def chunking_strategy(self, value):
+        self.config.setdefault("data", {})["chunking_strategy"] = value
+
+    @property
+    def children_per_parent(self):
+        return self.config.get("data", {}).get("children_per_parent", self.data_defaults.get("CHILDREN_PER_PARENT"))
+
+    @children_per_parent.setter
+    def children_per_parent(self, value):
+        self.config.setdefault("data", {})["children_per_parent"] = value
 
     @property
     def data_file_extns(self):
@@ -545,6 +573,86 @@ class Arguments:
         self.config["retriever"]["num_gpus"] = value
 
     @property
+    def use_hybrid(self):
+        return self.config.get("retriever", {}).get("use_hybrid", self.retriever_defaults.get("USE_HYBRID"))
+
+    @use_hybrid.setter
+    def use_hybrid(self, value):
+        self.config.setdefault("retriever", {})["use_hybrid"] = value
+
+    @property
+    def use_rrf(self):
+        return self.config.get("retriever", {}).get("use_rrf", self.retriever_defaults.get("USE_RRF"))
+
+    @use_rrf.setter
+    def use_rrf(self, value):
+        self.config.setdefault("retriever", {})["use_rrf"] = value
+
+    @property
+    def rrf_k(self):
+        return self.config.get("retriever", {}).get("rrf_k", self.retriever_defaults.get("RRF_K"))
+
+    @rrf_k.setter
+    def rrf_k(self, value):
+        self.config.setdefault("retriever", {})["rrf_k"] = value
+
+    @property
+    def dense_weight(self):
+        return self.config.get("retriever", {}).get("dense_weight", self.retriever_defaults.get("DENSE_WEIGHT"))
+
+    @dense_weight.setter
+    def dense_weight(self, value):
+        self.config.setdefault("retriever", {})["dense_weight"] = value
+
+    @property
+    def sparse_weight(self):
+        return self.config.get("retriever", {}).get("sparse_weight", self.retriever_defaults.get("SPARSE_WEIGHT"))
+
+    @sparse_weight.setter
+    def sparse_weight(self, value):
+        self.config.setdefault("retriever", {})["sparse_weight"] = value
+
+    @property
+    def use_mmr(self):
+        return self.config.get("retriever", {}).get("use_mmr", self.retriever_defaults.get("USE_MMR"))
+
+    @use_mmr.setter
+    def use_mmr(self, value):
+        self.config.setdefault("retriever", {})["use_mmr"] = value
+
+    @property
+    def mmr_lambda(self):
+        return self.config.get("retriever", {}).get("mmr_lambda", self.retriever_defaults.get("MMR_LAMBDA"))
+
+    @mmr_lambda.setter
+    def mmr_lambda(self, value):
+        self.config.setdefault("retriever", {})["mmr_lambda"] = value
+
+    @property
+    def chunk_read(self):
+        return self.config.get("retriever", {}).get("chunk_read", self.retriever_defaults.get("CHUNK_READ"))
+
+    @chunk_read.setter
+    def chunk_read(self, value):
+        self.config.setdefault("retriever", {})["chunk_read"] = value
+
+    @property
+    def bm25_k1(self):
+        return self.config.get("retriever", {}).get("bm25_k1", self.retriever_defaults.get("BM25_K1"))
+
+    @bm25_k1.setter
+    def bm25_k1(self, value):
+        self.config.setdefault("retriever", {})["bm25_k1"] = value
+
+    @property
+    def bm25_b(self):
+        return self.config.get("retriever", {}).get("bm25_b", self.retriever_defaults.get("BM25_B"))
+
+    @bm25_b.setter
+    def bm25_b(self, value):
+        self.config.setdefault("retriever", {})["bm25_b"] = value
+
+    @property
     def generator_model_name(self):
         return self.config.get("generator", {}).get(
             "generator_model_name", self.generator_defaults.get("GENERATOR_MODEL")
@@ -566,7 +674,10 @@ class Arguments:
 
     @property
     def generator_model_platform_args(self):
-        return self.config.get("generator", {}).get("generator_model_platform_args", {})
+        return self.config.get("generator", {}).get(
+            "generator_model_platform_args",
+            self.generator_defaults.get("DEFAULT_GENERATOR_MODEL_PLATFORM_ARGS", {}),
+        )
 
     @generator_model_platform_args.setter
     def generator_model_platform_args(self, value):
@@ -587,3 +698,363 @@ class Arguments:
     @generator_query_prefix.setter
     def generator_query_prefix(self, value):
         self.config["generator"]["generator_query_prefix"] = value
+
+    @property
+    def agent_enabled(self):
+        return self.config.get("agent", {}).get("enabled", self.agent_defaults.get("AGENT_ENABLED"))
+
+    @agent_enabled.setter
+    def agent_enabled(self, value):
+        self.config.setdefault("agent", {})["enabled"] = value
+
+    @property
+    def agent_default_mode(self):
+        return self.config.get("agent", {}).get("default_mode", self.agent_defaults.get("AGENT_DEFAULT_MODE"))
+
+    @agent_default_mode.setter
+    def agent_default_mode(self, value):
+        self.config.setdefault("agent", {})["default_mode"] = value
+
+    @property
+    def agent_max_iterations(self):
+        return self.config.get("agent", {}).get("max_iterations", self.agent_defaults.get("AGENT_MAX_ITERATIONS"))
+
+    @agent_max_iterations.setter
+    def agent_max_iterations(self, value):
+        self.config.setdefault("agent", {})["max_iterations"] = value
+
+    @property
+    def agent_max_subqueries(self):
+        return self.config.get("agent", {}).get("max_subqueries", self.agent_defaults.get("AGENT_MAX_SUBQUERIES"))
+
+    @agent_max_subqueries.setter
+    def agent_max_subqueries(self, value):
+        self.config.setdefault("agent", {})["max_subqueries"] = value
+
+    @property
+    def agent_retrieve_top_k_per_query(self):
+        return self.config.get("agent", {}).get(
+            "retrieve_top_k_per_query", self.agent_defaults.get("AGENT_RETRIEVE_TOP_K_PER_QUERY")
+        )
+
+    @agent_retrieve_top_k_per_query.setter
+    def agent_retrieve_top_k_per_query(self, value):
+        self.config.setdefault("agent", {})["retrieve_top_k_per_query"] = value
+
+    @property
+    def agent_max_context_tokens(self):
+        return self.config.get("agent", {}).get(
+            "max_context_tokens", self.agent_defaults.get("AGENT_MAX_CONTEXT_TOKENS")
+        )
+
+    @agent_max_context_tokens.setter
+    def agent_max_context_tokens(self, value):
+        self.config.setdefault("agent", {})["max_context_tokens"] = value
+
+    @property
+    def agent_use_query_rewrite(self):
+        return self.config.get("agent", {}).get(
+            "use_query_rewrite", self.agent_defaults.get("AGENT_USE_QUERY_REWRITE")
+        )
+
+    @agent_use_query_rewrite.setter
+    def agent_use_query_rewrite(self, value):
+        self.config.setdefault("agent", {})["use_query_rewrite"] = value
+
+    @property
+    def agent_use_context_compression(self):
+        return self.config.get("agent", {}).get(
+            "use_context_compression", self.agent_defaults.get("AGENT_USE_CONTEXT_COMPRESSION")
+        )
+
+    @agent_use_context_compression.setter
+    def agent_use_context_compression(self, value):
+        self.config.setdefault("agent", {})["use_context_compression"] = value
+
+    @property
+    def agent_use_verification(self):
+        return self.config.get("agent", {}).get("use_verification", self.agent_defaults.get("AGENT_USE_VERIFICATION"))
+
+    @agent_use_verification.setter
+    def agent_use_verification(self, value):
+        self.config.setdefault("agent", {})["use_verification"] = value
+
+    @property
+    def agent_min_evidence_count(self):
+        return self.config.get("agent", {}).get(
+            "min_evidence_count", self.agent_defaults.get("AGENT_MIN_EVIDENCE_COUNT")
+        )
+
+    @agent_min_evidence_count.setter
+    def agent_min_evidence_count(self, value):
+        self.config.setdefault("agent", {})["min_evidence_count"] = value
+
+    @property
+    def agent_min_subgoal_coverage(self):
+        return self.config.get("agent", {}).get(
+            "min_subgoal_coverage", self.agent_defaults.get("AGENT_MIN_SUBGOAL_COVERAGE")
+        )
+
+    @agent_min_subgoal_coverage.setter
+    def agent_min_subgoal_coverage(self, value):
+        self.config.setdefault("agent", {})["min_subgoal_coverage"] = value
+
+    @property
+    def agent_min_relevance(self):
+        return self.config.get("agent", {}).get("min_relevance", self.agent_defaults.get("AGENT_MIN_RELEVANCE"))
+
+    @agent_min_relevance.setter
+    def agent_min_relevance(self, value):
+        self.config.setdefault("agent", {})["min_relevance"] = value
+
+    @property
+    def agent_allow_abstention(self):
+        return self.config.get("agent", {}).get(
+            "allow_abstention", self.agent_defaults.get("AGENT_ALLOW_ABSTENTION")
+        )
+
+    @agent_allow_abstention.setter
+    def agent_allow_abstention(self, value):
+        self.config.setdefault("agent", {})["allow_abstention"] = value
+
+    @property
+    def agent_max_rewrites(self):
+        return self.config.get("agent", {}).get("max_rewrites", self.agent_defaults.get("AGENT_MAX_REWRITES"))
+
+    @agent_max_rewrites.setter
+    def agent_max_rewrites(self, value):
+        self.config.setdefault("agent", {})["max_rewrites"] = value
+
+    @property
+    def agent_return_trace(self):
+        return self.config.get("agent", {}).get("return_trace", self.agent_defaults.get("AGENT_RETURN_TRACE"))
+
+    @agent_return_trace.setter
+    def agent_return_trace(self, value):
+        self.config.setdefault("agent", {})["return_trace"] = value
+
+    @property
+    def agent_use_fused_retrieval(self):
+        return self.config.get("agent", {}).get(
+            "use_fused_retrieval", self.agent_defaults.get("AGENT_USE_FUSED_RETRIEVAL")
+        )
+
+    @agent_use_fused_retrieval.setter
+    def agent_use_fused_retrieval(self, value):
+        self.config.setdefault("agent", {})["use_fused_retrieval"] = value
+
+    @property
+    def agent_use_llm_planner(self):
+        return self.config.get("agent", {}).get("use_llm_planner", self.agent_defaults.get("AGENT_USE_LLM_PLANNER"))
+
+    @agent_use_llm_planner.setter
+    def agent_use_llm_planner(self, value):
+        self.config.setdefault("agent", {})["use_llm_planner"] = value
+
+    @property
+    def agent_use_llm_policy(self):
+        return self.config.get("agent", {}).get("use_llm_policy", self.agent_defaults.get("AGENT_USE_LLM_POLICY"))
+
+    @agent_use_llm_policy.setter
+    def agent_use_llm_policy(self, value):
+        self.config.setdefault("agent", {})["use_llm_policy"] = value
+
+    @property
+    def agent_use_strands_planner(self):
+        return self.config.get("agent", {}).get(
+            "use_strands_planner", self.agent_defaults.get("AGENT_USE_STRANDS_PLANNER")
+        )
+
+    @agent_use_strands_planner.setter
+    def agent_use_strands_planner(self, value):
+        self.config.setdefault("agent", {})["use_strands_planner"] = value
+
+    @property
+    def agent_use_strands_policy(self):
+        return self.config.get("agent", {}).get(
+            "use_strands_policy", self.agent_defaults.get("AGENT_USE_STRANDS_POLICY")
+        )
+
+    @agent_use_strands_policy.setter
+    def agent_use_strands_policy(self, value):
+        self.config.setdefault("agent", {})["use_strands_policy"] = value
+
+    @property
+    def agent_use_iterative_planner(self):
+        return self.config.get("agent", {}).get(
+            "use_iterative_planner", self.agent_defaults.get("AGENT_USE_ITERATIVE_PLANNER")
+        )
+
+    @agent_use_iterative_planner.setter
+    def agent_use_iterative_planner(self, value):
+        self.config.setdefault("agent", {})["use_iterative_planner"] = value
+
+    @property
+    def agent_extract_answer(self):
+        return self.config.get("agent", {}).get(
+            "extract_answer", self.agent_defaults.get("AGENT_EXTRACT_ANSWER")
+        )
+
+    @agent_extract_answer.setter
+    def agent_extract_answer(self, value):
+        self.config.setdefault("agent", {})["extract_answer"] = value
+
+    @property
+    def agent_verify_retry(self):
+        return self.config.get("agent", {}).get(
+            "verify_retry", self.agent_defaults.get("AGENT_VERIFY_RETRY")
+        )
+
+    @agent_verify_retry.setter
+    def agent_verify_retry(self, value):
+        self.config.setdefault("agent", {})["verify_retry"] = value
+
+    @property
+    def agent_use_hop_recovery(self):
+        return self.config.get("agent", {}).get(
+            "use_hop_recovery", self.agent_defaults.get("AGENT_USE_HOP_RECOVERY")
+        )
+
+    @agent_use_hop_recovery.setter
+    def agent_use_hop_recovery(self, value):
+        self.config.setdefault("agent", {})["use_hop_recovery"] = value
+
+    @property
+    def agent_use_replan_recovery(self):
+        return self.config.get("agent", {}).get(
+            "use_replan_recovery", self.agent_defaults.get("AGENT_USE_REPLAN_RECOVERY")
+        )
+
+    @agent_use_replan_recovery.setter
+    def agent_use_replan_recovery(self, value):
+        self.config.setdefault("agent", {})["use_replan_recovery"] = value
+
+    @property
+    def agent_max_recovery_attempts(self):
+        return self.config.get("agent", {}).get(
+            "max_recovery_attempts", self.agent_defaults.get("AGENT_MAX_RECOVERY_ATTEMPTS")
+        )
+
+    @agent_max_recovery_attempts.setter
+    def agent_max_recovery_attempts(self, value):
+        self.config.setdefault("agent", {})["max_recovery_attempts"] = value
+
+    @property
+    def agent_max_total_hops(self):
+        return self.config.get("agent", {}).get(
+            "max_total_hops", self.agent_defaults.get("AGENT_MAX_TOTAL_HOPS")
+        )
+
+    @agent_max_total_hops.setter
+    def agent_max_total_hops(self, value):
+        self.config.setdefault("agent", {})["max_total_hops"] = value
+
+    @property
+    def agent_deep_hop_top_k(self):
+        return self.config.get("agent", {}).get(
+            "deep_hop_top_k", self.agent_defaults.get("AGENT_DEEP_HOP_TOP_K")
+        )
+
+    @agent_deep_hop_top_k.setter
+    def agent_deep_hop_top_k(self, value):
+        self.config.setdefault("agent", {})["deep_hop_top_k"] = value
+
+    @property
+    def agent_deep_hop_threshold(self):
+        return self.config.get("agent", {}).get(
+            "deep_hop_threshold", self.agent_defaults.get("AGENT_DEEP_HOP_THRESHOLD")
+        )
+
+    @agent_deep_hop_threshold.setter
+    def agent_deep_hop_threshold(self, value):
+        self.config.setdefault("agent", {})["deep_hop_threshold"] = value
+
+    @property
+    def agent_use_entity_grounding(self):
+        return self.config.get("agent", {}).get(
+            "use_entity_grounding", self.agent_defaults.get("AGENT_USE_ENTITY_GROUNDING")
+        )
+
+    @agent_use_entity_grounding.setter
+    def agent_use_entity_grounding(self, value):
+        self.config.setdefault("agent", {})["use_entity_grounding"] = value
+
+    @property
+    def agent_final_answer_drop_prefix(self):
+        return self.config.get("agent", {}).get(
+            "final_answer_drop_prefix", self.agent_defaults.get("AGENT_FINAL_ANSWER_DROP_PREFIX")
+        )
+
+    @agent_final_answer_drop_prefix.setter
+    def agent_final_answer_drop_prefix(self, value):
+        self.config.setdefault("agent", {})["final_answer_drop_prefix"] = value
+
+    @property
+    def agent_use_direct_answer_fallback(self):
+        return self.config.get("agent", {}).get(
+            "use_direct_answer_fallback", self.agent_defaults.get("AGENT_USE_DIRECT_ANSWER_FALLBACK")
+        )
+
+    @agent_use_direct_answer_fallback.setter
+    def agent_use_direct_answer_fallback(self, value):
+        self.config.setdefault("agent", {})["use_direct_answer_fallback"] = value
+
+    @property
+    def agent_verifier_model(self):
+        return self.config.get("agent", {}).get(
+            "verifier_model", self.agent_defaults.get("AGENT_VERIFIER_MODEL")
+        )
+
+    @agent_verifier_model.setter
+    def agent_verifier_model(self, value):
+        self.config.setdefault("agent", {})["verifier_model"] = value
+
+    @property
+    def agent_dual_synthesis(self):
+        return self.config.get("agent", {}).get(
+            "dual_synthesis", self.agent_defaults.get("AGENT_DUAL_SYNTHESIS")
+        )
+
+    @agent_dual_synthesis.setter
+    def agent_dual_synthesis(self, value):
+        self.config.setdefault("agent", {})["dual_synthesis"] = value
+
+    @property
+    def agent_self_consistency(self):
+        return self.config.get("agent", {}).get(
+            "self_consistency", self.agent_defaults.get("AGENT_SELF_CONSISTENCY")
+        )
+
+    @agent_self_consistency.setter
+    def agent_self_consistency(self, value):
+        self.config.setdefault("agent", {})["self_consistency"] = value
+
+    @property
+    def agent_max_wall_clock_s(self):
+        return self.config.get("agent", {}).get(
+            "max_wall_clock_s", self.agent_defaults.get("AGENT_MAX_WALL_CLOCK_S")
+        )
+
+    @agent_max_wall_clock_s.setter
+    def agent_max_wall_clock_s(self, value):
+        self.config.setdefault("agent", {})["max_wall_clock_s"] = value
+
+    @property
+    def agent_max_llm_calls(self):
+        return self.config.get("agent", {}).get(
+            "max_llm_calls", self.agent_defaults.get("AGENT_MAX_LLM_CALLS")
+        )
+
+    @agent_max_llm_calls.setter
+    def agent_max_llm_calls(self, value):
+        self.config.setdefault("agent", {})["max_llm_calls"] = value
+
+    @property
+    def agent_max_retrieval_calls(self):
+        return self.config.get("agent", {}).get(
+            "max_retrieval_calls", self.agent_defaults.get("AGENT_MAX_RETRIEVAL_CALLS")
+        )
+
+    @agent_max_retrieval_calls.setter
+    def agent_max_retrieval_calls(self, value):
+        self.config.setdefault("agent", {})["max_retrieval_calls"] = value

@@ -1,7 +1,7 @@
 # Setting module parameters in `AutoGluonRAG`. 
 
 ```python
-agrag = AutoGluon()
+agrag = AutoGluonRAG(preset_quality="medium_quality")
 agrag.initialize_rag_pipeline()
 ```
 

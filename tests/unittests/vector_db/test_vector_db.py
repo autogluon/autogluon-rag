@@ -80,6 +80,35 @@ class TestVectorDatabaseModule(unittest.TestCase):
         metadata = embeddings.drop(columns=[EMBEDDING_KEY, EMBEDDING_HIDDEN_DIM_KEY])
         pd.testing.assert_frame_equal(self.vector_db_module.metadata, metadata)
 
+    def test_search_faiss_indices_only(self):
+        import numpy as np
+
+        self.vector_db_module.db_type = "faiss"
+        self.vector_db_module.index = MagicMock()
+        # FAISS returns (distances, indices) as 2D arrays.
+        self.vector_db_module.index.search.return_value = (
+            np.array([[0.1, 0.2, 0.3]]),
+            np.array([[2, 0, 1]]),
+        )
+        result = self.vector_db_module.search_vector_database(np.random.rand(10).astype("float32"), top_k=3)
+        # Default: indices only (backward compatible).
+        self.assertEqual(result, [2, 0, 1])
+
+    def test_search_faiss_return_scores(self):
+        import numpy as np
+
+        self.vector_db_module.db_type = "faiss"
+        self.vector_db_module.index = MagicMock()
+        self.vector_db_module.index.search.return_value = (
+            np.array([[0.1, 0.2, 0.3]]),
+            np.array([[2, 0, 1]]),
+        )
+        indices, scores = self.vector_db_module.search_vector_database(
+            np.random.rand(10).astype("float32"), top_k=3, return_scores=True
+        )
+        self.assertEqual(indices, [2, 0, 1])
+        self.assertEqual(scores, [0.1, 0.2, 0.3])
+
     @patch("agrag.modules.vector_db.vector_database.construct_milvus_index")
     def test_construct_vector_database_milvus(self, mock_construct_milvus_index):
         mock_milvus_index = MagicMock()

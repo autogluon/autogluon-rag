@@ -1,0 +1,142 @@
+shared:
+  pipeline_batch_size: 0   # 0 = no batching; process everything at once
+
+data:
+  chunk_size: 128
+  chunk_overlap: 16
+  file_extns:
+    - "txt"
+  # Small-to-big retrieval: build a parent store so a matched child chunk can be
+  # expanded to its parent context. Requires ingest (use_existing_vector_db is
+  # false below, so the corpus is re-ingested and the parent store is built).
+  chunking_strategy: parent_child
+  children_per_parent: 4
+
+embedding:
+  # AWS Bedrock Cohere Embed English v3 embedding model.
+  embedding_model: cohere.embed-english-v3
+  embedding_model_platform: bedrock
+  embedding_model_platform_args:
+    bedrock_aws_region: us-west-2
+    hf_tokenizer_params:
+      truncation: true
+      padding: true
+  # Bedrock Cohere returns already-pooled sentence embeddings (a plain list), so
+  # token-level pooling must NOT run -- pool(list, "mean") would do list.mean() and
+  # raise "'list' object has no attribute 'mean'". null = return embeddings as-is.
+  pooling_strategy: null
+  # Cosine end-to-end: L2-normalize both document and query vectors so the
+  # IndexFlatIP inner product below IS cosine similarity (higher = more similar).
+  # This also makes the raw ``retrieval_score`` a valid higher-is-better signal, so
+  # rank_evidence (which sorts it descending) surfaces the closest chunk first
+  # instead of the farthest -- a latent bug under the old unnormalized L2 index when
+  # the reranker is off.
+  normalize_embeddings: true
+  # NOTE: eps must be written 1.0e-12 (not 1e-12). YAML 1.1 only recognizes
+  # scientific notation as a float when it has a decimal point and a signed
+  # exponent; "1e-12" parses as a STRING, which then reaches F.normalize's
+  # clamp_min() and raises a TypeError.
+  normalization_params: {'p': 2, 'dim': 1, 'eps': 1.0e-12}
+  embedding_batch_size: 32
+
+vector_db:
+  db_type: faiss
+  params: {gpu: False}
+  similarity_threshold: 0.95
+  similarity_fn: cosine
+  # Cosine via inner product on L2-normalized vectors (see normalize_embeddings
+  # above). IndexFlatIP returns higher-is-better scores, matching similarity_fn:
+  # cosine and the descending sort in rank_evidence. The dedup similarity_threshold
+  # is computed by an explicit (scale-invariant) cosine, so it is unaffected.
+  faiss_index_type: IndexFlatIP
+  use_existing_vector_db: false
+  save_index: true
+  num_gpus: 0
+  vector_db_index_save_path: local_example/vector_db_index/index.idx
+  metadata_index_save_path: local_example/vector_db_metadata/metadata.json
+  vector_db_index_load_path: local_example/vector_db_index/index.idx
+  metadata_index_load_path: local_example/vector_db_metadata/metadata.json
+
+retriever:
+  # Maximize chunks reaching the generator. With the reranker OFF, the standard
+  # hybrid path (_retrieve_advanced) has no final top-k truncation, so every fused
+  # dense+sparse candidate is passed to the generator; the agentic path
+  # (retrieve_fused) still caps at retriever_top_k. Raising retriever_top_k widens
+  # both. 20 pulls up to 20 dense + 20 sparse candidates per query (deduped/fused).
+  retriever_top_k: 20
+  # Cross-encoder reranker default-OFF here so `benchmark_musique.py --rerank both`
+  # can run the on/off A/B on the same index without re-embedding (apply_rerank_setting
+  # toggles this in memory). With use_reranker: false the rerank stage of both hybrid
+  # retrieve() and agentic retrieve_fused() no-ops, and the standard path's
+  # truncate-to-reranker_top_k step disappears -- so more chunks reach the generator.
+  # When the reranker IS enabled it re-introduces truncate-to-reranker_top_k, so this
+  # is set >= retriever_top_k (40 vs 20) to avoid silently shrinking the generator's
+  # context relative to the reranker-off arm and confounding the comparison.
+  use_reranker: false
+  reranker_top_k: 40
+  reranker_model_name: BAAI/bge-reranker-base
+  reranker_model_platform: huggingface
+  reranker_batch_size: 8
+  num_gpus: 0
+  # Hybrid + hierarchical retrieval (all default OFF in the framework).
+  # use_hybrid adds a BM25 sparse signal fused with dense via RRF.
+  use_hybrid: true
+  use_rrf: true
+  rrf_k: 60
+  dense_weight: 1.0
+  sparse_weight: 1.0
+  # MMR diversity pass after reranking (helps multi-hop pull from distinct docs).
+  use_mmr: true
+  mmr_lambda: 0.5
+  # Neighbor-window expansion (+/- N adjacent chunks) on top of parent expansion.
+  chunk_read: 1
+
+agent:
+  # Global fused multi-query retrieval for the agentic path: instead of
+  # concatenating per-subquery results, MultiQueryRetrieveTool runs one global
+  # pipeline (raw candidates -> single RRF -> one cross-encoder rerank against the
+  # original query -> one MMR -> top-k -> parent/neighbor expansion). Reuses the
+  # retriever's rrf_k / weights / use_mmr / chunk_read / parent store above.
+  use_fused_retrieval: true
+  # C1 ablation: coverage gate off (combined with the C1a accept-partial code change).
+  min_subgoal_coverage: 0.0
+  # Multi-hop questions were exhausting the default 5-iteration budget (every
+  # retrievable over-refusal capped at iters=5). Give the loop more room to
+  # decompose/retrieve/draft before falling back to abstain.
+  max_iterations: 8
+  # Never-refuse is the default now (allow_abstention defaults to false), so no
+  # flag is needed to always return an answer. On weak/failed verification the
+  # agent rewrites and retrieves more; when that iteration is exhausted it returns
+  # a best-effort, evidence-grounded answer instead of the canned abstention.
+  # Raise the rewrite budget so "iterate more" is meaningful: only a rewrite (a new
+  # query) surfaces new evidence -- re-retrieving the same query is deduped away.
+  max_rewrites: 2
+  # MuSiQue is scored on short answer spans. Distill verbose/reasoning drafts into
+  # the shortest span (one extra generator call, only when the draft looks verbose).
+  extract_answer: true
+  # Let a failed verification trigger one bounded rewrite+retrieve+re-draft in the
+  # sequential-hop path (P1a). Bounded by max_rewrites above.
+  verify_retry: true
+
+generator:
+  # Generator via AWS Bedrock (Claude Sonnet 4.6) for meaningful answers.
+  # Active Bedrock Claude models require the "us." inference-profile prefix.
+  # For a no-credentials run, swap this block for a local HuggingFace generator
+  # (e.g. sshleifer/tiny-gpt2 with platform huggingface).
+  generator_model_name: us.anthropic.claude-sonnet-4-6
+  generator_model_platform: bedrock
+  num_gpus: 0
+  generator_model_platform_args:
+    bedrock_aws_region: us-west-2
+    bedrock_generate_params:
+      max_tokens: 1024
+      anthropic_version: "bedrock-2023-05-31"
+  # Terse-answer prefix mirrors the original Google NQ evaluation setup so
+  # answers are short enough for exact-match scoring.
+  generator_query_prefix: >
+    You will be answering questions based on Wikipedia articles. Your response
+    must contain only the actual answer itself and no extra information or words.
+    Provide just the answer instead of forming full sentences. Your answer may
+    even be a singular word or number. For example, if the query is "what
+    percentage of the earth's surface is water?", your response must simply be
+    'roughly 78%', or '78%'.

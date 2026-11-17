@@ -8,7 +8,7 @@ agrag = AutoGluonRAG(
 agrag.initialize_data_module() 
 agrag.initialize_embedding_module() 
 
-processed_data = self.process_data()
+processed_data = agrag.process_data()
 embeddings = agrag.generate_embeddings(processed_data=processed_data)
 ```
 

@@ -1,2 +1,10 @@
-GENERATOR_MODEL: mistralai/Mistral-7B-Instruct-v0.2
-DEFAULT_GENERATOR_MODEL_PLATFORM: huggingface
+GENERATOR_MODEL: us.anthropic.claude-sonnet-4-6
+DEFAULT_GENERATOR_MODEL_PLATFORM: bedrock
+# Default platform args for the Bedrock/Claude generator. Claude-on-Bedrock
+# requires anthropic_version in the request body, so these must be present for
+# the default generator to work out of the box.
+DEFAULT_GENERATOR_MODEL_PLATFORM_ARGS:
+  bedrock_aws_region: us-west-2
+  bedrock_generate_params:
+    max_tokens: 1024
+    anthropic_version: "bedrock-2023-05-31"

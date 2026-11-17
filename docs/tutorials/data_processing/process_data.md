@@ -7,7 +7,7 @@ agrag = AutoGluonRAG(
         ) 
 agrag.initialize_data_module() 
 
-processed_data = self.process_data()
+processed_data = agrag.process_data()
 ```
 
 Here, instead of calling `initialize_rag_pipeline` to initialize the entire pipeline, we simply initialize the data module to process the data.

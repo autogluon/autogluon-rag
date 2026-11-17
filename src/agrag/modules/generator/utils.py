@@ -32,11 +32,12 @@ def format_query(model_name: str, query: str, context: List[str]) -> str:
             formatted_query = f"<s>[INST] <<SYS>> {context} <</SYS>> \n\n {query} [/INST]"
         else:
             formatted_query = f"<s>[INST] {query} [/INST]"
-    elif "anthropic" in model_name:
-        if context:
-            formatted_query = f"\n\nHuman: {query}\n\nAssistant: Here is some useful context:\n{context}\n\nAssistant:"
-        else:
-            formatted_query = f"\n\nHuman: {query}\n\nAssistant:"
+    elif "anthropic" in model_name or "claude" in model_name:
+        # Anthropic/Claude models are served via Bedrock's messages API
+        # (see BedrockGenerator.generate_response), which wraps the text in a user
+        # role itself. So the content is plain text (query + context); the legacy
+        # "\n\nHuman:/\n\nAssistant:" text-completion scaffolding must not be used.
+        formatted_query = final_query
     elif "gpt-" in model_name:
         formatted_query = final_query
     else:

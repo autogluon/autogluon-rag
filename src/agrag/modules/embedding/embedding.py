@@ -23,7 +23,7 @@ class EmbeddingModule:
     Attributes:
     ----------
     model_name : str
-        The name of the Embedding model to use for generating embeddings (default is "BAAI/bge-large-en" from Huggingface).
+        The name of the Embedding model to use for generating embeddings (default is "cohere.embed-english-v3" from Bedrock).
     model_platform: str
         The name of the platform where the model is hosted. Currently only Huggingface ("huggingface") and Bedrock ("bedrock") models are supported.
     platform_args: dict
@@ -50,8 +50,8 @@ class EmbeddingModule:
 
     def __init__(
         self,
-        model_name: str = "BAAI/bge-large-en",
-        model_platform: str = "huggingface",
+        model_name: str = "cohere.embed-english-v3",
+        model_platform: str = "bedrock",
         platform_args: dict = {},
         **kwargs,
     ):
@@ -154,7 +154,11 @@ class EmbeddingModule:
 
             logger.info("\nProcessing embeddings")
 
-            batch_embeddings = pool(batch_embeddings, self.pooling_strategy)
+            # Bedrock returns already-pooled sentence embeddings as a plain list;
+            # token-level pooling only applies to the raw HuggingFace token outputs.
+            # Calling pool() on the list would do list.mean(dim=1) -> AttributeError.
+            if self.model_platform != "bedrock":
+                batch_embeddings = pool(batch_embeddings, self.pooling_strategy)
             if self.normalize_embeddings:
                 batch_embeddings = normalize_embedding(batch_embeddings, **self.normalization_params)
 

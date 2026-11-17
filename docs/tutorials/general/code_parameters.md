@@ -7,11 +7,10 @@ config_file : str
 
 preset_quality : str
     If you do not wish to use your own configuration file, you can use a preset configuration file which contains pre-defined arguments.
-    You must provide the preset quality setting ("good_quality", "medium_quality", or, "best_quality"). Note that if both config_file and preset_quality are provided, config_file will be prioritized.  
+    You must provide the preset quality setting ("low_quality", "medium_quality", or "high_quality"). Currently only "medium_quality" is implemented. Note that if both config_file and preset_quality are provided, config_file will be prioritized.  
 
 model_ids : dict
-    Dictionary of model IDs to use for specific modules.
-    Example: {"generator_model_id": "mistral.mistral-7b-instruct-v0:2", "retriever_model_id": "BAAI/bge-large-en", "reranker_model_id": "nv_embed"}
+    Reserved for future use. Currently stored but not consumed by the pipeline; set model names via the config file or `agrag.args` (e.g. `generator_model_name`, `embedding_model`) instead.
 
 data_dir : str
     The directory containing the data files that will be used for the RAG pipeline. If this value is not provided when initializing the object, it must be provided in the config file. If both are provided, the value in the class instantiation will be prioritized. 

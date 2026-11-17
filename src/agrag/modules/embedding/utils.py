@@ -2,10 +2,12 @@ import logging
 from typing import Dict, List
 
 import boto3
+import numpy as np
 import torch
 from torch.nn import functional as F
 
 from agrag.constants import LOGGER_NAME
+from agrag.modules.bedrock_retry import bedrock_throttle_retry
 
 logger = logging.getLogger(LOGGER_NAME)
 import json
@@ -51,37 +53,64 @@ def pool(embeddings: List[torch.Tensor], pooling_strategy: str) -> List[torch.Te
     return embeddings
 
 
-def normalize_embedding(embeddings, args=None):
+def normalize_embedding(embeddings, **kwargs):
     """
-    Normalizes the input tensor (embedding).
+    Normalizes the input embeddings.
 
     This function normalizes the input embeddings along a specified dimension using the specified parameters.
     It wraps the `torch.nn.functional.normalize` function, which applies Lp normalization over a specified dimension.
 
+    The caller forwards the pipeline's ``normalization_params`` as keyword arguments
+    (``normalize_embedding(batch, **self.normalization_params)``), so the signature
+    accepts ``**kwargs`` directly rather than a single ``args`` dict -- passing the
+    dict's contents as keywords to the old ``args=None`` signature raised
+    ``TypeError: unexpected keyword argument 'p'`` and made normalization unusable.
+
+    Bedrock (e.g. Cohere) returns already-pooled sentence embeddings as a plain
+    Python list; ``F.normalize`` requires a tensor, so a list/ndarray input is
+    converted to a float tensor first. The return type mirrors the input (a
+    ``torch.Tensor`` for tensor input, an ``np.ndarray`` for list/array input) so the
+    downstream ``isinstance(batch_embeddings, torch.Tensor)`` branch is unaffected.
+
     Parameters:
     ----------
-    embeddings : torch.Tensor
-        The input tensor containing the embeddings to be normalized.
-    args : dict
-        Additional arguments to be passed to `torch.nn.functional.normalize`. This can include:
+    embeddings : torch.Tensor | List | np.ndarray
+        The input embeddings to be normalized.
+    **kwargs :
+        Additional arguments forwarded to `torch.nn.functional.normalize`:
         - p (float): The exponent value in the norm formulation. Default: 2.
         - dim (int): The dimension to reduce. Default: 1.
         - eps (float): A small value to avoid division by zero. Default: 1e-12.
 
     Returns:
     -------
-    torch.Tensor
-        A tensor containing the normalized embeddings.
+    torch.Tensor | np.ndarray
+        The normalized embeddings, matching the input container type.
 
     Example:
     --------
     embeddings = torch.rand(10, 100)
-    args = {'p': 2, 'dim': 1, 'eps': 1e-12}
-    normalized_embeddings = normalize(embeddings, args)
+    normalized_embeddings = normalize_embedding(embeddings, p=2, dim=1, eps=1e-12)
     """
-    return F.normalize(embeddings, **args)
+    # Coerce numeric params that a YAML config may hand over as strings. YAML 1.1
+    # only recognizes scientific notation as a float when it has a decimal point and
+    # a signed exponent, so ``eps: 1e-12`` parses as the string ``"1e-12"`` and would
+    # reach ``F.normalize``'s ``clamp_min()`` unchanged, raising a TypeError. Coercing
+    # here keeps normalization working regardless of how the config was written.
+    if "p" in kwargs:
+        kwargs["p"] = float(kwargs["p"])
+    if "dim" in kwargs:
+        kwargs["dim"] = int(kwargs["dim"])
+    if "eps" in kwargs:
+        kwargs["eps"] = float(kwargs["eps"])
+    if isinstance(embeddings, torch.Tensor):
+        return F.normalize(embeddings, **kwargs)
+    # Bedrock returns a plain list (or ndarray); normalize as a tensor, return an ndarray.
+    tensor = torch.as_tensor(np.asarray(embeddings), dtype=torch.float32)
+    return F.normalize(tensor, **kwargs).cpu().numpy()
 
 
+@bedrock_throttle_retry
 def get_embeddings_bedrock(
     batch_texts: List[str],
     client: boto3.client,

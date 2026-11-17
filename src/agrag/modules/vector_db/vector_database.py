@@ -147,7 +147,7 @@ class VectorDatabaseModule:
         if pbar:
             pbar.update(len(embeddings))
 
-    def search_vector_database(self, embedding: np.array, top_k: int) -> List[torch.Tensor]:
+    def search_vector_database(self, embedding: np.array, top_k: int, return_scores: bool = False):
         """
         Searches the vector database for the top k most similar embeddings to the given embedding
 
@@ -157,17 +157,28 @@ class VectorDatabaseModule:
             Embedding of the user query. The database is searched to find the k most similar vectors to this embedding
         top_k: int
             Number of similar embeddings to search for in the database
+        return_scores : bool
+            If False (default), returns a list of indices only, preserving the
+            original behavior. If True, returns a tuple ``(indices, scores)``
+            where ``scores`` is the parallel list of raw similarity/distance
+            scores from the backend (FAISS distances, Milvus distances). The
+            agentic retrieval path uses these to populate ``retrieval_score`` on
+            each ``Evidence``.
 
         Returns:
         -------
-        List[torch.Tensor]
-            Top k most similar embeddings
+        List[int] or Tuple[List[int], List[float]]
+            Top k most similar embedding indices, or ``(indices, scores)`` when
+            ``return_scores`` is True.
         """
         if embedding.ndim == 1:
             embedding = embedding.reshape(1, embedding.shape[0])
         if self.db_type == "faiss":
-            _, indices = self.index.search(x=embedding, k=top_k)
-            return indices[0].tolist()
+            distances, indices = self.index.search(x=embedding, k=top_k)
+            indices = indices[0].tolist()
+            if return_scores:
+                return indices, distances[0].tolist()
+            return indices
         elif self.db_type == "milvus":
             search_results = self.index.search(
                 collection_name=self.milvus_collection_name,
@@ -178,6 +189,10 @@ class VectorDatabaseModule:
                 output_fields=["id"],
             )
             search_results_data = search_results[0]
-            return [result["id"] for result in search_results_data]
+            indices = [result["id"] for result in search_results_data]
+            if return_scores:
+                scores = [result.get("distance") for result in search_results_data]
+                return indices, scores
+            return indices
         else:
             raise ValueError(f"Unsupported database type: {self.db_type}")

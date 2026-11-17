@@ -69,7 +69,7 @@ For a list of configurable parameters that can be passed into the `AutoGluonRAG`
 
 ### Using Configuration File
 You can also use a configuration file with `AutoGluonRAG`.
-The configuration file contains the specific parameters to use for each module in the RAG pipeline. For an example of a config file, please refer to `example_config.yaml` in `src/agrag/configs/`. For specific details about the parameters in each individual module, refer to the `README` files in each module in `src/agrag/modules/`.
+The configuration file contains the specific parameters to use for each module in the RAG pipeline. For an example of a config file, please refer to `medium_quality_config.yaml` in `src/agrag/configs/presets/`. For specific details about the parameters in each individual module, refer to the `README` files in each module in `src/agrag/modules/`.
 
 There is also a `shared` section in the config file for parameters that do not refer to a specific module. Currently, the parameters in `shared` are: 
 ```python

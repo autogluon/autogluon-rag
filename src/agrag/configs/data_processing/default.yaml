@@ -3,3 +3,11 @@ CHUNK_OVERLAP: 64
 PARSE_URLS_RECURSIVE: true
 SUPPORTED_FILE_EXTENSIONS: [".pdf", ".txt", ".docx", ".doc", ".rtf", ".csv", ".md", ".py", ".log"]
 SUPPORTED_HTML_TAGS: ["p", "table"]
+
+# Chunking strategy. "legacy" keeps the current flat chunking (default, no
+# behavior change). "parent_child" additionally builds a parent store: every
+# CHILDREN_PER_PARENT consecutive child chunks are grouped under one larger
+# parent chunk, and each child row is tagged with a parent_id so retrieval can
+# expand a matched child into its parent context (small-to-big retrieval).
+CHUNKING_STRATEGY: legacy
+CHILDREN_PER_PARENT: 4

@@ -13,7 +13,7 @@ retriever:
 ```
 
 The alternate way is through code:
-Refer to [this](https://github.com/autogluon/autogluon-rag/tree/main/documentation/tutorials/general/setting_parameters.md) tutorial on how to modify arguments through code after instantiating an  `AutoGluonRAG` object.
+Refer to [this](https://github.com/autogluon/autogluon-rag/tree/main/docs/tutorials/general/setting_parameters.md) tutorial on how to modify arguments through code after instantiating an  `AutoGluonRAG` object.
 ```python
 agrag.use_reranker = False
 agrag.initialize_retriever_module()

@@ -13,6 +13,23 @@ openai*
 *milvus_db
 *_data*
 
+# Local example/benchmark area: KEEP the runnable sources, configs, and sample
+# docs tracked; ignore only the artifacts these scripts generate at runtime
+# (vector indexes/metadata, downloaded datasets/corpora, benchmark outputs).
+local_example/vector_db_index/
+local_example/vector_db_metadata/
+local_example/evaluation_data*/
+local_example/**/corpus/
+# Generated benchmark outputs
+benchmark_results.json
+local_example/**/benchmark_results.json
+
+# Runtime artifacts written to the repo root by ad-hoc runs / tests (vector
+# index + metadata paths, local vector db). Sources are never placed here.
+/test_index_path/
+/test_metadata_path/
+/vectordb/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
